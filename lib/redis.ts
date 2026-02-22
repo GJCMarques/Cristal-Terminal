@@ -57,5 +57,7 @@ export const redis = {
     await db.run('DELETE FROM kv WHERE key = ?', key)
     await db.run('DELETE FROM lists WHERE key = ?', key)
     return 1
-  }
+  },
+  ltrim: async () => { },
+  expire: async () => { },
 }

@@ -5,16 +5,17 @@
 // Estética Bloomberg: preto, âmbar, IBM Plex Mono
 // ============================================================
 
-import { useActionState, useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { loginAction } from './actions'
 import { Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react'
+import { signIn } from 'next-auth/react'
 
 function LoginForm() {
   const searchParams = useSearchParams()
   const from = searchParams.get('from') ?? '/'
 
-  const [estado, accao, aPensar] = useActionState(loginAction, null)
+  const [erro, setErro] = useState<string | null>(null)
+  const [aPensar, setAPensar] = useState(false)
   const [mostrarPass, setMostrarPass] = useState(false)
   const [hora, setHora] = useState('')
 
@@ -25,6 +26,31 @@ function LoginForm() {
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [])
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setAPensar(true)
+    setErro(null)
+
+    const formData = new FormData(e.currentTarget)
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+    const totpCode = formData.get('totpCode') as string
+
+    const res = await signIn('credentials', {
+      redirect: false,
+      email,
+      password,
+      totpCode,
+    })
+
+    if (res?.error) {
+      setErro('Credenciais inválidas ou erro na autenticação. Verifique os dados.')
+      setAPensar(false)
+    } else {
+      window.location.href = from
+    }
+  }
 
   return (
     <div className="w-full max-w-md mx-4">
@@ -42,7 +68,7 @@ function LoginForm() {
       </div>
 
       {/* ── Formulário ─────────────────────────────────────── */}
-      <form action={accao} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input type="hidden" name="from" value={from} />
 
         {/* Email */}
@@ -106,9 +132,9 @@ function LoginForm() {
         </div>
 
         {/* Erro */}
-        {estado?.erro && (
+        {erro && (
           <div className="flex items-start gap-2 px-3 py-2 bg-red-950 border border-red-900 rounded">
-            <span className="font-mono text-xs text-red-400">{estado.erro}</span>
+            <span className="font-mono text-xs text-red-400">{erro}</span>
           </div>
         )}
 
@@ -138,10 +164,10 @@ function LoginForm() {
         <p className="font-mono text-[9px] text-neutral-600 mb-2 tracking-widest uppercase">Acesso Demo</p>
         <div className="space-y-1">
           {[
-            { email: 'admin@cristal.pt',   role: 'ADMIN',   cor: '#F59E0B' },
+            { email: 'admin@cristal.pt', role: 'ADMIN', cor: '#F59E0B' },
             { email: 'analyst@cristal.pt', role: 'ANALYST', cor: '#3B82F6' },
-            { email: 'trader@cristal.pt',  role: 'TRADER',  cor: '#10B981' },
-            { email: 'viewer@cristal.pt',  role: 'VIEWER',  cor: '#6B7280' },
+            { email: 'trader@cristal.pt', role: 'TRADER', cor: '#10B981' },
+            { email: 'viewer@cristal.pt', role: 'VIEWER', cor: '#6B7280' },
           ].map(({ email, role, cor }) => (
             <div key={email} className="flex items-center justify-between font-mono text-[10px]">
               <span className="text-neutral-500">{email}</span>
