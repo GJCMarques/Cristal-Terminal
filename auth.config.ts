@@ -6,6 +6,7 @@
 import type { NextAuthConfig } from 'next-auth'
 
 export const authConfig: NextAuthConfig = {
+  trustHost: true,
   pages: {
     signIn: '/login',
   },
@@ -14,8 +15,8 @@ export const authConfig: NextAuthConfig = {
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
-      const loggedIn   = !!auth?.user
-      const path       = nextUrl.pathname
+      const loggedIn = !!auth?.user
+      const path = nextUrl.pathname
 
       // Rotas sempre públicas
       const isPublic =
@@ -25,7 +26,7 @@ export const authConfig: NextAuthConfig = {
         path.startsWith('/api/init-scheduler')
 
       if (isPublic) return true
-      if (loggedIn)  return true
+      if (loggedIn) return true
 
       // Redirecionar para /login guardando a URL de destino
       return Response.redirect(new URL(`/login?from=${encodeURIComponent(path)}`, nextUrl))
@@ -33,10 +34,10 @@ export const authConfig: NextAuthConfig = {
 
     jwt({ token, user }) {
       if (user) {
-        token.role  = (user as { role?: string }).role ?? 'VIEWER'
+        token.role = (user as { role?: string }).role ?? 'VIEWER'
         token.email = user.email ?? token.email
-        token.name  = user.name  ?? token.name
-        token.sub   = user.id    ?? token.sub
+        token.name = user.name ?? token.name
+        token.sub = user.id ?? token.sub
       }
       return token
     },
@@ -44,7 +45,7 @@ export const authConfig: NextAuthConfig = {
     session({ session, token }) {
       if (session.user && token) {
         (session.user as { role?: string }).role = (token.role as string) ?? 'VIEWER'
-        session.user.name  = token.name  as string
+        session.user.name = token.name as string
         session.user.email = token.email as string
       }
       return session

@@ -141,7 +141,7 @@ export function AnalisePanel() {
             msgs[idx] = {
               ...msgs[idx]!,
               conteudo:
-                '⚠ Serviço IA indisponível. Certifique-se que o Ollama está a correr: `ollama run llama3`',
+                '[AVISO] Serviço IA indisponível. Certifique-se que o Ollama está a correr: `ollama run llama3`',
             }
           }
           return { mensagensIA: msgs }
@@ -190,7 +190,7 @@ export function AnalisePanel() {
                   : '#6B728022',
               color: iaDisponivel === true ? '#10B981'
                 : iaDisponivel === false ? '#EF4444'
-                : '#6B7280',
+                  : '#6B7280',
             }}
           >
             <span className="animate-pulse">●</span>

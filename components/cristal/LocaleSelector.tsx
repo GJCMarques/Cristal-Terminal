@@ -5,6 +5,7 @@
 // ============================================================
 
 import { useState, useRef, useEffect } from 'react'
+import { Check } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 import { corParaTema } from '@/lib/utils'
 import { NOMES_LOCALE, BANDEIRAS_LOCALE, type Locale } from '@/lib/i18n'
@@ -12,10 +13,10 @@ import { NOMES_LOCALE, BANDEIRAS_LOCALE, type Locale } from '@/lib/i18n'
 const LOCALES: Locale[] = ['pt', 'en', 'es']
 
 export function LocaleSelector() {
-  const locale       = useTerminalStore((s) => s.locale) as Locale
+  const locale = useTerminalStore((s) => s.locale) as Locale
   const definirLocale = useTerminalStore((s) => s.definirLocale)
-  const temaActual   = useTerminalStore((s) => s.temaActual)
-  const corTema      = corParaTema(temaActual)
+  const temaActual = useTerminalStore((s) => s.temaActual)
+  const corTema = corParaTema(temaActual)
 
   const [aberto, setAberto] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -52,7 +53,7 @@ export function LocaleSelector() {
               <span className="text-[13px]">{BANDEIRAS_LOCALE[loc]}</span>
               <span className="text-neutral-300">{NOMES_LOCALE[loc]}</span>
               {locale === loc && (
-                <span className="ml-auto" style={{ color: corTema }}>✓</span>
+                <Check size={12} className="ml-auto" style={{ color: corTema }} />
               )}
             </button>
           ))}

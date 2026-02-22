@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react'
 import {
   Globe, Star, BookOpen, TrendingDown, TrendingUp, Flame, Circle,
   Search, Link2, Building2, Calendar, Map, Bitcoin, Newspaper, Zap,
-  HelpCircle, Keyboard, LayoutGrid, Wallet, Network, Bell, MessageSquare,
+  HelpCircle, Keyboard, LayoutGrid, Wallet, Network, Bell, MessageSquare, Check
 } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 import { corParaTema, CORES_TEMA } from '@/lib/utils'
@@ -216,7 +216,7 @@ export function TerminalHeader() {
                   >
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c }} />
                     <span className="text-neutral-300">{nomes[t] ?? t}</span>
-                    {temaActual === t && <span className="ml-auto" style={{ color: c }}>✓</span>}
+                    {temaActual === t && <Check size={12} className="ml-auto" style={{ color: c }} />}
                   </button>
                 )
               })}

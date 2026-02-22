@@ -6,6 +6,7 @@ import { corParaTema } from '@/lib/utils'
 // ============================================================
 
 import { useTerminalStore } from '@/store/terminal.store'
+import { TrendingUp, TrendingDown } from 'lucide-react'
 
 interface TickerStatus {
   label: string
@@ -15,14 +16,14 @@ interface TickerStatus {
 
 // Valores simulados para a status bar (em produção viria do store de mercado)
 const TICKERS_STATUS: TickerStatus[] = [
-  { label: 'PSI20',    valor: '6.832,14', variacao: +0.12 },
-  { label: 'DAX',      valor: '22.412,3', variacao: +0.31 },
-  { label: 'S&P500',   valor: '6.118,71', variacao: -0.08 },
-  { label: 'EUR/USD',  valor: '1,0823',   variacao: -0.05 },
-  { label: 'GBP/USD',  valor: '1,2641',   variacao: +0.03 },
-  { label: 'OURO',     valor: '2.932,50', variacao: +0.42 },
-  { label: 'BRENT',    valor: '74,20',    variacao: -1.82 },
-  { label: 'BTC/USD',  valor: '95.800',   variacao: +4.20 },
+  { label: 'PSI20', valor: '6.832,14', variacao: +0.12 },
+  { label: 'DAX', valor: '22.412,3', variacao: +0.31 },
+  { label: 'S&P500', valor: '6.118,71', variacao: -0.08 },
+  { label: 'EUR/USD', valor: '1,0823', variacao: -0.05 },
+  { label: 'GBP/USD', valor: '1,2641', variacao: +0.03 },
+  { label: 'OURO', valor: '2.932,50', variacao: +0.42 },
+  { label: 'BRENT', valor: '74,20', variacao: -1.82 },
+  { label: 'BTC/USD', valor: '95.800', variacao: +4.20 },
 ]
 
 function TickerChip({ item }: { item: TickerStatus }) {
@@ -33,8 +34,8 @@ function TickerChip({ item }: { item: TickerStatus }) {
     <div className="flex items-center gap-1.5 border-r border-neutral-800 px-3 shrink-0">
       <span className="font-mono text-[10px] text-neutral-500">{item.label}</span>
       <span className="font-mono text-[11px] text-white">{item.valor}</span>
-      <span className="font-mono text-[10px]" style={{ color: cor }}>
-        {sinal}
+      <span className="font-mono text-[10px] flex items-center justify-center gap-0.5" style={{ color: cor }}>
+        {item.variacao >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
         {Math.abs(item.variacao).toFixed(2)}%
       </span>
     </div>
@@ -47,26 +48,26 @@ export function StatusBar() {
     corParaTema(temaActual)
 
   const descricaoVista: Record<string, string> = {
-    'mapa-mundo':   'MAPA ECONÓMICO MUNDIAL',
-    bolhas:         'GRÁFICO DE BOLHAS',
-    screener:       'SCREENER DE ACÇÕES',
-    correlacao:     'MATRIZ DE CORRELAÇÃO',
-    mercado:        'MONITOR DE MERCADO GLOBAL',
-    candlestick:    `GRÁFICO DE VELAS${tickerActivo ? ` — ${tickerActivo}` : ''}`,
+    'mapa-mundo': 'MAPA ECONÓMICO MUNDIAL',
+    bolhas: 'GRÁFICO DE BOLHAS',
+    screener: 'SCREENER DE ACÇÕES',
+    correlacao: 'MATRIZ DE CORRELAÇÃO',
+    mercado: 'MONITOR DE MERCADO GLOBAL',
+    candlestick: `GRÁFICO DE VELAS${tickerActivo ? ` — ${tickerActivo}` : ''}`,
     'livro-ordens': `LIVRO DE ORDENS${tickerActivo ? ` — ${tickerActivo}` : ''}`,
-    'yield-curve':  'CURVA DE RENDIMENTO & BOND CALC',
-    noticias:       'MONITOR DE NOTÍCIAS',
-    watchlist:      'LISTA DE OBSERVAÇÃO',
-    analise:        `ANÁLISE IA${tickerActivo ? ` — ${tickerActivo}` : ''}`,
-    cripto:         'MERCADO DE CRIPTOMOEDAS',
-    macro:          'MONITOR MACROECONÓMICO',
-    heatmap:        'MAPA DE CALOR — S&P 500',
-    calendario:     'CALENDÁRIO ECONÓMICO',
-    portfolio:      'CARTEIRA & P&L — PORTFOLIO',
-    defi:           'DEFI / ON-CHAIN TRACKER',
-    sentinela:      'SENTINELA IA — ALERTAS & TRIGGERS',
-    chat:           'CHAT INSTITUCIONAL — MSG',
-    ajuda:          'CENTRO DE AJUDA',
+    'yield-curve': 'CURVA DE RENDIMENTO & BOND CALC',
+    noticias: 'MONITOR DE NOTÍCIAS',
+    watchlist: 'LISTA DE OBSERVAÇÃO',
+    analise: `ANÁLISE IA${tickerActivo ? ` — ${tickerActivo}` : ''}`,
+    cripto: 'MERCADO DE CRIPTOMOEDAS',
+    macro: 'MONITOR MACROECONÓMICO',
+    heatmap: 'MAPA DE CALOR — S&P 500',
+    calendario: 'CALENDÁRIO ECONÓMICO',
+    portfolio: 'CARTEIRA & P&L — PORTFOLIO',
+    defi: 'DEFI / ON-CHAIN TRACKER',
+    sentinela: 'SENTINELA IA — ALERTAS & TRIGGERS',
+    chat: 'CHAT INSTITUCIONAL — MSG',
+    ajuda: 'CENTRO DE AJUDA',
   }
 
   return (

@@ -8,6 +8,7 @@ import { corParaTema } from '@/lib/utils'
 
 import { useState, useEffect, useCallback } from 'react'
 import { useTerminalStore } from '@/store/terminal.store'
+import { Globe, Package, Search, X } from 'lucide-react'
 
 interface Noticia {
   id: string
@@ -26,35 +27,35 @@ interface Noticia {
 
 const COR_SENT: Record<string, string> = {
   positivo: '#10B981',
-  neutro:   '#6B7280',
+  neutro: '#6B7280',
   negativo: '#EF4444',
 }
 
 const ICONE_SENT: Record<string, string> = {
   positivo: '▲',
-  neutro:   '■',
+  neutro: '■',
   negativo: '▼',
 }
 
 const CATEGORIAS = [
-  { id: '',              label: 'Todas'          },
-  { id: 'mercados',      label: 'Mercados'       },
-  { id: 'tecnologia',    label: 'Tecnologia'     },
-  { id: 'cripto',        label: 'Cripto'         },
-  { id: 'macro',         label: 'Macro'          },
-  { id: 'commodities',   label: 'Commodities'    },
+  { id: '', label: 'Todas' },
+  { id: 'mercados', label: 'Mercados' },
+  { id: 'tecnologia', label: 'Tecnologia' },
+  { id: 'cripto', label: 'Cripto' },
+  { id: 'macro', label: 'Macro' },
+  { id: 'commodities', label: 'Commodities' },
   { id: 'bancos-centrais', label: 'Bcos. Centrais' },
-  { id: 'europa',        label: 'Europa'         },
-  { id: 'financeiro',    label: 'Financeiro'     },
+  { id: 'europa', label: 'Europa' },
+  { id: 'financeiro', label: 'Financeiro' },
 ]
 
 function tempoRelativo(timestamp: string): string {
   const diff = Date.now() - new Date(timestamp).getTime()
-  const min  = Math.floor(diff / 60000)
-  if (min < 1)  return 'Agora'
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return 'Agora'
   if (min < 60) return `${min}m`
   const h = Math.floor(min / 60)
-  if (h < 24)   return `${h}h`
+  if (h < 24) return `${h}h`
   return `${Math.floor(h / 24)}d`
 }
 
@@ -77,27 +78,27 @@ export function NewsPanel() {
   const { definirTickerActivo, definirVista, temaActual } = useTerminalStore()
   const corTema = corParaTema(temaActual)
 
-  const [noticias,      setNoticias]      = useState<Noticia[]>([])
-  const [seleccionada,  setSeleccionada]  = useState<Noticia | null>(null)
-  const [carregando,    setCarregando]    = useState(true)
-  const [pesquisa,      setPesquisa]      = useState('')
+  const [noticias, setNoticias] = useState<Noticia[]>([])
+  const [seleccionada, setSeleccionada] = useState<Noticia | null>(null)
+  const [carregando, setCarregando] = useState(true)
+  const [pesquisa, setPesquisa] = useState('')
   const [pesquisaInput, setPesquisaInput] = useState('')
-  const [categoria,     setCategoria]     = useState('')
-  const [pagina,        setPagina]        = useState(1)
-  const [total,         setTotal]         = useState(0)
-  const [fonteAPI,      setFonteAPI]      = useState<'newsapi' | 'mock'>('mock')
+  const [categoria, setCategoria] = useState('')
+  const [pagina, setPagina] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [fonteAPI, setFonteAPI] = useState<'newsapi' | 'mock'>('mock')
   const limite = 15
 
   const carregar = useCallback(async () => {
     setCarregando(true)
     try {
       const params = new URLSearchParams()
-      if (pesquisa)  params.set('q', pesquisa)
+      if (pesquisa) params.set('q', pesquisa)
       if (categoria) params.set('categoria', categoria)
       params.set('pagina', String(pagina))
       params.set('limite', String(limite))
 
-      const res  = await fetch(`/api/news?${params.toString()}`)
+      const res = await fetch(`/api/news?${params.toString()}`)
       const data = await res.json()
       setNoticias(data.noticias ?? [])
       setTotal(data.total ?? 0)
@@ -128,7 +129,7 @@ export function NewsPanel() {
           <div>
             <span className="text-xs font-bold" style={{ color: corTema }}>NWSM — MONITOR DE NOTÍCIAS</span>
             <span className="text-[10px] text-neutral-500 ml-2">
-              {fonteAPI === 'newsapi' ? '🌐 NewsAPI.org' : '📦 Local'} · {total} artigos
+              {fonteAPI === 'newsapi' ? <><Globe size={10} className="inline-block relative -top-0.5" /> NewsAPI.org</> : <><Package size={10} className="inline-block relative -top-0.5" /> Local</>} · {total} artigos
             </span>
           </div>
           <form onSubmit={submeterPesquisa} className="flex items-center gap-2">
@@ -140,9 +141,9 @@ export function NewsPanel() {
               className="bg-neutral-900 border border-neutral-700 rounded px-3 py-1 text-[11px] text-neutral-300 placeholder-neutral-600 outline-none w-40"
               style={{ fontFamily: 'IBM Plex Mono' }}
             />
-            <button type="submit" className="text-[10px] px-2 py-1 rounded border border-neutral-700 text-neutral-400 hover:text-white transition-colors">🔍</button>
+            <button type="submit" className="text-[10px] px-2 py-1 rounded border border-neutral-700 text-neutral-400 hover:text-white transition-colors flex items-center justify-center"><Search size={10} /></button>
             {(pesquisa || pesquisaInput) && (
-              <button type="button" onClick={() => { setPesquisa(''); setPesquisaInput('') }} className="text-neutral-500 hover:text-neutral-300 text-xs">✕</button>
+              <button type="button" onClick={() => { setPesquisa(''); setPesquisaInput('') }} className="text-neutral-500 hover:text-neutral-300 flex items-center justify-center"><X size={12} /></button>
             )}
           </form>
         </div>
@@ -157,8 +158,8 @@ export function NewsPanel() {
               className="text-[10px] px-2 py-0.5 rounded-full border whitespace-nowrap transition-colors shrink-0"
               style={{
                 borderColor: categoria === c.id ? corTema : '#374151',
-                color:       categoria === c.id ? corTema : '#6B7280',
-                background:  categoria === c.id ? corTema + '18' : 'transparent',
+                color: categoria === c.id ? corTema : '#6B7280',
+                background: categoria === c.id ? corTema + '18' : 'transparent',
               }}
             >
               {c.label}
@@ -192,8 +193,8 @@ export function NewsPanel() {
                   onKeyDown={(e) => e.key === 'Enter' && setSeleccionada(isSel ? null : n)}
                   className="border-b border-neutral-900 px-4 py-2.5 cursor-pointer transition-colors"
                   style={{
-                    background:  isSel ? corTema + '10' : 'transparent',
-                    borderLeft:  isSel ? `3px solid ${corTema}` : '3px solid transparent',
+                    background: isSel ? corTema + '10' : 'transparent',
+                    borderLeft: isSel ? `3px solid ${corTema}` : '3px solid transparent',
                   }}
                 >
                   <div className="flex items-start gap-2.5">
@@ -239,7 +240,7 @@ export function NewsPanel() {
               <span className="text-[10px] font-bold" style={{ color: COR_SENT[seleccionada.sentimento] }}>
                 {seleccionada.sentimento.toUpperCase()} {ICONE_SENT[seleccionada.sentimento]}
               </span>
-              <button type="button" onClick={() => setSeleccionada(null)} className="text-neutral-600 hover:text-neutral-400 text-xs">✕</button>
+              <button type="button" onClick={() => setSeleccionada(null)} className="text-neutral-600 hover:text-neutral-400 flex items-center justify-center"><X size={12} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               <div className="text-xs font-bold text-neutral-100 leading-snug mb-3">{seleccionada.titulo}</div>
@@ -290,7 +291,7 @@ export function NewsPanel() {
           {Array.from({ length: Math.min(7, totalPaginas) }, (_, i) => {
             const pg = pagina <= 4 ? i + 1
               : pagina >= totalPaginas - 3 ? totalPaginas - 6 + i
-              : pagina - 3 + i
+                : pagina - 3 + i
             if (pg < 1 || pg > totalPaginas) return null
             return (
               <button key={pg} type="button" onClick={() => setPagina(pg)}

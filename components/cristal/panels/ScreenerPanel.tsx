@@ -7,32 +7,33 @@ import { corParaTema } from '@/lib/utils'
 
 import { useState, useMemo } from 'react'
 import { useTerminalStore } from '@/store/terminal.store'
+import { Gem, Rocket, Crown, Mountain, Shield, TrendingUp, X, Globe } from 'lucide-react'
 import {
   ACOES_SCREENER, filtrarEOrdenar, PRESETS_SCREENER,
   type AccaoScreener, type OrdemScreener, type DirecaoOrdem, type FiltroScreener,
 } from '@/lib/mocks/screener'
 
 const COLUNAS: { key: OrdemScreener; label: string; width: string; fmt: (v: AccaoScreener) => string; cor?: (a: AccaoScreener) => string | undefined }[] = [
-  { key: 'ticker',            label: 'TICKER',  width: 'w-16', fmt: (a) => a.ticker },
-  { key: 'preco',             label: 'PREÇO',   width: 'w-20', fmt: (a) => `$${a.preco.toFixed(2)}` },
-  { key: 'variacao1D',        label: '1D%',     width: 'w-16', fmt: (a) => `${a.variacao1D >= 0 ? '+' : ''}${a.variacao1D.toFixed(2)}%`,  cor: (a) => a.variacao1D >= 0 ? '#10B981' : '#EF4444' },
-  { key: 'variacao52s',       label: '52S%',    width: 'w-16', fmt: (a) => `${a.variacao52s >= 0 ? '+' : ''}${a.variacao52s.toFixed(1)}%`, cor: (a) => a.variacao52s >= 0 ? '#10B981' : '#EF4444' },
-  { key: 'capitalMerc',       label: 'CAP($B)', width: 'w-20', fmt: (a) => a.capitalMerc >= 1000 ? `${(a.capitalMerc/1000).toFixed(1)}T` : `${a.capitalMerc.toFixed(0)}B` },
-  { key: 'pe',                label: 'P/E',     width: 'w-14', fmt: (a) => a.pe.toFixed(1) },
-  { key: 'dividendo',         label: 'DIV%',    width: 'w-14', fmt: (a) => `${a.dividendo.toFixed(2)}%`,    cor: (a) => a.dividendo > 2 ? '#10B981' : undefined },
-  { key: 'beta',              label: 'BETA',    width: 'w-14', fmt: (a) => a.beta.toFixed(2),               cor: (a) => a.beta > 1.5 ? '#F59E0B' : a.beta < 0.5 ? '#10B981' : undefined },
-  { key: 'margem',            label: 'MARG%',   width: 'w-14', fmt: (a) => `${a.margem.toFixed(1)}%`,       cor: (a) => a.margem > 20 ? '#10B981' : a.margem < 5 ? '#EF4444' : undefined },
-  { key: 'crescimentoReceita',label: 'CRESC%',  width: 'w-16', fmt: (a) => `${a.crescimentoReceita >= 0 ? '+' : ''}${a.crescimentoReceita.toFixed(1)}%`, cor: (a) => a.crescimentoReceita >= 10 ? '#10B981' : a.crescimentoReceita < 0 ? '#EF4444' : undefined },
-  { key: 'roe',               label: 'ROE%',    width: 'w-14', fmt: (a) => `${a.roe.toFixed(1)}%`,          cor: (a) => a.roe > 20 ? '#10B981' : undefined },
+  { key: 'ticker', label: 'TICKER', width: 'w-16', fmt: (a) => a.ticker },
+  { key: 'preco', label: 'PREÇO', width: 'w-20', fmt: (a) => `$${a.preco.toFixed(2)}` },
+  { key: 'variacao1D', label: '1D%', width: 'w-16', fmt: (a) => `${a.variacao1D >= 0 ? '+' : ''}${a.variacao1D.toFixed(2)}%`, cor: (a) => a.variacao1D >= 0 ? '#10B981' : '#EF4444' },
+  { key: 'variacao52s', label: '52S%', width: 'w-16', fmt: (a) => `${a.variacao52s >= 0 ? '+' : ''}${a.variacao52s.toFixed(1)}%`, cor: (a) => a.variacao52s >= 0 ? '#10B981' : '#EF4444' },
+  { key: 'capitalMerc', label: 'CAP($B)', width: 'w-20', fmt: (a) => a.capitalMerc >= 1000 ? `${(a.capitalMerc / 1000).toFixed(1)}T` : `${a.capitalMerc.toFixed(0)}B` },
+  { key: 'pe', label: 'P/E', width: 'w-14', fmt: (a) => a.pe.toFixed(1) },
+  { key: 'dividendo', label: 'DIV%', width: 'w-14', fmt: (a) => `${a.dividendo.toFixed(2)}%`, cor: (a) => a.dividendo > 2 ? '#10B981' : undefined },
+  { key: 'beta', label: 'BETA', width: 'w-14', fmt: (a) => a.beta.toFixed(2), cor: (a) => a.beta > 1.5 ? '#F59E0B' : a.beta < 0.5 ? '#10B981' : undefined },
+  { key: 'margem', label: 'MARG%', width: 'w-14', fmt: (a) => `${a.margem.toFixed(1)}%`, cor: (a) => a.margem > 20 ? '#10B981' : a.margem < 5 ? '#EF4444' : undefined },
+  { key: 'crescimentoReceita', label: 'CRESC%', width: 'w-16', fmt: (a) => `${a.crescimentoReceita >= 0 ? '+' : ''}${a.crescimentoReceita.toFixed(1)}%`, cor: (a) => a.crescimentoReceita >= 10 ? '#10B981' : a.crescimentoReceita < 0 ? '#EF4444' : undefined },
+  { key: 'roe', label: 'ROE%', width: 'w-14', fmt: (a) => `${a.roe.toFixed(1)}%`, cor: (a) => a.roe > 20 ? '#10B981' : undefined },
 ]
 
 export function ScreenerPanel() {
   const { definirTickerActivo, definirVista, temaActual } = useTerminalStore()
   const corTema = corParaTema(temaActual)
 
-  const [ordem,    setOrdem]    = useState<OrdemScreener>('capitalMerc')
-  const [dir,      setDir]      = useState<DirecaoOrdem>('desc')
-  const [filtros,  setFiltros]  = useState<FiltroScreener>({})
+  const [ordem, setOrdem] = useState<OrdemScreener>('capitalMerc')
+  const [dir, setDir] = useState<DirecaoOrdem>('desc')
+  const [filtros, setFiltros] = useState<FiltroScreener>({})
   const [pesquisa, setPesquisa] = useState('')
   const [presetActivo, setPresetActivo] = useState<string | null>(null)
 
@@ -62,6 +63,18 @@ export function ScreenerPanel() {
       setOrdem(p.ordem)
       setDir('desc')
       setPresetActivo(p.nome)
+    }
+  }
+
+  const getPresetIcon = (nome: string) => {
+    switch (nome) {
+      case 'Value Picks': return <Gem size={10} className="inline mr-1" />
+      case 'Growth Leaders': return <Rocket size={10} className="inline mr-1" />
+      case 'Dividend Kings': return <Crown size={10} className="inline mr-1" />
+      case 'Mega Cap': return <Mountain size={10} className="inline mr-1" />
+      case 'Low Volatility': return <Shield size={10} className="inline mr-1" />
+      case 'Momentum 52s': return <TrendingUp size={10} className="inline mr-1" />
+      default: return null
     }
   }
 
@@ -96,11 +109,11 @@ export function ScreenerPanel() {
             className="flex items-center gap-1.5 text-[10px] px-3 py-1 rounded border whitespace-nowrap transition-colors shrink-0"
             style={{
               borderColor: presetActivo === p.nome ? corTema : '#374151',
-              color:       presetActivo === p.nome ? corTema : '#9CA3AF',
-              background:  presetActivo === p.nome ? corTema + '18' : 'transparent',
+              color: presetActivo === p.nome ? corTema : '#9CA3AF',
+              background: presetActivo === p.nome ? corTema + '18' : 'transparent',
             }}
           >
-            <span>{p.icone}</span>
+            {getPresetIcon(p.nome)}
             <span>{p.nome}</span>
           </button>
         ))}
@@ -110,7 +123,7 @@ export function ScreenerPanel() {
             onClick={() => { setFiltros({}); setPresetActivo(null) }}
             className="text-[10px] px-2 py-1 rounded border border-neutral-700 text-neutral-500 hover:text-neutral-300 transition-colors shrink-0"
           >
-            ✕ Limpar
+            <X size={10} className="inline mr-1" /> Limpar
           </button>
         )}
       </div>
@@ -167,7 +180,7 @@ export function ScreenerPanel() {
           <thead className="sticky top-0 bg-[#0A0A0A] z-10">
             <tr className="border-b border-neutral-800">
               <th className="text-left px-3 py-2 text-neutral-600 font-normal w-6">#</th>
-              <th className="text-left px-3 py-2 text-neutral-600 font-normal w-8">🌍</th>
+              <th className="text-left px-3 py-2 text-neutral-600 font-normal w-8"><Globe size={11} className="inline-block" /></th>
               {COLUNAS.map((col) => (
                 <th
                   key={col.key}

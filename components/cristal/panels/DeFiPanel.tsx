@@ -6,7 +6,7 @@ import { corParaTema } from '@/lib/utils'
 // ============================================================
 
 import { useState, useEffect, useCallback } from 'react'
-import { Network, TrendingUp, TrendingDown, RefreshCw, Layers } from 'lucide-react'
+import { Network, TrendingUp, TrendingDown, RefreshCw, Layers, Circle, Package } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 
 // ── Tipos ─────────────────────────────────────────────────────
@@ -38,30 +38,30 @@ interface DexVolume {
 // ── Mock data (fallback) ───────────────────────────────────────
 
 const MOCK_PROTOCOLOS: ProtocoloDefi[] = [
-  { id: 'aave',       name: 'Aave',        tvl: 21800000000,  change1d: +1.24,  change7d: +5.2,  chain: 'Ethereum', category: 'Lending',    symbol: 'AAVE' },
-  { id: 'lido',       name: 'Lido',        tvl: 35600000000,  change1d: +0.82,  change7d: +3.8,  chain: 'Ethereum', category: 'Liquid Stk', symbol: 'LDO' },
-  { id: 'uniswap',    name: 'Uniswap',     tvl: 6200000000,   change1d: -0.45,  change7d: -1.2,  chain: 'Ethereum', category: 'DEX',        symbol: 'UNI' },
-  { id: 'makerdao',   name: 'MakerDAO',    tvl: 8900000000,   change1d: +0.31,  change7d: +2.1,  chain: 'Ethereum', category: 'CDP',        symbol: 'MKR' },
-  { id: 'compound',   name: 'Compound',    tvl: 3100000000,   change1d: -1.20,  change7d: -4.5,  chain: 'Ethereum', category: 'Lending',    symbol: 'COMP' },
-  { id: 'curve',      name: 'Curve',       tvl: 4500000000,   change1d: +0.55,  change7d: +1.8,  chain: 'Ethereum', category: 'DEX',        symbol: 'CRV' },
-  { id: 'pancakeswap',name: 'PancakeSwap', tvl: 2800000000,   change1d: +2.10,  change7d: +8.5,  chain: 'BSC',      category: 'DEX',        symbol: 'CAKE' },
-  { id: 'jito',       name: 'Jito',        tvl: 4200000000,   change1d: +3.40,  change7d: +12.1, chain: 'Solana',   category: 'Liquid Stk', symbol: 'JTO' },
-  { id: 'jupiter',    name: 'Jupiter',     tvl: 1900000000,   change1d: +1.80,  change7d: +6.3,  chain: 'Solana',   category: 'DEX Aggr',   symbol: 'JUP' },
-  { id: 'morpho',     name: 'Morpho',      tvl: 5800000000,   change1d: +0.90,  change7d: +4.2,  chain: 'Ethereum', category: 'Lending',    symbol: 'MORPHO' },
-  { id: 'eigen',      name: 'EigenLayer',  tvl: 12600000000,  change1d: +1.60,  change7d: +7.8,  chain: 'Ethereum', category: 'Restaking',  symbol: 'EIGEN' },
-  { id: 'pendle',     name: 'Pendle',      tvl: 3400000000,   change1d: -0.80,  change7d: -2.3,  chain: 'Ethereum', category: 'Yield',      symbol: 'PENDLE' },
-  { id: 'gmx',        name: 'GMX',         tvl: 850000000,    change1d: +1.20,  change7d: +4.0,  chain: 'Arbitrum', category: 'Perps',      symbol: 'GMX' },
-  { id: 'dydx',       name: 'dYdX',        tvl: 520000000,    change1d: -1.50,  change7d: -3.8,  chain: 'Cosmos',   category: 'Perps',      symbol: 'DYDX' },
-  { id: 'rocketpool', name: 'Rocket Pool', tvl: 3100000000,   change1d: +0.45,  change7d: +1.5,  chain: 'Ethereum', category: 'Liquid Stk', symbol: 'RPL' },
+  { id: 'aave', name: 'Aave', tvl: 21800000000, change1d: +1.24, change7d: +5.2, chain: 'Ethereum', category: 'Lending', symbol: 'AAVE' },
+  { id: 'lido', name: 'Lido', tvl: 35600000000, change1d: +0.82, change7d: +3.8, chain: 'Ethereum', category: 'Liquid Stk', symbol: 'LDO' },
+  { id: 'uniswap', name: 'Uniswap', tvl: 6200000000, change1d: -0.45, change7d: -1.2, chain: 'Ethereum', category: 'DEX', symbol: 'UNI' },
+  { id: 'makerdao', name: 'MakerDAO', tvl: 8900000000, change1d: +0.31, change7d: +2.1, chain: 'Ethereum', category: 'CDP', symbol: 'MKR' },
+  { id: 'compound', name: 'Compound', tvl: 3100000000, change1d: -1.20, change7d: -4.5, chain: 'Ethereum', category: 'Lending', symbol: 'COMP' },
+  { id: 'curve', name: 'Curve', tvl: 4500000000, change1d: +0.55, change7d: +1.8, chain: 'Ethereum', category: 'DEX', symbol: 'CRV' },
+  { id: 'pancakeswap', name: 'PancakeSwap', tvl: 2800000000, change1d: +2.10, change7d: +8.5, chain: 'BSC', category: 'DEX', symbol: 'CAKE' },
+  { id: 'jito', name: 'Jito', tvl: 4200000000, change1d: +3.40, change7d: +12.1, chain: 'Solana', category: 'Liquid Stk', symbol: 'JTO' },
+  { id: 'jupiter', name: 'Jupiter', tvl: 1900000000, change1d: +1.80, change7d: +6.3, chain: 'Solana', category: 'DEX Aggr', symbol: 'JUP' },
+  { id: 'morpho', name: 'Morpho', tvl: 5800000000, change1d: +0.90, change7d: +4.2, chain: 'Ethereum', category: 'Lending', symbol: 'MORPHO' },
+  { id: 'eigen', name: 'EigenLayer', tvl: 12600000000, change1d: +1.60, change7d: +7.8, chain: 'Ethereum', category: 'Restaking', symbol: 'EIGEN' },
+  { id: 'pendle', name: 'Pendle', tvl: 3400000000, change1d: -0.80, change7d: -2.3, chain: 'Ethereum', category: 'Yield', symbol: 'PENDLE' },
+  { id: 'gmx', name: 'GMX', tvl: 850000000, change1d: +1.20, change7d: +4.0, chain: 'Arbitrum', category: 'Perps', symbol: 'GMX' },
+  { id: 'dydx', name: 'dYdX', tvl: 520000000, change1d: -1.50, change7d: -3.8, chain: 'Cosmos', category: 'Perps', symbol: 'DYDX' },
+  { id: 'rocketpool', name: 'Rocket Pool', tvl: 3100000000, change1d: +0.45, change7d: +1.5, chain: 'Ethereum', category: 'Liquid Stk', symbol: 'RPL' },
 ]
 
 const MOCK_DEX_VOLUMES: DexVolume[] = [
-  { name: 'Uniswap V3',    volume24h: 1800000000, change24h: +12.4, chain: 'Ethereum' },
-  { name: 'PancakeSwap',   volume24h: 980000000,  change24h: +8.2,  chain: 'BSC' },
-  { name: 'Jupiter',       volume24h: 1200000000, change24h: +21.8, chain: 'Solana' },
-  { name: 'Curve',         volume24h: 420000000,  change24h: -5.3,  chain: 'Ethereum' },
-  { name: 'dYdX',          volume24h: 680000000,  change24h: +3.1,  chain: 'Cosmos' },
-  { name: 'GMX',           volume24h: 340000000,  change24h: +7.9,  chain: 'Arbitrum' },
+  { name: 'Uniswap V3', volume24h: 1800000000, change24h: +12.4, chain: 'Ethereum' },
+  { name: 'PancakeSwap', volume24h: 980000000, change24h: +8.2, chain: 'BSC' },
+  { name: 'Jupiter', volume24h: 1200000000, change24h: +21.8, chain: 'Solana' },
+  { name: 'Curve', volume24h: 420000000, change24h: -5.3, chain: 'Ethereum' },
+  { name: 'dYdX', volume24h: 680000000, change24h: +3.1, chain: 'Cosmos' },
+  { name: 'GMX', volume24h: 340000000, change24h: +7.9, chain: 'Arbitrum' },
 ]
 
 const MOCK_GAS: GasPreco = { lento: 12, normal: 18, rapido: 28 }
@@ -76,24 +76,24 @@ function fmtTvl(v: number): string {
 
 const COR_CHAIN: Record<string, string> = {
   'Ethereum': '#627EEA',
-  'BSC':      '#F3BA2F',
-  'Solana':   '#9945FF',
+  'BSC': '#F3BA2F',
+  'Solana': '#9945FF',
   'Arbitrum': '#28A0F0',
-  'Cosmos':   '#2E3148',
-  'Polygon':  '#8247E5',
+  'Cosmos': '#2E3148',
+  'Polygon': '#8247E5',
 }
 
 export function DeFiPanel() {
   const { temaActual } = useTerminalStore()
   const corTema = corParaTema(temaActual)
 
-  const [protocolos,  setProtocolos]  = useState<ProtocoloDefi[]>(MOCK_PROTOCOLOS)
-  const [dexVolumes,  setDexVolumes]  = useState<DexVolume[]>(MOCK_DEX_VOLUMES)
-  const [gas,         setGas]         = useState<GasPreco>(MOCK_GAS)
-  const [aba,         setAba]         = useState<'tvl' | 'dex' | 'gas'>('tvl')
+  const [protocolos, setProtocolos] = useState<ProtocoloDefi[]>(MOCK_PROTOCOLOS)
+  const [dexVolumes, setDexVolumes] = useState<DexVolume[]>(MOCK_DEX_VOLUMES)
+  const [gas, setGas] = useState<GasPreco>(MOCK_GAS)
+  const [aba, setAba] = useState<'tvl' | 'dex' | 'gas'>('tvl')
   const [filtroChain, setFiltroChain] = useState<string>('ALL')
-  const [carregando,  setCarregando]  = useState(false)
-  const [fonte,       setFonte]       = useState<'live' | 'mock'>('mock')
+  const [carregando, setCarregando] = useState(false)
+  const [fonte, setFonte] = useState<'live' | 'mock'>('mock')
 
   const carregarDados = useCallback(async () => {
     setCarregando(true)
@@ -111,14 +111,14 @@ export function DeFiPanel() {
           .sort((a: { tvl: number }, b: { tvl: number }) => b.tvl - a.tvl)
           .slice(0, 15)
           .map((p: { slug: string; name: string; tvl: number; change_1d: number; change_7d: number; chain: string; category: string; symbol: string }) => ({
-            id:       p.slug,
-            name:     p.name,
-            tvl:      p.tvl,
+            id: p.slug,
+            name: p.name,
+            tvl: p.tvl,
             change1d: p.change_1d ?? 0,
             change7d: p.change_7d ?? 0,
-            chain:    p.chain ?? 'Multi',
+            chain: p.chain ?? 'Multi',
             category: p.category ?? '—',
-            symbol:   p.symbol ?? '—',
+            symbol: p.symbol ?? '—',
           }))
         setProtocolos(top)
         setFonte('live')
@@ -133,10 +133,10 @@ export function DeFiPanel() {
           .sort((a: { totalVolume24h: number }, b: { totalVolume24h: number }) => b.totalVolume24h - a.totalVolume24h)
           .slice(0, 6)
           .map((p: { name: string; totalVolume24h: number; change_1d: number; chain: string }) => ({
-            name:      p.name,
+            name: p.name,
             volume24h: p.totalVolume24h ?? 0,
             change24h: p.change_1d ?? 0,
-            chain:     p.chain ?? 'Multi',
+            chain: p.chain ?? 'Multi',
           }))
         if (top.length > 0) setDexVolumes(top)
       }
@@ -155,7 +155,7 @@ export function DeFiPanel() {
     : protocolos.filter((p) => p.chain === filtroChain)
 
   const tvlTotal = protocolos.reduce((s, p) => s + p.tvl, 0)
-  const tvlDia   = protocolosFiltrados.reduce((s, p) => s + (p.change1d / 100) * p.tvl, 0)
+  const tvlDia = protocolosFiltrados.reduce((s, p) => s + (p.change1d / 100) * p.tvl, 0)
 
   return (
     <div className="h-full flex flex-col bg-[#0A0A0A] font-mono overflow-hidden">
@@ -169,7 +169,7 @@ export function DeFiPanel() {
             className="text-[9px] px-1.5 py-0.5 rounded"
             style={{ backgroundColor: fonte === 'live' ? '#10B98122' : '#37414122', color: fonte === 'live' ? '#10B981' : '#6B7280' }}
           >
-            {fonte === 'live' ? '🟢 LIVE DefiLlama' : '📦 Mock'}
+            {fonte === 'live' ? <><Circle size={10} className="inline-block fill-emerald-500 text-emerald-500 relative -top-0.5" /> LIVE DefiLlama</> : <><Package size={10} className="inline-block relative -top-0.5" /> Mock</>}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -189,8 +189,8 @@ export function DeFiPanel() {
               className="text-[10px] px-2.5 py-1 rounded border transition-colors"
               style={{
                 borderColor: aba === a ? corTema : '#374151',
-                color:       aba === a ? corTema : '#6B7280',
-                background:  aba === a ? corTema + '18' : 'transparent',
+                color: aba === a ? corTema : '#6B7280',
+                background: aba === a ? corTema + '18' : 'transparent',
               }}
             >
               {a === 'tvl' ? 'TVL TOP' : a === 'dex' ? 'DEX VOL' : 'GAS'}
@@ -245,8 +245,8 @@ export function DeFiPanel() {
                   className="text-[9px] px-2 py-0.5 rounded border whitespace-nowrap transition-colors"
                   style={{
                     borderColor: filtroChain === c ? (COR_CHAIN[c] ?? corTema) : '#374151',
-                    color:       filtroChain === c ? (COR_CHAIN[c] ?? corTema) : '#6B7280',
-                    background:  filtroChain === c ? (COR_CHAIN[c] ?? corTema) + '22' : 'transparent',
+                    color: filtroChain === c ? (COR_CHAIN[c] ?? corTema) : '#6B7280',
+                    background: filtroChain === c ? (COR_CHAIN[c] ?? corTema) + '22' : 'transparent',
                   }}
                 >
                   {c}
@@ -345,9 +345,9 @@ export function DeFiPanel() {
             </div>
             <div className="grid grid-cols-3 gap-8 w-full max-w-xl">
               {[
-                { label: 'LENTO',   val: gas.lento,  cor: '#10B981', eta: '~5 min' },
-                { label: 'NORMAL',  val: gas.normal, cor: '#F59E0B', eta: '~1 min' },
-                { label: 'RÁPIDO',  val: gas.rapido, cor: '#EF4444', eta: '<30 seg' },
+                { label: 'LENTO', val: gas.lento, cor: '#10B981', eta: '~5 min' },
+                { label: 'NORMAL', val: gas.normal, cor: '#F59E0B', eta: '~1 min' },
+                { label: 'RÁPIDO', val: gas.rapido, cor: '#EF4444', eta: '<30 seg' },
               ].map((g) => (
                 <div key={g.label} className="flex flex-col items-center border border-neutral-800 rounded-lg p-6">
                   <div className="text-[9px] text-neutral-600 mb-2">{g.label}</div>

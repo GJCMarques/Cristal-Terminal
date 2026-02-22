@@ -3,6 +3,7 @@ import { corParaTema } from '@/lib/utils'
 
 import { useState, useCallback } from 'react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, Cell } from 'recharts'
+import { Zap } from 'lucide-react'
 import { DADOS_MACRO, BANCOS_CENTRAIS, type DadosMacro } from '@/lib/mocks/macro'
 import { useTerminalStore } from '@/store/terminal.store'
 
@@ -76,7 +77,7 @@ export function MacroPanel() {
       })
       if (!res.ok) throw new Error()
       const reader = res.body!.getReader(); const dec = new TextDecoder(); let total = ''
-      for (;;) { const { done, value } = await reader.read(); if (done) break; total += dec.decode(value, { stream: true }); setAnaliseIA(total) }
+      for (; ;) { const { done, value } = await reader.read(); if (done) break; total += dec.decode(value, { stream: true }); setAnaliseIA(total) }
     } catch { setAnaliseIA('Serviço IA indisponível.') }
     finally { setIaLoading(false) }
   }, [iaLoading, iaDisponivel])
@@ -97,8 +98,8 @@ export function MacroPanel() {
           <span className="font-mono text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: corTema + '22', color: corTema }}>MACRO</span>
         </div>
         <button type="button" onClick={gerarAnalise} disabled={iaLoading || !iaDisponivel}
-          className="font-mono text-[10px] px-3 py-1 rounded disabled:opacity-40" style={{ backgroundColor: corTema + '33', color: corTema }}>
-          {iaLoading ? '⟳ A analisar…' : '⚡ Análise IA'}
+          className="font-mono text-[10px] px-3 py-1 rounded disabled:opacity-40 flex items-center justify-center gap-1" style={{ backgroundColor: corTema + '33', color: corTema }}>
+          {iaLoading ? '⟳ A analisar…' : <><Zap size={10} /> Análise IA</>}
         </button>
       </div>
 

@@ -2,6 +2,7 @@
 import { corParaTema } from '@/lib/utils'
 
 import { useState, useCallback } from 'react'
+import { Zap } from 'lucide-react'
 import { CRYPTOS, METRICAS_GLOBAIS, formatarCapMerc, formatarPreco, type CriptoItem } from '@/lib/mocks/crypto'
 import { useTerminalStore } from '@/store/terminal.store'
 
@@ -44,7 +45,7 @@ function GaugeIndicador({ valor, label }: { valor: number; label: string }) {
 
 function CriptoRow({ item, onSeleccionar }: { item: CriptoItem; onSeleccionar: (t: string) => void }) {
   const cor24h = item.variacao24h >= 0 ? '#10B981' : '#EF4444'
-  const cor7d  = item.variacao7d  >= 0 ? '#10B981' : '#EF4444'
+  const cor7d = item.variacao7d >= 0 ? '#10B981' : '#EF4444'
 
   return (
     <div
@@ -110,7 +111,7 @@ export function CriptoPanel() {
       const reader = res.body!.getReader()
       const dec = new TextDecoder()
       let total = ''
-      for (;;) {
+      for (; ;) {
         const { done, value } = await reader.read()
         if (done) break
         total += dec.decode(value, { stream: true })
@@ -131,10 +132,10 @@ export function CriptoPanel() {
         <button
           type="button" onClick={gerarAnaliseIA}
           disabled={iaLoading || !iaDisponivel}
-          className="font-mono text-[10px] px-3 py-1 rounded disabled:opacity-40 transition-colors"
+          className="font-mono text-[10px] px-3 py-1 rounded disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5"
           style={{ backgroundColor: corTema + '33', color: corTema }}
         >
-          {iaLoading ? '⟳ A analisar…' : '⚡ Análise IA'}
+          {iaLoading ? '⟳ A analisar…' : <><Zap size={10} /> Análise IA</>}
         </button>
       </div>
 

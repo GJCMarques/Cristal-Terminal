@@ -7,43 +7,43 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { Send, Circle, Hash, Users } from 'lucide-react'
+import { Send, Circle, Hash, Users, ChevronRight } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 import { corParaTema } from '@/lib/utils'
 import type { Role } from '@/lib/users'
 
 interface Mensagem {
-  id:     string
+  id: string
   userId: string
-  nome:   string
-  role:   Role
-  texto:  string
-  canal:  string
-  ts:     number
+  nome: string
+  role: Role
+  texto: string
+  canal: string
+  ts: number
 }
 
 interface UtilizadorOnline {
   email: string
-  nome:  string
-  role:  Role
+  nome: string
+  role: Role
 }
 
 const CANAIS = ['geral', 'mercado', 'cripto', 'macro', 'defi'] as const
 type Canal = typeof CANAIS[number]
 
 const LABEL_CANAL: Record<Canal, string> = {
-  geral:   '#geral',
+  geral: '#geral',
   mercado: '#mercado',
-  cripto:  '#cripto',
-  macro:   '#macro',
-  defi:    '#defi',
+  cripto: '#cripto',
+  macro: '#macro',
+  defi: '#defi',
 }
 
 const COR_ROLE: Record<string, string> = {
-  ADMIN:   '#F59E0B',
+  ADMIN: '#F59E0B',
   ANALYST: '#3B82F6',
-  TRADER:  '#10B981',
-  VIEWER:  '#6B7280',
+  TRADER: '#10B981',
+  VIEWER: '#6B7280',
 }
 
 function BolhaMensagem({
@@ -56,7 +56,7 @@ function BolhaMensagem({
   corTema: string
 }) {
   const hora = new Date(msg.ts).toLocaleTimeString('pt-PT', {
-    hour:   '2-digit',
+    hour: '2-digit',
     minute: '2-digit',
   })
   const cor = COR_ROLE[msg.role] ?? '#6B7280'
@@ -76,12 +76,12 @@ function BolhaMensagem({
         className="max-w-[75%] rounded px-3 py-1.5 font-mono text-xs leading-relaxed"
         style={euSou ? {
           backgroundColor: corTema + '22',
-          border:          `1px solid ${corTema}44`,
-          color:           '#e5e5e5',
+          border: `1px solid ${corTema}44`,
+          color: '#e5e5e5',
         } : {
           backgroundColor: '#161616',
-          border:          '1px solid #2a2a2a',
-          color:           '#d4d4d4',
+          border: '1px solid #2a2a2a',
+          color: '#d4d4d4',
         }}
       >
         {msg.texto}
@@ -100,17 +100,17 @@ export function ChatPanel() {
   const incrementarChatNaoLidas = useTerminalStore((s) => s.incrementarChatNaoLidas)
   const corTema = corParaTema(temaActual)
 
-  const [canal,    setCanal]    = useState<Canal>('geral')
-  const [msgs,     setMsgs]     = useState<Mensagem[]>([])
-  const [texto,    setTexto]    = useState('')
-  const [online,   setOnline]   = useState<UtilizadorOnline[]>([])
+  const [canal, setCanal] = useState<Canal>('geral')
+  const [msgs, setMsgs] = useState<Mensagem[]>([])
+  const [texto, setTexto] = useState('')
+  const [online, setOnline] = useState<UtilizadorOnline[]>([])
   const [enviando, setEnviando] = useState(false)
   const [mostrarOnline, setMostrarOnline] = useState(false)
 
-  const listRef      = useRef<HTMLDivElement>(null)
-  const inputRef     = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const eventoSource = useRef<EventSource | null>(null)
-  const canalRef     = useRef(canal)
+  const canalRef = useRef(canal)
 
   canalRef.current = canal
 
@@ -125,7 +125,7 @@ export function ChatPanel() {
   // Carregar histórico ao mudar canal
   const carregarHistorico = useCallback(async (c: Canal) => {
     try {
-      const res  = await fetch(`/api/chat/messages?canal=${c}`)
+      const res = await fetch(`/api/chat/messages?canal=${c}`)
       const data = await res.json()
       setMsgs(data.mensagens ?? [])
     } catch {
@@ -178,11 +178,11 @@ export function ChatPanel() {
     const actualizar = async () => {
       try {
         await fetch('/api/chat/presence', {
-          method:  'POST',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ canal }),
+          body: JSON.stringify({ canal }),
         })
-        const res  = await fetch(`/api/chat/presence?canal=${canal}`)
+        const res = await fetch(`/api/chat/presence?canal=${canal}`)
         const data = await res.json()
         setOnline(data.online ?? [])
       } catch { /* graceful */ }
@@ -198,9 +198,9 @@ export function ChatPanel() {
     setEnviando(true)
     try {
       const res = await fetch('/api/chat/send', {
-        method:  'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ texto: texto.trim(), canal }),
+        body: JSON.stringify({ texto: texto.trim(), canal }),
       })
       if (res.ok) {
         const data = await res.json()
@@ -230,9 +230,9 @@ export function ChatPanel() {
             onClick={() => setCanal(c)}
             className="flex items-center gap-1 px-3 py-2 text-[10px] font-bold border-r border-neutral-900 shrink-0 transition-colors whitespace-nowrap"
             style={{
-              color:           canal === c ? corTema : '#555',
+              color: canal === c ? corTema : '#555',
               backgroundColor: canal === c ? corTema + '11' : 'transparent',
-              borderBottom:    canal === c ? `2px solid ${corTema}` : '2px solid transparent',
+              borderBottom: canal === c ? `2px solid ${corTema}` : '2px solid transparent',
             }}
           >
             <Hash size={8} />
@@ -298,7 +298,7 @@ export function ChatPanel() {
       {/* ── Linha de composição ──────────────────────────────── */}
       <div className="flex items-center gap-2 px-3 py-2 border-t border-neutral-800 shrink-0">
         <span className="text-neutral-600 text-[10px] shrink-0">{LABEL_CANAL[canal]}</span>
-        <span className="text-neutral-700">▶</span>
+        <span className="text-neutral-700 flex items-center justify-center"><ChevronRight size={12} /></span>
         <input
           ref={inputRef}
           type="text"

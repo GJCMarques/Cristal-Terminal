@@ -8,6 +8,7 @@ import { corParaTema } from '@/lib/utils'
 // Suporta: histórico (↑/↓), autocomplete, validação, F-keys.
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { X } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 import { obterSugestoes, type SugestaoComando } from '@/lib/command-parser'
 import type { VistaTerminal } from '@/types/terminal'
@@ -183,8 +184,8 @@ export function CommandLine() {
 
         {/* Indicador de erro */}
         {erro && (
-          <span className="font-mono text-xs text-red-400 shrink-0 max-w-[300px] truncate">
-            ✕ {erro}
+          <span className="font-mono text-xs text-red-400 shrink-0 max-w-[300px] truncate flex items-center justify-center">
+            <X size={12} className="inline mr-1" /> {erro}
           </span>
         )}
 

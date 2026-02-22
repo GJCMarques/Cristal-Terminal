@@ -1,5 +1,5 @@
-'use client'
 import { corParaTema } from '@/lib/utils'
+import { DollarSign, TrendingUp, HardHat, Landmark, BarChart2, Zap } from 'lucide-react'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Mapa Mundial Económico
@@ -22,12 +22,12 @@ import {
 // Fonte de dados GeoJSON (world-atlas via CDN, projecto Natural Earth 110m)
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
-const METRICAS: { id: MetricaMapa; label: string; unidade: string; icone: string }[] = [
-  { id: 'pib',        label: 'PIB per Capita',    unidade: 'k$',  icone: '💰' },
-  { id: 'inflacao',   label: 'Inflação',           unidade: '%',   icone: '📈' },
-  { id: 'desemprego', label: 'Desemprego',         unidade: '%',   icone: '👷' },
-  { id: 'divida',     label: 'Dívida/PIB',         unidade: '%',   icone: '🏛' },
-  { id: 'mercado',    label: 'Mercado YTD',        unidade: '%',   icone: '📊' },
+const METRICAS: { id: MetricaMapa; label: string; unidade: string; icone: React.ReactNode }[] = [
+  { id: 'pib', label: 'PIB per Capita', unidade: 'k$', icone: <DollarSign size={13} className="inline-block" /> },
+  { id: 'inflacao', label: 'Inflação', unidade: '%', icone: <TrendingUp size={13} className="inline-block" /> },
+  { id: 'desemprego', label: 'Desemprego', unidade: '%', icone: <HardHat size={13} className="inline-block" /> },
+  { id: 'divida', label: 'Dívida/PIB', unidade: '%', icone: <Landmark size={13} className="inline-block" /> },
+  { id: 'mercado', label: 'Mercado YTD', unidade: '%', icone: <BarChart2 size={13} className="inline-block" /> },
 ]
 
 // Mapeamento ISO 3166-1 alpha-3 para dados
@@ -37,21 +37,21 @@ const DADOS_MAP: Record<string, DadosPais> = Object.fromEntries(
 
 function getValorMetrica(d: DadosPais, m: MetricaMapa): number {
   switch (m) {
-    case 'pib':        return d.pib
-    case 'inflacao':   return d.inflacao
+    case 'pib': return d.pib
+    case 'inflacao': return d.inflacao
     case 'desemprego': return d.desemprego
-    case 'divida':     return d.dividaPublica
-    case 'mercado':    return d.mercado
+    case 'divida': return d.dividaPublica
+    case 'mercado': return d.mercado
   }
 }
 
 function formatarValor(v: number, m: MetricaMapa): string {
   switch (m) {
-    case 'pib':        return `$${v.toFixed(1)}k`
-    case 'inflacao':   return `${v.toFixed(1)}%`
+    case 'pib': return `$${v.toFixed(1)}k`
+    case 'inflacao': return `${v.toFixed(1)}%`
     case 'desemprego': return `${v.toFixed(1)}%`
-    case 'divida':     return `${v.toFixed(1)}%`
-    case 'mercado':    return `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`
+    case 'divida': return `${v.toFixed(1)}%`
+    case 'mercado': return `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`
   }
 }
 
@@ -131,10 +131,10 @@ const PainelInfo = memo(function PainelInfo({
       <button
         type="button"
         onClick={onVerAnalise}
-        className="w-full py-1.5 text-[10px] font-bold rounded border transition-colors"
+        className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded border transition-colors"
         style={{ borderColor: corTema, color: corTema, background: corTema + '15' }}
       >
-        ⚡ Análise IA — {pais.nome}
+        <Zap size={10} /> Análise IA — {pais.nome}
       </button>
     </div>
   )
@@ -144,18 +144,18 @@ export function MapaMundoPanel() {
   const { temaActual, definirVista, definirTickerActivo } = useTerminalStore()
   const corTema = corParaTema(temaActual)
 
-  const [metrica,    setMetrica]    = useState<MetricaMapa>('pib')
-  const [paisSel,    setPaisSel]    = useState<DadosPais | null>(null)
-  const [tooltip,    setTooltip]    = useState<TooltipInfo | null>(null)
-  const [posicao,    setPosicao]    = useState<[number, number]>([0, 0])
-  const [zoom,       setZoom]       = useState(1)
+  const [metrica, setMetrica] = useState<MetricaMapa>('pib')
+  const [paisSel, setPaisSel] = useState<DadosPais | null>(null)
+  const [tooltip, setTooltip] = useState<TooltipInfo | null>(null)
+  const [posicao, setPosicao] = useState<[number, number]>([0, 0])
+  const [zoom, setZoom] = useState(1)
   const legenda = getLegendaMetrica(metrica)
 
   const handleGeoClick = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (geo: any) => {
       const iso3 = geo.properties?.['Alpha-3'] ?? geo.id
-      const pais  = DADOS_MAP[iso3]
+      const pais = DADOS_MAP[iso3]
       if (pais) setPaisSel(pais)
     },
     []
@@ -178,11 +178,11 @@ export function MapaMundoPanel() {
                 key={m.id}
                 type="button"
                 onClick={() => setMetrica(m.id)}
-                className="text-[10px] px-2.5 py-1 rounded border transition-colors"
+                className="text-[10px] px-2.5 py-1 rounded border transition-colors flex items-center justify-center gap-1.5"
                 style={{
                   borderColor: metrica === m.id ? corTema : '#374151',
-                  color:       metrica === m.id ? corTema : '#6B7280',
-                  background:  metrica === m.id ? corTema + '18' : 'transparent',
+                  color: metrica === m.id ? corTema : '#6B7280',
+                  background: metrica === m.id ? corTema + '18' : 'transparent',
                 }}
               >
                 {m.icone} {m.label}
@@ -212,7 +212,7 @@ export function MapaMundoPanel() {
                     // Tentamos resolver o alpha-3 a partir do nome ou do properties
                     const iso3 = geo.properties?.['Alpha-3'] as string | undefined
                     const pais = iso3 ? DADOS_MAP[iso3] : undefined
-                    const cor  = pais
+                    const cor = pais
                       ? getCorChoropleth(getValorMetrica(pais, metrica), metrica)
                       : '#1a1a1a'
 
@@ -229,9 +229,9 @@ export function MapaMundoPanel() {
                         }}
                         onMouseLeave={() => setTooltip(null)}
                         style={{
-                          default:  { fill: cor, stroke: '#0A0A0A', strokeWidth: 0.4, outline: 'none' },
-                          hover:    { fill: corTema + 'BB', stroke: corTema, strokeWidth: 0.8, outline: 'none', cursor: 'pointer' },
-                          pressed:  { fill: corTema, outline: 'none' },
+                          default: { fill: cor, stroke: '#0A0A0A', strokeWidth: 0.4, outline: 'none' },
+                          hover: { fill: corTema + 'BB', stroke: corTema, strokeWidth: 0.8, outline: 'none', cursor: 'pointer' },
+                          pressed: { fill: corTema, outline: 'none' },
                         }}
                       />
                     )
