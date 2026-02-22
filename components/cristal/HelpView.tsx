@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Centro de Ajuda (HELP)
@@ -105,7 +106,7 @@ export function HelpView() {
     useTerminalStore()
 
   const corTema =
-    temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+    corParaTema(temaActual)
 
   return (
     <div className="h-full overflow-y-auto bg-[#0A0A0A] p-6 font-mono">

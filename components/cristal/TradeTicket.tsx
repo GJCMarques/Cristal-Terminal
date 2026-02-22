@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Trade Ticket (Ordem Rápida)
@@ -25,7 +26,7 @@ const VALIDADES: { id: Validade; label: string }[] = [
 
 export function TradeTicket() {
   const { tradeTicket, fecharTradeTicket, temaActual } = useTerminalStore()
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
 
   const [lado,        setLado]        = useState<'compra' | 'venda'>(tradeTicket.lado)
   const [tipoOrdem,   setTipoOrdem]   = useState<TipoOrdem>('mercado')

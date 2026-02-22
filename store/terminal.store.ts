@@ -101,6 +101,10 @@ export const useTerminalStore = create<EstadoTerminal>()(
       iaDisponivel: null,
 
       temaActual: 'amber',
+      locale: (typeof window !== 'undefined'
+        ? (localStorage.getItem('cristal-locale') as 'pt' | 'en' | 'es') ?? 'pt'
+        : 'pt') as 'pt' | 'en' | 'es',
+      chatNaoLidas: 0,
 
       contextMenu: CONTEXT_MENU_INICIAL,
       commandPaletteAberto: false,
@@ -229,6 +233,16 @@ export const useTerminalStore = create<EstadoTerminal>()(
       definirIADisponivel: (disponivel: boolean) => set({ iaDisponivel: disponivel }),
 
       definirTema: (tema) => set({ temaActual: tema }),
+
+      definirLocale: (locale) => {
+        if (typeof window !== 'undefined') localStorage.setItem('cristal-locale', locale)
+        set({ locale })
+      },
+
+      incrementarChatNaoLidas: () =>
+        set((s) => ({ chatNaoLidas: s.chatNaoLidas + 1 })),
+
+      limparChatNaoLidas: () => set({ chatNaoLidas: 0 }),
 
       criarWatchlist: (nome: string) =>
         set((s) => ({

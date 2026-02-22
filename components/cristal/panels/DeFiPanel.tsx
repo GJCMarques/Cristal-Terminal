@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — DeFi / On-Chain Tracker
@@ -84,7 +85,7 @@ const COR_CHAIN: Record<string, string> = {
 
 export function DeFiPanel() {
   const { temaActual } = useTerminalStore()
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
 
   const [protocolos,  setProtocolos]  = useState<ProtocoloDefi[]>(MOCK_PROTOCOLOS)
   const [dexVolumes,  setDexVolumes]  = useState<DexVolume[]>(MOCK_DEX_VOLUMES)

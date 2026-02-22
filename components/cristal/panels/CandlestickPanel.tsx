@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Painel de Gráfico de Velas
@@ -45,7 +46,7 @@ export function CandlestickPanel({ ticker: tickerProp }: Props) {
   } | null>(null)
 
   const corTema =
-    temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+    corParaTema(temaActual)
 
   const info = TICKERS_CONHECIDOS[ticker]
   const dados = obterDadosCandlestick(ticker)

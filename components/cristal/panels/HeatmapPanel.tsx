@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 import { useState } from 'react'
 import { ResponsiveContainer, Treemap, Tooltip } from 'recharts'
@@ -80,7 +81,7 @@ export function HeatmapPanel() {
   const [nivel, setNivel] = useState<Nivel>('sectores')
   const [sectorActivo, setSectorActivo] = useState<string | null>(null)
 
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
   const mult = MULT[periodo]
 
   // Dados para o treemap

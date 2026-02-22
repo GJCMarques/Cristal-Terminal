@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Screener de Acções
@@ -27,7 +28,7 @@ const COLUNAS: { key: OrdemScreener; label: string; width: string; fmt: (v: Acca
 
 export function ScreenerPanel() {
   const { definirTickerActivo, definirVista, temaActual } = useTerminalStore()
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
 
   const [ordem,    setOrdem]    = useState<OrdemScreener>('capitalMerc')
   const [dir,      setDir]      = useState<DirecaoOrdem>('desc')

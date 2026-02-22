@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Gráfico de Bolhas de Mercado
@@ -85,7 +86,7 @@ export function BolhasPanel() {
   const { definirTickerActivo, definirVista, temaActual } = useTerminalStore()
   const [periodo, setPeriodo] = useState<Periodo>('YTD')
   const [sectorFiltro, setSectorFiltro] = useState<string>('Todos')
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
 
   const sectores = useMemo(() =>
     ['Todos', ...Array.from(new Set(DADOS_BOLHAS.map((d) => d.sector)))], [])

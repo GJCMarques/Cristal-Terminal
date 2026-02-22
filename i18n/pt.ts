@@ -1,0 +1,87 @@
+// ============================================================
+// CRISTAL CAPITAL TERMINAL — Traduções Português (base)
+// ============================================================
+
+export const pt = {
+  nav: {
+    mercado:     'MERCADOS',
+    noticias:    'NOTÍCIAS',
+    watchlist:   'WATCHLIST',
+    cripto:      'CRIPTO',
+    macro:       'MACRO',
+    calendario:  'CALENDÁRIO',
+    heatmap:     'HEATMAP',
+    portfolio:   'PORTFOLIO',
+    defi:        'DEFI',
+    chat:        'CHAT',
+    ajuda:       'AJUDA',
+    analise:     'ANÁLISE IA',
+    sentinela:   'ALERTAS',
+    correlacao:  'CORRELAÇÃO',
+    screener:    'SCREENER',
+    livroOrdens: 'L. ORDENS',
+    yieldCurve:  'OBRIGAÇÕES',
+    mapaWorld:   'MAPA',
+    bolhas:      'BOLHAS',
+    candlestick: 'GRÁFICO',
+  },
+  auth: {
+    entrar:               'Entrar',
+    sair:                 'Terminar Sessão',
+    email:                'Correio electrónico',
+    password:             'Palavra-passe',
+    mfa:                  'Código MFA',
+    mfaOpcional:          'Código MFA (opcional)',
+    credenciaisInvalidas: 'Credenciais inválidas.',
+    aAutenticar:          'A autenticar…',
+    bemVindo:             'Bem-vindo ao',
+    acessoDemo:           'Acesso Demo',
+    acessoRestrito:       'ACESSO RESTRITO',
+    configurarMfa:        'Configurar MFA',
+  },
+  chat: {
+    titulo:          'CHAT INSTITUCIONAL',
+    enviar:          'Enviar',
+    escreverMensagem:'Escrever mensagem…',
+    canal:           'Canal',
+    online:          'online',
+    semMensagens:    'Sem mensagens. Seja o primeiro a escrever.',
+    canais: {
+      geral:   '#geral',
+      mercado: '#mercado',
+      cripto:  '#cripto',
+      macro:   '#macro',
+      defi:    '#defi',
+    },
+  },
+  status: {
+    carregando:  'A carregar',
+    online:      'ONLINE',
+    offline:     'OFFLINE',
+    conectando:  'A ligar…',
+    iaOnline:    'LLAMA 3 ONLINE',
+    iaOffline:   'IA OFFLINE',
+  },
+  comum: {
+    adicionar:  'Adicionar',
+    remover:    'Remover',
+    confirmar:  'Confirmar',
+    cancelar:   'Cancelar',
+    guardar:    'Guardar',
+    editar:     'Editar',
+    fechar:     'Fechar',
+    carregar:   'Carregar',
+    pesquisar:  'Pesquisar',
+    exportar:   'Exportar',
+    importar:   'Importar',
+    sem_dados:  'Sem dados disponíveis',
+  },
+  formatacao: {
+    moeda:    'EUR',
+    locale:   'pt-PT',
+    timezone: 'Europe/Lisbon',
+  },
+}
+
+export type Traducoes = typeof pt
+export type ChaveNav = keyof typeof pt.nav

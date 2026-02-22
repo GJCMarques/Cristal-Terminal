@@ -6,6 +6,7 @@
 
 import { useEffect, useCallback, useRef, useState } from 'react'
 import { useTerminalStore } from '@/store/terminal.store'
+import { corParaTema } from '@/lib/utils'
 import { TerminalHeader } from './TerminalHeader'
 import { CommandLine } from './CommandLine'
 import { ResizableLayout } from './layout/ResizableLayout'
@@ -45,6 +46,7 @@ const CTRL_ATALHOS: Record<string, VistaTerminal> = {
   p: 'portfolio',
   d: 'defi',
   a: 'sentinela',
+  t: 'chat',
 }
 
 export function CristalTerminal() {
@@ -192,9 +194,7 @@ export function CristalTerminal() {
     [abrirContextMenu, tickerActivo, nomeActivoAtivo, classeActivaAtivo],
   )
 
-  // ── Cor CSS do tema ─────────────────────────────────────
-  const corTema =
-    temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
 
   return (
     <div

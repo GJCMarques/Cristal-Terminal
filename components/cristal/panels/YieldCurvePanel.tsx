@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Curva de Rendimento + Bond Calc
@@ -237,7 +238,7 @@ export function YieldCurvePanel() {
   const [aba, setAba] = useState<'curvas' | 'bond'>('curvas')
 
   const corTema =
-    temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+    corParaTema(temaActual)
 
   const curvasFiltradas = CURVAS_RENDIMENTO.filter((c) =>
     curvasSelecionadas.includes(c.benchmark),

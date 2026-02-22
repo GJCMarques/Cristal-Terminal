@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 import { useState, useEffect } from 'react'
 import { CALENDARIO_EVENTOS, obterProximoEvento, formatarCountdown, type EventoEconomico, type ImportanciaEvento } from '@/lib/mocks/calendar'
@@ -88,7 +89,7 @@ export function CalendarioPanel() {
   const [filtroImportancia, setFiltroImportancia] = useState<ImportanciaEvento | 'todas'>('todas')
   const [countdown, setCountdown] = useState('')
 
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
   const proximo = obterProximoEvento()
 
   // Countdown em tempo real

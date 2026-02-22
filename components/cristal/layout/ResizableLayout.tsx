@@ -25,6 +25,7 @@ import { CorrelacaoPanel }      from '../panels/CorrelacaoPanel'
 import { PortfolioPanel }       from '../panels/PortfolioPanel'
 import { DeFiPanel }            from '../panels/DeFiPanel'
 import { SentinelaPanel }       from '../panels/SentinelaPanel'
+import { ChatPanel }            from '../panels/ChatPanel'
 import { HelpView }             from '../HelpView'
 
 const Spinner = ({ label }: { label: string }) => (
@@ -65,8 +66,8 @@ function ResizeHandleHorizontal() {
 function PainelPrincipal() {
   const { vistaActual } = useTerminalStore()
 
-  // CandlestickPanel tem zoom nativo (TradingView) — ocultar controlos de zoom externos
-  const semZoom = vistaActual === 'candlestick'
+  // Painéis sem controlos de zoom externos (têm zoom nativo ou são text-based)
+  const semZoom = vistaActual === 'candlestick' || vistaActual === 'chat'
 
   const painel = (() => {
     switch (vistaActual) {
@@ -88,6 +89,7 @@ function PainelPrincipal() {
       case 'portfolio':    return <PortfolioPanel />
       case 'defi':         return <DeFiPanel />
       case 'sentinela':    return <SentinelaPanel />
+      case 'chat':         return <ChatPanel />
       case 'ajuda':        return <HelpView />
       default:             return <MarketOverviewPanel />
     }

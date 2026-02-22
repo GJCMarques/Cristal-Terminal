@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Matriz de Correlação de Activos
@@ -12,7 +13,7 @@ export function CorrelacaoPanel() {
   const { definirTickerActivo, definirVista, temaActual } = useTerminalStore()
   const [hover, setHover] = useState<{ r: number; c: number } | null>(null)
   const [selecionado, setSelecionado] = useState<{ r: number; c: number } | null>(null)
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
 
   const { activos, matrix, nomes, categorias } = CORRELACAO_DADOS
   const n = activos.length

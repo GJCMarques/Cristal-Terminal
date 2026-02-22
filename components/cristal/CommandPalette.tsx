@@ -10,7 +10,7 @@ import {
   Globe, Newspaper, Star, TrendingDown, BookOpen, Bitcoin, Building2,
   Flame, Calendar, Map, Circle, Search, Link2, Wallet, Network, Bell,
   Zap, HelpCircle, Clock, ChevronRight, Settings, BarChart2, TrendingUp,
-  Keyboard,
+  Keyboard, MessageSquare,
 } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 import { obterSugestoes } from '@/lib/command-parser'
@@ -42,9 +42,10 @@ const VISTAS_RAPIDAS: { id: VistaTerminal; label: string; icone: React.ReactNode
   { id: 'correlacao',   label: 'Matriz de Correlação',   icone: <Link2      size={13} />, atalho: 'CORR'   },
   { id: 'portfolio',    label: 'Portfolio & P&L',         icone: <Wallet     size={13} />, atalho: 'PORT'   },
   { id: 'defi',         label: 'DeFi / On-Chain',        icone: <Network    size={13} />, atalho: 'DEFI'   },
-  { id: 'sentinela',    label: 'Sentinela — Alertas',    icone: <Bell       size={13} />, atalho: 'ALERT'  },
-  { id: 'analise',      label: 'Análise IA — Llama 3',   icone: <Zap        size={13} />, atalho: 'IA'     },
-  { id: 'ajuda',        label: 'Centro de Ajuda',        icone: <HelpCircle size={13} />, atalho: 'F1'     },
+  { id: 'sentinela',    label: 'Sentinela — Alertas',    icone: <Bell           size={13} />, atalho: 'ALERT'  },
+  { id: 'analise',      label: 'Análise IA — Llama 3',   icone: <Zap            size={13} />, atalho: 'IA'     },
+  { id: 'chat',         label: 'Chat Institucional',      icone: <MessageSquare  size={13} />, atalho: 'MSG'    },
+  { id: 'ajuda',        label: 'Centro de Ajuda',         icone: <HelpCircle     size={13} />, atalho: 'F1'     },
 ]
 
 // Tickers com ícone Lucide neutro (sem emojis de bandeira/cor)

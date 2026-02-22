@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Mapa Mundial Económico
@@ -141,7 +142,7 @@ const PainelInfo = memo(function PainelInfo({
 
 export function MapaMundoPanel() {
   const { temaActual, definirVista, definirTickerActivo } = useTerminalStore()
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
 
   const [metrica,    setMetrica]    = useState<MetricaMapa>('pib')
   const [paisSel,    setPaisSel]    = useState<DadosPais | null>(null)

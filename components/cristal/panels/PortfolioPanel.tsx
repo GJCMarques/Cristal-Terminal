@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Portfolio & P&L
@@ -66,7 +67,7 @@ function FmtPct({ v }: { v: number }) {
 
 export function PortfolioPanel() {
   const { temaActual, definirTickerActivo, definirVista, abrirTradeTicket } = useTerminalStore()
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
 
   const [abaDados, setAbaDados] = useState<'posicoes' | 'sector' | 'risco'>('posicoes')
   const [ordemCol, setOrdemCol] = useState<'pnlTotal' | 'valorActual' | 'pnlPct'>('valorActual')

@@ -70,6 +70,10 @@ const MAPA_COMANDOS: Record<string, VistaTerminal> = {
   BOND:       'yield-curve',
   BONDS:      'yield-curve',
   OBRIG:      'yield-curve',
+  CHAT:       'chat',
+  MSG:        'chat',
+  MENSAGEM:   'chat',
+  IM:         'chat',
 }
 
 // ── Mapeamento de funções de segurança ────────────────────────
@@ -293,6 +297,7 @@ function descreverVista(vista: VistaTerminal): string {
     correlacao:     'Matriz de Correlação',
     defi:           'DeFi / On-Chain Tracker',
     sentinela:      'Sentinela IA — Alertas & Triggers',
+    chat:           'Chat Institucional — MSG',
     ajuda:          'Centro de Ajuda',
   }
   return descricoes[vista] ?? vista

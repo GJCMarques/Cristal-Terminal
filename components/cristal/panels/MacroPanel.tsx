@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 import { useState, useCallback } from 'react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, Cell } from 'recharts'
@@ -57,7 +58,7 @@ export function MacroPanel() {
   const [analiseIA, setAnaliseIA] = useState('')
   const [iaLoading, setIaLoading] = useState(false)
 
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
   const paisDetalhado = DADOS_MACRO.find((d) => d.pais === paisSeleccionado)
 
   const gerarAnalise = useCallback(async () => {

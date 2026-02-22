@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Livro de Ordens (ALLQ)
@@ -71,7 +72,7 @@ export function OrderBookPanel({ ticker: tickerProp, niveis = 10 }: Props) {
   const [livro, setLivro] = useState<LivroOrdens>(() => gerarLivroOrdens(ticker, niveis))
 
   const corTema =
-    temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+    corParaTema(temaActual)
 
   // Recria o livro quando o ticker muda
   useEffect(() => {

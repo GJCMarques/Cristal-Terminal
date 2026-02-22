@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Análise IA Llama 3 (DES)
@@ -34,7 +35,7 @@ export function AnalisePanel() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const corTema =
-    temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+    corParaTema(temaActual)
 
   const ticker = tickerActivo ?? 'AAPL'
   const info = TICKERS_CONHECIDOS[ticker]

@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 import { useState, useCallback } from 'react'
 import { CRYPTOS, METRICAS_GLOBAIS, formatarCapMerc, formatarPreco, type CriptoItem } from '@/lib/mocks/crypto'
@@ -83,7 +84,7 @@ export function CriptoPanel() {
   const [analiseIA, setAnaliseIA] = useState('')
   const [iaLoading, setIaLoading] = useState(false)
 
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
   const m = METRICAS_GLOBAIS
 
   const handleSeleccionar = useCallback((ticker: string) => {

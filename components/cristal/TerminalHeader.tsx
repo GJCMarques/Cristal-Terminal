@@ -8,10 +8,12 @@ import { useState, useEffect } from 'react'
 import {
   Globe, Star, BookOpen, TrendingDown, TrendingUp, Flame, Circle,
   Search, Link2, Building2, Calendar, Map, Bitcoin, Newspaper, Zap,
-  HelpCircle, Keyboard, LayoutGrid, Wallet, Network, Bell,
+  HelpCircle, Keyboard, LayoutGrid, Wallet, Network, Bell, MessageSquare,
 } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 import { corParaTema, CORES_TEMA } from '@/lib/utils'
+import { UserButton } from './UserButton'
+import { LocaleSelector } from './LocaleSelector'
 import type { VistaTerminal } from '@/types/terminal'
 
 interface TabDef {
@@ -76,6 +78,13 @@ const GRUPOS_TABS: GrupoTabs[] = [
     ],
   },
   {
+    grupo: 'COMUNICAÇÃO',
+    cor: '#06B6D4',
+    tabs: [
+      { vista: 'chat', label: 'MSG', tecla: '', icone: <MessageSquare size={10} /> },
+    ],
+  },
+  {
     grupo: 'AJUDA',
     cor: '#6B7280',
     tabs: [
@@ -96,6 +105,7 @@ export function TerminalHeader() {
     alternarPainelLateral,
     alternarCommandPalette,
     alertasSentinela,
+    chatNaoLidas,
   } = useTerminalStore()
 
   const [hora, setHora] = useState('')
@@ -224,6 +234,12 @@ export function TerminalHeader() {
           <LayoutGrid size={13} />
         </button>
 
+        {/* Selector de idioma */}
+        <LocaleSelector />
+
+        {/* Utilizador */}
+        <UserButton />
+
         {/* Relógio */}
         <div className="flex flex-col items-end justify-center px-3 border-l border-neutral-800 h-full shrink-0">
           <span className="font-mono text-sm font-bold leading-none" style={{ color: corTema }}>{hora}</span>
@@ -273,6 +289,15 @@ export function TerminalHeader() {
                     </span>
                   )}
                   <span className="font-bold tracking-tight">{tab.label}</span>
+                  {/* Badge de mensagens não lidas no chat */}
+                  {tab.vista === 'chat' && chatNaoLidas > 0 && !activo && (
+                    <span
+                      className="ml-0.5 rounded-full font-bold text-[7px] px-1 py-0.5 text-black"
+                      style={{ backgroundColor: '#06B6D4' }}
+                    >
+                      {chatNaoLidas > 9 ? '9+' : chatNaoLidas}
+                    </span>
+                  )}
                   {!activo && (
                     <div
                       className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-40 transition-opacity"

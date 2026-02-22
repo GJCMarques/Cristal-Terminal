@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Linha de Comando (CLI)
@@ -39,7 +40,7 @@ export function CommandLine() {
   const [sugestoesVisiveis, setSugestoesVisiveis] = useState(false)
 
   // Cor primária do tema
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
 
   // ── Actualizar sugestões ao digitar ──────────────────────
   useEffect(() => {

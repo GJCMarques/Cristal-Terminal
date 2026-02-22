@@ -9,6 +9,7 @@ import type { ClasseAtivo, MensagemIA } from './market'
 export type VistaTerminal =
   | 'mercado'        // Monitor de Mercado Global (MKTM)
   | 'candlestick'    // Gráfico de Velas (GP)
+  | 'chat'           // Chat Institucional (MSG)
   | 'livro-ordens'   // Livro de Ordens (ALLQ)
   | 'yield-curve'    // Curva de Rendimento (YAS)
   | 'noticias'       // Monitor de Notícias (NWSM)
@@ -138,6 +139,12 @@ export interface EstadoTerminal {
   // Tema
   temaActual: 'amber' | 'green' | 'blue' | 'purple' | 'red' | 'cyan' | 'rose' | 'slate'
 
+  // Locale / i18n
+  locale: 'pt' | 'en' | 'es'
+
+  // Chat
+  chatNaoLidas: number
+
   // Context menu
   contextMenu: ContextMenuEstado
 
@@ -166,6 +173,9 @@ export interface EstadoTerminal {
   definirIACarregando: (aCarregar: boolean) => void
   definirIADisponivel: (disponivel: boolean) => void
   definirTema: (tema: 'amber' | 'green' | 'blue' | 'purple' | 'red' | 'cyan' | 'rose' | 'slate') => void
+  definirLocale: (locale: 'pt' | 'en' | 'es') => void
+  incrementarChatNaoLidas: () => void
+  limparChatNaoLidas: () => void
   criarWatchlist: (nome: string) => void
   removerWatchlist: (indice: number) => void
   renomearWatchlist: (indice: number, nome: string) => void

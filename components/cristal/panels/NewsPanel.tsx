@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Monitor de Notícias
@@ -74,7 +75,7 @@ function BarraSentimento({ pontuacao }: { pontuacao: number }) {
 
 export function NewsPanel() {
   const { definirTickerActivo, definirVista, temaActual } = useTerminalStore()
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
 
   const [noticias,      setNoticias]      = useState<Noticia[]>([])
   const [seleccionada,  setSeleccionada]  = useState<Noticia | null>(null)

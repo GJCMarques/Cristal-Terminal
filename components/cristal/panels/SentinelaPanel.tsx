@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Sentinela IA (Alertas & Triggers)
@@ -50,7 +51,7 @@ export function SentinelaPanel() {
     temaActual,
   } = useTerminalStore()
 
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
 
   // Formulário de novo alerta
   const [novoTicker, setNovoTicker] = useState('')

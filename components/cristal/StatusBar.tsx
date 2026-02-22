@@ -1,4 +1,5 @@
 'use client'
+import { corParaTema } from '@/lib/utils'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Barra de Estado (Bottom Bar)
@@ -43,7 +44,7 @@ function TickerChip({ item }: { item: TickerStatus }) {
 export function StatusBar() {
   const { vistaActual, tickerActivo, temaActual } = useTerminalStore()
   const corTema =
-    temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+    corParaTema(temaActual)
 
   const descricaoVista: Record<string, string> = {
     'mapa-mundo':   'MAPA ECONÓMICO MUNDIAL',
@@ -64,6 +65,7 @@ export function StatusBar() {
     portfolio:      'CARTEIRA & P&L — PORTFOLIO',
     defi:           'DEFI / ON-CHAIN TRACKER',
     sentinela:      'SENTINELA IA — ALERTAS & TRIGGERS',
+    chat:           'CHAT INSTITUCIONAL — MSG',
     ajuda:          'CENTRO DE AJUDA',
   }
 
