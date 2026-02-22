@@ -7,6 +7,7 @@ import type { NextAuthConfig } from 'next-auth'
 
 export const authConfig: NextAuthConfig = {
   trustHost: true,
+  secret: process.env.AUTH_SECRET || 'uma_chave_super_secreta_fallback_cristal_2026',
   pages: {
     signIn: '/login',
   },
