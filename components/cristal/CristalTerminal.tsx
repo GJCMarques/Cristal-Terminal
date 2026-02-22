@@ -12,6 +12,7 @@ import { ResizableLayout } from './layout/ResizableLayout'
 import { StatusBar }       from './StatusBar'
 import { ContextMenu }     from './ContextMenu'
 import { CommandPalette }  from './CommandPalette'
+import { TradeTicket }     from './TradeTicket'
 import type { VistaTerminal } from '@/types/terminal'
 import type { ClasseAtivo }  from '@/types/market'
 
@@ -41,6 +42,9 @@ const CTRL_ATALHOS: Record<string, VistaTerminal> = {
   y: 'yield-curve',
   r: 'correlacao',
   s: 'screener',
+  p: 'portfolio',
+  d: 'defi',
+  a: 'sentinela',
 }
 
 export function CristalTerminal() {
@@ -53,11 +57,13 @@ export function CristalTerminal() {
     abrirContextMenu,
     fecharContextMenu,
     fecharCommandPalette,
+    fecharTradeTicket,
     temaActual,
     tickerActivo,
     nomeActivoAtivo,
     classeActivaAtivo,
     commandPaletteAberto,
+    tradeTicket,
   } = useTerminalStore()
 
   const terminalRef = useRef<HTMLDivElement>(null)
@@ -76,9 +82,10 @@ export function CristalTerminal() {
       const alvo = e.target as HTMLElement
       const emInput = alvo.tagName === 'TEXTAREA' || alvo.tagName === 'INPUT'
 
-      // Fechar paleta com Escape
+      // Fechar overlays com Escape (ordem de prioridade)
       if (e.key === 'Escape') {
-        if (commandPaletteAberto) { fecharCommandPalette(); e.preventDefault(); return }
+        if (tradeTicket.aberto)      { fecharTradeTicket();    e.preventDefault(); return }
+        if (commandPaletteAberto)    { fecharCommandPalette(); e.preventDefault(); return }
         fecharContextMenu()
         return
       }
@@ -130,12 +137,14 @@ export function CristalTerminal() {
     },
     [
       commandPaletteAberto,
+      tradeTicket,
       definirVista,
       voltarVista,
       alternarPainelLateral,
       alternarCommandPalette,
       fecharContextMenu,
       fecharCommandPalette,
+      fecharTradeTicket,
     ],
   )
 
@@ -213,6 +222,9 @@ export function CristalTerminal() {
 
       {/* ── Paleta de Comandos (Ctrl+K) ──────────────────── */}
       <CommandPalette />
+
+      {/* ── Trade Ticket (Ordem Rápida) ──────────────────── */}
+      <TradeTicket />
     </div>
   )
 }

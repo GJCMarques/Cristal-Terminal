@@ -5,7 +5,11 @@
 import { create } from 'zustand'
 import { subscribeWithSelector, devtools } from 'zustand/middleware'
 import { parsearComando } from '@/lib/command-parser'
-import type { EstadoTerminal, VistaTerminal, WatchlistItem, ContextMenuEstado } from '@/types/terminal'
+import { corParaTema } from '@/lib/utils'
+import type {
+  EstadoTerminal, VistaTerminal, WatchlistItem,
+  ContextMenuEstado, TradeTicketEstado, AlertaSentinela,
+} from '@/types/terminal'
 import type { ClasseAtivo, MensagemIA } from '@/types/market'
 
 const WATCHLIST_INICIAL: WatchlistItem[][] = [
@@ -26,11 +30,47 @@ const WATCHLIST_INICIAL: WatchlistItem[][] = [
   ],
 ]
 
-const CONTEXT_MENU_INICIAL: ContextMenuEstado = {
-  visivel: false,
-  x: 0,
-  y: 0,
+const CONTEXT_MENU_INICIAL: ContextMenuEstado = { visivel: false, x: 0, y: 0 }
+
+const TRADE_TICKET_INICIAL: TradeTicketEstado = {
+  aberto: false,
+  ticker: '',
+  nome: '',
+  precoReferencia: 0,
+  lado: 'compra',
 }
+
+const ALERTAS_INICIAIS: AlertaSentinela[] = [
+  {
+    id: 'a1',
+    ticker: 'AAPL',
+    tipo: 'preco_acima',
+    valor: 215,
+    label: 'AAPL > $215',
+    ativo: true,
+    criadoEm: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: 'a2',
+    ticker: 'BTC',
+    tipo: 'preco_abaixo',
+    valor: 90000,
+    label: 'BTC < $90,000',
+    ativo: true,
+    criadoEm: new Date(Date.now() - 7200000).toISOString(),
+  },
+  {
+    id: 'a3',
+    ticker: 'NVDA',
+    tipo: 'variacao_pct',
+    valor: 5,
+    label: 'NVDA variação > 5%',
+    ativo: false,
+    criadoEm: new Date(Date.now() - 86400000).toISOString(),
+    disparadoEm: new Date(Date.now() - 3600000).toISOString(),
+    mensagem: 'NVDA subiu 5.2% em 1 dia',
+  },
+]
 
 export const useTerminalStore = create<EstadoTerminal>()(
   devtools(
@@ -54,6 +94,7 @@ export const useTerminalStore = create<EstadoTerminal>()(
 
       watchlists: WATCHLIST_INICIAL,
       watchlistActiva: 0,
+      nomesWatchlist: ['Principal', 'Cripto & FX'],
 
       mensagensIA: [],
       iaACarregar: false,
@@ -63,6 +104,9 @@ export const useTerminalStore = create<EstadoTerminal>()(
 
       contextMenu: CONTEXT_MENU_INICIAL,
       commandPaletteAberto: false,
+
+      tradeTicket: TRADE_TICKET_INICIAL,
+      alertasSentinela: ALERTAS_INICIAIS,
 
       // ── Acções ───────────────────────────────────────────
 
@@ -184,7 +228,30 @@ export const useTerminalStore = create<EstadoTerminal>()(
 
       definirIADisponivel: (disponivel: boolean) => set({ iaDisponivel: disponivel }),
 
-      definirTema: (tema: 'amber' | 'green' | 'blue') => set({ temaActual: tema }),
+      definirTema: (tema) => set({ temaActual: tema }),
+
+      criarWatchlist: (nome: string) =>
+        set((s) => ({
+          watchlists:    [...s.watchlists, []],
+          nomesWatchlist: [...s.nomesWatchlist, nome || `Lista ${s.watchlists.length + 1}`],
+          watchlistActiva: s.watchlists.length,
+        })),
+
+      removerWatchlist: (indice: number) =>
+        set((s) => {
+          if (s.watchlists.length <= 1) return {}
+          const novasListas = s.watchlists.filter((_, i) => i !== indice)
+          const novosNomes  = s.nomesWatchlist.filter((_, i) => i !== indice)
+          const novoActivo  = Math.min(s.watchlistActiva, novasListas.length - 1)
+          return { watchlists: novasListas, nomesWatchlist: novosNomes, watchlistActiva: novoActivo }
+        }),
+
+      renomearWatchlist: (indice: number, nome: string) =>
+        set((s) => {
+          const novos = [...s.nomesWatchlist]
+          novos[indice] = nome
+          return { nomesWatchlist: novos }
+        }),
 
       abrirContextMenu: (estado) =>
         set({ contextMenu: { ...estado, visivel: true } }),
@@ -197,6 +264,38 @@ export const useTerminalStore = create<EstadoTerminal>()(
 
       fecharCommandPalette: () =>
         set({ commandPaletteAberto: false }),
+
+      // Trade Ticket
+      abrirTradeTicket: (ticker, nome, preco, lado = 'compra') =>
+        set({ tradeTicket: { aberto: true, ticker, nome, precoReferencia: preco, lado } }),
+
+      fecharTradeTicket: () =>
+        set({ tradeTicket: TRADE_TICKET_INICIAL }),
+
+      // Alertas Sentinela
+      adicionarAlerta: (alerta) =>
+        set((s) => ({
+          alertasSentinela: [
+            ...s.alertasSentinela,
+            {
+              ...alerta,
+              id: `a${Date.now()}`,
+              criadoEm: new Date().toISOString(),
+            },
+          ],
+        })),
+
+      removerAlerta: (id: string) =>
+        set((s) => ({
+          alertasSentinela: s.alertasSentinela.filter((a) => a.id !== id),
+        })),
+
+      toggleAlerta: (id: string) =>
+        set((s) => ({
+          alertasSentinela: s.alertasSentinela.map((a) =>
+            a.id === id ? { ...a, ativo: !a.ativo } : a,
+          ),
+        })),
     })),
     { name: 'CristalCapitalTerminal' },
   ),
@@ -210,7 +309,4 @@ export const selectWatchlistActiva = (s: EstadoTerminal) =>
 export const selectTemTickerActivo = (s: EstadoTerminal) =>
   s.tickerActivo !== null
 
-export const selectCorTema = (s: EstadoTerminal): string => {
-  const cores = { amber: '#F59E0B', green: '#10B981', blue: '#3B82F6' }
-  return cores[s.temaActual]
-}
+export const selectCorTema = (s: EstadoTerminal): string => corParaTema(s.temaActual)

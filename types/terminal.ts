@@ -24,6 +24,8 @@ export type VistaTerminal =
   | 'bolhas'         // Gráfico de Bolhas de Mercado (BUBBLE)
   | 'screener'       // Screener de Acções (SCR)
   | 'correlacao'     // Matriz de Correlação (CORR)
+  | 'defi'           // DeFi/On-Chain Tracker (DEFI)
+  | 'sentinela'      // Sentinel IA de Alertas (ALERT)
 
 // ── Context menu ──────────────────────────────────────────────
 
@@ -58,6 +60,47 @@ export interface ComandoParseado {
   erro?: string
 }
 
+// ── Posição de Portfolio ──────────────────────────────────────
+
+export interface PosicaoPortfolio {
+  ticker: string
+  nome: string
+  classeAtivo: string
+  sector: string
+  quantidade: number
+  custoMedio: number
+  precoActual: number
+  variacao1D: number
+  beta: number
+  moeda: string
+}
+
+// ── Trade Ticket ──────────────────────────────────────────────
+
+export interface TradeTicketEstado {
+  aberto: boolean
+  ticker: string
+  nome: string
+  precoReferencia: number
+  lado: 'compra' | 'venda'
+}
+
+// ── Alerta Sentinela ──────────────────────────────────────────
+
+export type TipoAlerta = 'preco_acima' | 'preco_abaixo' | 'variacao_pct' | 'volume_spike' | 'noticia'
+
+export interface AlertaSentinela {
+  id: string
+  ticker?: string
+  tipo: TipoAlerta
+  valor: number
+  label: string
+  ativo: boolean
+  criadoEm: string
+  disparadoEm?: string
+  mensagem?: string
+}
+
 // ── Estado global do terminal ─────────────────────────────────
 
 export interface EstadoTerminal {
@@ -85,6 +128,7 @@ export interface EstadoTerminal {
   // Watchlist
   watchlists: WatchlistItem[][]
   watchlistActiva: number
+  nomesWatchlist: string[]
 
   // IA
   mensagensIA: MensagemIA[]
@@ -92,13 +136,19 @@ export interface EstadoTerminal {
   iaDisponivel: boolean | null
 
   // Tema
-  temaActual: 'amber' | 'green' | 'blue'
+  temaActual: 'amber' | 'green' | 'blue' | 'purple' | 'red' | 'cyan' | 'rose' | 'slate'
 
   // Context menu
   contextMenu: ContextMenuEstado
 
   // Command palette
   commandPaletteAberto: boolean
+
+  // Trade Ticket
+  tradeTicket: TradeTicketEstado
+
+  // Alertas Sentinela
+  alertasSentinela: AlertaSentinela[]
 
   // Acções
   definirTickerActivo: (ticker: string, classeAtivo?: ClasseAtivo, nome?: string) => void
@@ -115,11 +165,21 @@ export interface EstadoTerminal {
   adicionarMensagemIA: (mensagem: MensagemIA) => void
   definirIACarregando: (aCarregar: boolean) => void
   definirIADisponivel: (disponivel: boolean) => void
-  definirTema: (tema: 'amber' | 'green' | 'blue') => void
+  definirTema: (tema: 'amber' | 'green' | 'blue' | 'purple' | 'red' | 'cyan' | 'rose' | 'slate') => void
+  criarWatchlist: (nome: string) => void
+  removerWatchlist: (indice: number) => void
+  renomearWatchlist: (indice: number, nome: string) => void
   abrirContextMenu: (estado: Omit<ContextMenuEstado, 'visivel'>) => void
   fecharContextMenu: () => void
   alternarCommandPalette: () => void
   fecharCommandPalette: () => void
+  // Trade ticket
+  abrirTradeTicket: (ticker: string, nome: string, preco: number, lado?: 'compra' | 'venda') => void
+  fecharTradeTicket: () => void
+  // Alertas
+  adicionarAlerta: (alerta: Omit<AlertaSentinela, 'id' | 'criadoEm'>) => void
+  removerAlerta: (id: string) => void
+  toggleAlerta: (id: string) => void
 }
 
 // ── Watchlist ─────────────────────────────────────────────────

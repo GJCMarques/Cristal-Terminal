@@ -5,14 +5,20 @@
 // ============================================================
 
 import { useState, useEffect } from 'react'
+import {
+  Globe, Star, BookOpen, TrendingDown, TrendingUp, Flame, Circle,
+  Search, Link2, Building2, Calendar, Map, Bitcoin, Newspaper, Zap,
+  HelpCircle, Keyboard, LayoutGrid, Wallet, Network, Bell,
+} from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
+import { corParaTema, CORES_TEMA } from '@/lib/utils'
 import type { VistaTerminal } from '@/types/terminal'
 
 interface TabDef {
   vista: VistaTerminal
   label: string
   tecla: string
-  icone?: string
+  icone?: React.ReactNode
 }
 
 interface GrupoTabs {
@@ -26,51 +32,54 @@ const GRUPOS_TABS: GrupoTabs[] = [
     grupo: 'MERCADOS',
     cor: '#F59E0B',
     tabs: [
-      { vista: 'mercado',      label: 'MKTM',    tecla: 'F2',  icone: '🌐' },
-      { vista: 'watchlist',    label: 'WL',       tecla: 'F4',  icone: '★'  },
-      { vista: 'livro-ordens', label: 'ALLQ',     tecla: 'F6',  icone: '📒' },
-      { vista: 'yield-curve',  label: 'YAS',      tecla: 'F5',  icone: '📉' },
+      { vista: 'mercado',      label: 'MKTM',    tecla: 'F2',  icone: <Globe    size={10} /> },
+      { vista: 'watchlist',    label: 'WL',       tecla: 'F4',  icone: <Star     size={10} /> },
+      { vista: 'livro-ordens', label: 'ALLQ',     tecla: 'F6',  icone: <BookOpen size={10} /> },
+      { vista: 'yield-curve',  label: 'YAS',      tecla: 'F5',  icone: <TrendingDown size={10} /> },
+      { vista: 'portfolio',    label: 'PORT',     tecla: '',    icone: <Wallet   size={10} /> },
     ],
   },
   {
     grupo: 'ANÁLISE',
     cor: '#3B82F6',
     tabs: [
-      { vista: 'heatmap',      label: 'HEAT',     tecla: 'F9',  icone: '🔥' },
-      { vista: 'bolhas',       label: 'BUBBLE',   tecla: 'F12', icone: '⚪' },
-      { vista: 'screener',     label: 'SCR',      tecla: '',    icone: '🔍' },
-      { vista: 'correlacao',   label: 'CORR',     tecla: '',    icone: '🔗' },
+      { vista: 'heatmap',      label: 'HEAT',     tecla: 'F9',  icone: <Flame    size={10} /> },
+      { vista: 'bolhas',       label: 'BUBBLE',   tecla: 'F12', icone: <Circle   size={10} /> },
+      { vista: 'screener',     label: 'SCR',      tecla: '',    icone: <Search   size={10} /> },
+      { vista: 'correlacao',   label: 'CORR',     tecla: '',    icone: <Link2    size={10} /> },
     ],
   },
   {
     grupo: 'GLOBAL',
     cor: '#10B981',
     tabs: [
-      { vista: 'macro',        label: 'MACRO',    tecla: 'F8',  icone: '🏛' },
-      { vista: 'calendario',   label: 'CAL',      tecla: 'F10', icone: '📅' },
-      { vista: 'mapa-mundo',   label: 'WMAP',     tecla: 'F11', icone: '🗺' },
+      { vista: 'macro',        label: 'MACRO',    tecla: 'F8',  icone: <Building2 size={10} /> },
+      { vista: 'calendario',   label: 'CAL',      tecla: 'F10', icone: <Calendar  size={10} /> },
+      { vista: 'mapa-mundo',   label: 'WMAP',     tecla: 'F11', icone: <Map       size={10} /> },
     ],
   },
   {
-    grupo: 'CRIPTO',
+    grupo: 'CRIPTO & DEFI',
     cor: '#F97316',
     tabs: [
-      { vista: 'cripto',       label: 'CRYPTO',   tecla: 'F7',  icone: '₿'  },
+      { vista: 'cripto',       label: 'CRYPTO',   tecla: 'F7',  icone: <Bitcoin   size={10} /> },
+      { vista: 'defi',         label: 'DEFI',     tecla: '',    icone: <Network   size={10} /> },
     ],
   },
   {
     grupo: 'NOTÍCIAS & IA',
     cor: '#8B5CF6',
     tabs: [
-      { vista: 'noticias',     label: 'NWSM',     tecla: 'F3',  icone: '📰' },
-      { vista: 'analise',      label: 'IA DES',   tecla: '',    icone: '⚡' },
+      { vista: 'noticias',     label: 'NWSM',     tecla: 'F3',  icone: <Newspaper size={10} /> },
+      { vista: 'analise',      label: 'IA DES',   tecla: '',    icone: <Zap       size={10} /> },
+      { vista: 'sentinela',    label: 'ALERT',    tecla: '',    icone: <Bell      size={10} /> },
     ],
   },
   {
     grupo: 'AJUDA',
     cor: '#6B7280',
     tabs: [
-      { vista: 'ajuda',        label: 'HELP',     tecla: 'F1',  icone: '?' },
+      { vista: 'ajuda',        label: 'HELP',     tecla: 'F1',  icone: <HelpCircle size={10} /> },
     ],
   },
 ]
@@ -86,13 +95,15 @@ export function TerminalHeader() {
     definirTema,
     alternarPainelLateral,
     alternarCommandPalette,
+    alertasSentinela,
   } = useTerminalStore()
 
   const [hora,         setHora]         = useState('')
   const [data,         setData]         = useState('')
   const [mostrarTemas, setMostrarTemas] = useState(false)
 
-  const corTema = temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
+  const alertasActivos = alertasSentinela.filter((a) => a.ativo).length
 
   useEffect(() => {
     const actualizar = () => {
@@ -136,11 +147,24 @@ export function TerminalHeader() {
           className="flex items-center gap-1.5 px-3 border-r border-neutral-800 h-full font-mono text-[10px] text-neutral-600 hover:text-neutral-400 transition-colors shrink-0"
           title="Ctrl+K"
         >
-          <span>⌨</span>
+          <Keyboard size={11} />
           <span>Ctrl+K</span>
         </button>
 
         <div className="flex-1" />
+
+        {/* Alertas activos */}
+        {alertasActivos > 0 && (
+          <button
+            type="button"
+            onClick={() => definirVista('sentinela')}
+            className="flex items-center gap-1.5 px-3 border-l border-neutral-800 h-full shrink-0 hover:bg-neutral-900 transition-colors"
+            title="Alertas Sentinela"
+          >
+            <Bell size={11} className="animate-pulse" style={{ color: '#F59E0B' }} />
+            <span className="font-mono text-[9px]" style={{ color: '#F59E0B' }}>{alertasActivos} ALERTAS</span>
+          </button>
+        )}
 
         {/* Estado IA */}
         <div className="flex items-center gap-1.5 px-3 border-l border-neutral-800 h-full shrink-0">
@@ -164,23 +188,26 @@ export function TerminalHeader() {
             TEMA
           </button>
           {mostrarTemas && (
-            <div className="absolute right-0 top-full z-50 bg-neutral-900 border border-neutral-700 rounded shadow-2xl min-w-[140px]">
-              {([
-                ['amber', '#F59E0B', 'Âmbar'],
-                ['green', '#10B981', 'Verde'],
-                ['blue',  '#3B82F6', 'Azul'],
-              ] as const).map(([t, c, n]) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => { definirTema(t); setMostrarTemas(false) }}
-                  className="flex items-center gap-2.5 w-full px-3 py-2 font-mono text-[11px] hover:bg-neutral-800 transition-colors"
-                >
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c }} />
-                  <span className="text-neutral-300">{n}</span>
-                  {temaActual === t && <span className="ml-auto" style={{ color: c }}>✓</span>}
-                </button>
-              ))}
+            <div className="absolute right-0 top-full z-50 bg-neutral-900 border border-neutral-700 rounded shadow-2xl min-w-[160px]">
+              {(Object.entries(CORES_TEMA) as [string, string][]).map(([t, c]) => {
+                const nomes: Record<string, string> = {
+                  amber: 'Âmbar', green: 'Verde', blue: 'Azul',
+                  purple: 'Roxo', red: 'Vermelho', cyan: 'Ciano',
+                  rose: 'Rosa', slate: 'Ardósia',
+                }
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => { definirTema(t as Parameters<typeof definirTema>[0]); setMostrarTemas(false) }}
+                    className="flex items-center gap-2.5 w-full px-3 py-2 font-mono text-[11px] hover:bg-neutral-800 transition-colors"
+                  >
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c }} />
+                    <span className="text-neutral-300">{nomes[t] ?? t}</span>
+                    {temaActual === t && <span className="ml-auto" style={{ color: c }}>✓</span>}
+                  </button>
+                )
+              })}
             </div>
           )}
         </div>
@@ -189,10 +216,10 @@ export function TerminalHeader() {
         <button
           type="button"
           onClick={alternarPainelLateral}
-          className="flex items-center px-3 h-full border-l border-neutral-800 font-mono text-[11px] text-neutral-600 hover:text-white transition-colors shrink-0"
+          className="flex items-center justify-center px-3 h-full border-l border-neutral-800 text-neutral-600 hover:text-white transition-colors shrink-0"
           title="Ctrl+B — Alternar painel lateral"
         >
-          ⊞
+          <LayoutGrid size={13} />
         </button>
 
         {/* Relógio */}
@@ -211,11 +238,8 @@ export function TerminalHeader() {
               <div className="w-px bg-neutral-800 my-1" />
             )}
 
-            {/* Label do grupo (hover) */}
-            <div
-              className="flex items-center px-1.5 shrink-0"
-              title={grupo.grupo}
-            >
+            {/* Label do grupo */}
+            <div className="flex items-center px-1.5 shrink-0" title={grupo.grupo}>
               <div className="w-0.5 h-3 rounded-full opacity-40" style={{ background: grupo.cor }} />
             </div>
 
@@ -236,7 +260,7 @@ export function TerminalHeader() {
                   title={`${tab.label}${tab.tecla ? ` (${tab.tecla})` : ''}`}
                 >
                   {tab.icone && (
-                    <span className="text-[10px] opacity-80 group-hover:opacity-100">{tab.icone}</span>
+                    <span className="opacity-80 group-hover:opacity-100">{tab.icone}</span>
                   )}
                   {tab.tecla && (
                     <span
@@ -247,7 +271,6 @@ export function TerminalHeader() {
                     </span>
                   )}
                   <span className="font-bold tracking-tight">{tab.label}</span>
-                  {/* Indicador de hover */}
                   {!activo && (
                     <div
                       className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-40 transition-opacity"
@@ -260,7 +283,7 @@ export function TerminalHeader() {
           </div>
         ))}
 
-        {/* Ticker activo na nav — atalho rápido para gráfico */}
+        {/* Ticker activo na nav */}
         {tickerActivo && (
           <>
             <div className="flex-1" />
@@ -270,7 +293,7 @@ export function TerminalHeader() {
               className="flex items-center gap-1.5 px-3 h-full border-l border-neutral-800 font-mono text-[10px] shrink-0 transition-colors"
               style={{ color: vistaActual === 'candlestick' ? corTema : '#5a5a5a' }}
             >
-              <span>📈</span>
+              <TrendingUp size={11} />
               <span className="font-bold">{tickerActivo}</span>
               <span className="text-[9px] opacity-60">GP</span>
             </button>

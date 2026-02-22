@@ -59,6 +59,17 @@ const MAPA_COMANDOS: Record<string, VistaTerminal> = {
   GP:         'candlestick',
   IA:         'analise',
   AI:         'analise',
+  // Novas vistas
+  DEFI:       'defi',
+  ONCHAIN:    'defi',
+  CHAIN:      'defi',
+  ALERT:      'sentinela',
+  SENTINELA:  'sentinela',
+  ALERTAS:    'sentinela',
+  TRIGGERS:   'sentinela',
+  BOND:       'yield-curve',
+  BONDS:      'yield-curve',
+  OBRIG:      'yield-curve',
 }
 
 // ── Mapeamento de funções de segurança ────────────────────────
@@ -280,6 +291,8 @@ function descreverVista(vista: VistaTerminal): string {
     bolhas:         'Gráfico de Bolhas de Mercado',
     screener:       'Screener de Acções',
     correlacao:     'Matriz de Correlação',
+    defi:           'DeFi / On-Chain Tracker',
+    sentinela:      'Sentinela IA — Alertas & Triggers',
     ajuda:          'Centro de Ajuda',
   }
   return descricoes[vista] ?? vista

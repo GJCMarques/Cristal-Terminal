@@ -7,6 +7,8 @@
 import dynamic from 'next/dynamic'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { useTerminalStore, selectWatchlistActiva } from '@/store/terminal.store'
+import { corParaTema } from '@/lib/utils'
+import { PainelContainer } from './PainelContainer'
 import { MarketOverviewPanel }  from '../panels/MarketOverviewPanel'
 import { NewsPanel }            from '../panels/NewsPanel'
 import { YieldCurvePanel }      from '../panels/YieldCurvePanel'
@@ -20,6 +22,9 @@ import { CalendarioPanel }      from '../panels/CalendarioPanel'
 import { BolhasPanel }          from '../panels/BolhasPanel'
 import { ScreenerPanel }        from '../panels/ScreenerPanel'
 import { CorrelacaoPanel }      from '../panels/CorrelacaoPanel'
+import { PortfolioPanel }       from '../panels/PortfolioPanel'
+import { DeFiPanel }            from '../panels/DeFiPanel'
+import { SentinelaPanel }       from '../panels/SentinelaPanel'
 import { HelpView }             from '../HelpView'
 
 const Spinner = ({ label }: { label: string }) => (
@@ -60,33 +65,46 @@ function ResizeHandleHorizontal() {
 function PainelPrincipal() {
   const { vistaActual } = useTerminalStore()
 
-  switch (vistaActual) {
-    case 'mercado':      return <MarketOverviewPanel />
-    case 'candlestick':  return <CandlestickPanel />
-    case 'livro-ordens': return <OrderBookPanel />
-    case 'yield-curve':  return <YieldCurvePanel />
-    case 'noticias':     return <NewsPanel />
-    case 'watchlist':    return <WatchlistPanel />
-    case 'analise':      return <AnalisePanel />
-    case 'cripto':       return <CriptoPanel />
-    case 'macro':        return <MacroPanel />
-    case 'heatmap':      return <HeatmapPanel />
-    case 'calendario':   return <CalendarioPanel />
-    case 'mapa-mundo':   return <MapaMundoPanel />
-    case 'bolhas':       return <BolhasPanel />
-    case 'screener':     return <ScreenerPanel />
-    case 'correlacao':   return <CorrelacaoPanel />
-    case 'ajuda':        return <HelpView />
-    default:             return <MarketOverviewPanel />
-  }
+  // CandlestickPanel tem zoom nativo (TradingView) — ocultar controlos de zoom externos
+  const semZoom = vistaActual === 'candlestick'
+
+  const painel = (() => {
+    switch (vistaActual) {
+      case 'mercado':      return <MarketOverviewPanel />
+      case 'candlestick':  return <CandlestickPanel />
+      case 'livro-ordens': return <OrderBookPanel />
+      case 'yield-curve':  return <YieldCurvePanel />
+      case 'noticias':     return <NewsPanel />
+      case 'watchlist':    return <WatchlistPanel />
+      case 'analise':      return <AnalisePanel />
+      case 'cripto':       return <CriptoPanel />
+      case 'macro':        return <MacroPanel />
+      case 'heatmap':      return <HeatmapPanel />
+      case 'calendario':   return <CalendarioPanel />
+      case 'mapa-mundo':   return <MapaMundoPanel />
+      case 'bolhas':       return <BolhasPanel />
+      case 'screener':     return <ScreenerPanel />
+      case 'correlacao':   return <CorrelacaoPanel />
+      case 'portfolio':    return <PortfolioPanel />
+      case 'defi':         return <DeFiPanel />
+      case 'sentinela':    return <SentinelaPanel />
+      case 'ajuda':        return <HelpView />
+      default:             return <MarketOverviewPanel />
+    }
+  })()
+
+  return (
+    <PainelContainer semZoom={semZoom}>
+      {painel}
+    </PainelContainer>
+  )
 }
 
 /** Painel lateral — mini mercado + watchlist */
 function PainelLateral() {
   const { temaActual, definirTickerActivo, definirVista } = useTerminalStore()
   const watchlist = selectWatchlistActiva(useTerminalStore.getState())
-  const corTema =
-    temaActual === 'green' ? '#10B981' : temaActual === 'blue' ? '#3B82F6' : '#F59E0B'
+  const corTema = corParaTema(temaActual)
 
   const TOP_MOEDAS = [
     { ticker: 'EURUSD', v: 1.0823, c: -0.05 },

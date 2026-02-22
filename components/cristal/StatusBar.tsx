@@ -53,7 +53,7 @@ export function StatusBar() {
     mercado:        'MONITOR DE MERCADO GLOBAL',
     candlestick:    `GRÁFICO DE VELAS${tickerActivo ? ` — ${tickerActivo}` : ''}`,
     'livro-ordens': `LIVRO DE ORDENS${tickerActivo ? ` — ${tickerActivo}` : ''}`,
-    'yield-curve':  'CURVA DE RENDIMENTO SOBERANA',
+    'yield-curve':  'CURVA DE RENDIMENTO & BOND CALC',
     noticias:       'MONITOR DE NOTÍCIAS',
     watchlist:      'LISTA DE OBSERVAÇÃO',
     analise:        `ANÁLISE IA${tickerActivo ? ` — ${tickerActivo}` : ''}`,
@@ -61,7 +61,9 @@ export function StatusBar() {
     macro:          'MONITOR MACROECONÓMICO',
     heatmap:        'MAPA DE CALOR — S&P 500',
     calendario:     'CALENDÁRIO ECONÓMICO',
-    portfolio:      'CARTEIRA DE INVESTIMENTO',
+    portfolio:      'CARTEIRA & P&L — PORTFOLIO',
+    defi:           'DEFI / ON-CHAIN TRACKER',
+    sentinela:      'SENTINELA IA — ALERTAS & TRIGGERS',
     ajuda:          'CENTRO DE AJUDA',
   }
 
