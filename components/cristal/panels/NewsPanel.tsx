@@ -87,7 +87,7 @@ export function NewsPanel() {
   const [pagina, setPagina] = useState(1)
   const [total, setTotal] = useState(0)
   const [fonteAPI, setFonteAPI] = useState<'newsapi' | 'mock'>('mock')
-  const limite = 15
+  const limite = 50
 
   const carregar = useCallback(async () => {
     setCarregando(true)
