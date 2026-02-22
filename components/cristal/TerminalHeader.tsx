@@ -32,54 +32,54 @@ const GRUPOS_TABS: GrupoTabs[] = [
     grupo: 'MERCADOS',
     cor: '#F59E0B',
     tabs: [
-      { vista: 'mercado',      label: 'MKTM',    tecla: 'F2',  icone: <Globe    size={10} /> },
-      { vista: 'watchlist',    label: 'WL',       tecla: 'F4',  icone: <Star     size={10} /> },
-      { vista: 'livro-ordens', label: 'ALLQ',     tecla: 'F6',  icone: <BookOpen size={10} /> },
-      { vista: 'yield-curve',  label: 'YAS',      tecla: 'F5',  icone: <TrendingDown size={10} /> },
-      { vista: 'portfolio',    label: 'PORT',     tecla: '',    icone: <Wallet   size={10} /> },
+      { vista: 'mercado', label: 'MKTM', tecla: 'F2', icone: <Globe size={10} /> },
+      { vista: 'watchlist', label: 'WL', tecla: 'F4', icone: <Star size={10} /> },
+      { vista: 'livro-ordens', label: 'ALLQ', tecla: 'F6', icone: <BookOpen size={10} /> },
+      { vista: 'yield-curve', label: 'YAS', tecla: 'F5', icone: <TrendingDown size={10} /> },
+      { vista: 'portfolio', label: 'PORT', tecla: '', icone: <Wallet size={10} /> },
     ],
   },
   {
     grupo: 'ANÁLISE',
     cor: '#3B82F6',
     tabs: [
-      { vista: 'heatmap',      label: 'HEAT',     tecla: 'F9',  icone: <Flame    size={10} /> },
-      { vista: 'bolhas',       label: 'BUBBLE',   tecla: 'F12', icone: <Circle   size={10} /> },
-      { vista: 'screener',     label: 'SCR',      tecla: '',    icone: <Search   size={10} /> },
-      { vista: 'correlacao',   label: 'CORR',     tecla: '',    icone: <Link2    size={10} /> },
+      { vista: 'heatmap', label: 'HEAT', tecla: 'F9', icone: <Flame size={10} /> },
+      { vista: 'bolhas', label: 'BUBBLE', tecla: 'F12', icone: <Circle size={10} /> },
+      { vista: 'screener', label: 'SCR', tecla: '', icone: <Search size={10} /> },
+      { vista: 'correlacao', label: 'CORR', tecla: '', icone: <Link2 size={10} /> },
     ],
   },
   {
     grupo: 'GLOBAL',
     cor: '#10B981',
     tabs: [
-      { vista: 'macro',        label: 'MACRO',    tecla: 'F8',  icone: <Building2 size={10} /> },
-      { vista: 'calendario',   label: 'CAL',      tecla: 'F10', icone: <Calendar  size={10} /> },
-      { vista: 'mapa-mundo',   label: 'WMAP',     tecla: 'F11', icone: <Map       size={10} /> },
+      { vista: 'macro', label: 'MACRO', tecla: 'F8', icone: <Building2 size={10} /> },
+      { vista: 'calendario', label: 'CAL', tecla: 'F10', icone: <Calendar size={10} /> },
+      { vista: 'mapa-mundo', label: 'WMAP', tecla: 'F11', icone: <Map size={10} /> },
     ],
   },
   {
     grupo: 'CRIPTO & DEFI',
     cor: '#F97316',
     tabs: [
-      { vista: 'cripto',       label: 'CRYPTO',   tecla: 'F7',  icone: <Bitcoin   size={10} /> },
-      { vista: 'defi',         label: 'DEFI',     tecla: '',    icone: <Network   size={10} /> },
+      { vista: 'cripto', label: 'CRYPTO', tecla: 'F7', icone: <Bitcoin size={10} /> },
+      { vista: 'defi', label: 'DEFI', tecla: '', icone: <Network size={10} /> },
     ],
   },
   {
     grupo: 'NOTÍCIAS & IA',
     cor: '#8B5CF6',
     tabs: [
-      { vista: 'noticias',     label: 'NWSM',     tecla: 'F3',  icone: <Newspaper size={10} /> },
-      { vista: 'analise',      label: 'IA DES',   tecla: '',    icone: <Zap       size={10} /> },
-      { vista: 'sentinela',    label: 'ALERT',    tecla: '',    icone: <Bell      size={10} /> },
+      { vista: 'noticias', label: 'NWSM', tecla: 'F3', icone: <Newspaper size={10} /> },
+      { vista: 'analise', label: 'IA DES', tecla: '', icone: <Zap size={10} /> },
+      { vista: 'sentinela', label: 'ALERT', tecla: '', icone: <Bell size={10} /> },
     ],
   },
   {
     grupo: 'AJUDA',
     cor: '#6B7280',
     tabs: [
-      { vista: 'ajuda',        label: 'HELP',     tecla: 'F1',  icone: <HelpCircle size={10} /> },
+      { vista: 'ajuda', label: 'HELP', tecla: 'F1', icone: <HelpCircle size={10} /> },
     ],
   },
 ]
@@ -98,8 +98,8 @@ export function TerminalHeader() {
     alertasSentinela,
   } = useTerminalStore()
 
-  const [hora,         setHora]         = useState('')
-  const [data,         setData]         = useState('')
+  const [hora, setHora] = useState('')
+  const [data, setData] = useState('')
   const [mostrarTemas, setMostrarTemas] = useState(false)
 
   const corTema = corParaTema(temaActual)
@@ -124,7 +124,9 @@ export function TerminalHeader() {
 
         {/* Logo */}
         <div className="flex items-center gap-2 px-3 border-r border-neutral-800 h-full shrink-0" style={{ borderRightColor: corTema + '55' }}>
-          <div className="w-4 h-4 rounded-sm flex items-center justify-center text-black font-black text-[8px]" style={{ backgroundColor: corTema }}>CC</div>
+          <svg width="16" height="16" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M32 4 L60 32 L32 60 L4 32 Z" stroke="#D7B56D" strokeWidth="6" strokeLinejoin="miter" />
+          </svg>
           <span className="font-mono text-[11px] font-bold" style={{ color: corTema }}>CRISTAL CAPITAL</span>
           <span className="font-mono text-[9px] text-neutral-700">TERMINAL PRO</span>
         </div>
@@ -253,9 +255,9 @@ export function TerminalHeader() {
                   onClick={() => definirVista(tab.vista)}
                   className="relative flex items-center gap-1 px-2.5 font-mono text-[10px] transition-all shrink-0 whitespace-nowrap border-r border-neutral-900 group"
                   style={{
-                    color:           activo ? '#000' : '#555',
+                    color: activo ? '#000' : '#555',
                     backgroundColor: activo ? grupo.cor : 'transparent',
-                    borderBottom:    activo ? 'none' : '2px solid transparent',
+                    borderBottom: activo ? 'none' : '2px solid transparent',
                   }}
                   title={`${tab.label}${tab.tecla ? ` (${tab.tecla})` : ''}`}
                 >

@@ -4,29 +4,29 @@
 // CRISTAL CAPITAL TERMINAL — Componente Principal
 // ============================================================
 
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback, useRef, useState } from 'react'
 import { useTerminalStore } from '@/store/terminal.store'
-import { TerminalHeader }  from './TerminalHeader'
-import { CommandLine }     from './CommandLine'
+import { TerminalHeader } from './TerminalHeader'
+import { CommandLine } from './CommandLine'
 import { ResizableLayout } from './layout/ResizableLayout'
-import { StatusBar }       from './StatusBar'
-import { ContextMenu }     from './ContextMenu'
-import { CommandPalette }  from './CommandPalette'
-import { TradeTicket }     from './TradeTicket'
+import { StatusBar } from './StatusBar'
+import { ContextMenu } from './ContextMenu'
+import { CommandPalette } from './CommandPalette'
+import { TradeTicket } from './TradeTicket'
 import type { VistaTerminal } from '@/types/terminal'
-import type { ClasseAtivo }  from '@/types/market'
+import type { ClasseAtivo } from '@/types/market'
 
 // Teclas de função → vistas
 const FUNCOES_RAPIDAS: Record<string, VistaTerminal> = {
-  F1:  'ajuda',
-  F2:  'mercado',
-  F3:  'noticias',
-  F4:  'watchlist',
-  F5:  'yield-curve',
-  F6:  'livro-ordens',
-  F7:  'cripto',
-  F8:  'macro',
-  F9:  'heatmap',
+  F1: 'ajuda',
+  F2: 'mercado',
+  F3: 'noticias',
+  F4: 'watchlist',
+  F5: 'yield-curve',
+  F6: 'livro-ordens',
+  F7: 'cripto',
+  F8: 'macro',
+  F9: 'heatmap',
   F10: 'calendario',
   F11: 'mapa-mundo',
   F12: 'bolhas',
@@ -48,6 +48,9 @@ const CTRL_ATALHOS: Record<string, VistaTerminal> = {
 }
 
 export function CristalTerminal() {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
   const {
     definirVista,
     voltarVista,
@@ -84,8 +87,8 @@ export function CristalTerminal() {
 
       // Fechar overlays com Escape (ordem de prioridade)
       if (e.key === 'Escape') {
-        if (tradeTicket.aberto)      { fecharTradeTicket();    e.preventDefault(); return }
-        if (commandPaletteAberto)    { fecharCommandPalette(); e.preventDefault(); return }
+        if (tradeTicket.aberto) { fecharTradeTicket(); e.preventDefault(); return }
+        if (commandPaletteAberto) { fecharCommandPalette(); e.preventDefault(); return }
         fecharContextMenu()
         return
       }
@@ -168,19 +171,19 @@ export function CristalTerminal() {
         if (el.dataset.ticker) { ticker = el.dataset.ticker; break }
         el = el.parentElement
       }
-      if (el?.dataset.nome)   nome   = el.dataset.nome
+      if (el?.dataset.nome) nome = el.dataset.nome
       if (el?.dataset.classe) classe = el.dataset.classe
 
       // Fallback: usar ticker activo do store
       if (!ticker && tickerActivo) {
         ticker = tickerActivo
-        nome   = nomeActivoAtivo ?? undefined
+        nome = nomeActivoAtivo ?? undefined
         classe = classeActivaAtivo ?? undefined
       }
 
       abrirContextMenu({
-        x:          e.clientX,
-        y:          e.clientY,
+        x: e.clientX,
+        y: e.clientY,
         ticker,
         nomeActivo: nome,
         classeAtivo: classe as ClasseAtivo | undefined,
@@ -211,20 +214,27 @@ export function CristalTerminal() {
       {/* ── Linha de comando Bloomberg-style ────────────── */}
       <CommandLine />
 
-      {/* ── Área de trabalho redimensionável ────────────── */}
-      <ResizableLayout />
+      {/* ── Renderizar apenas no cliente para evitar erros de Hidratação ────────────── */}
+      {mounted ? (
+        <>
+          {/* ── Área de trabalho redimensionável ────────────── */}
+          <ResizableLayout />
 
-      {/* ── Barra de estado inferior ─────────────────────── */}
-      <StatusBar />
+          {/* ── Barra de estado inferior ─────────────────────── */}
+          <StatusBar />
 
-      {/* ── Context Menu (botão direito) ─────────────────── */}
-      <ContextMenu />
+          {/* ── Context Menu (botão direito) ─────────────────── */}
+          <ContextMenu />
 
-      {/* ── Paleta de Comandos (Ctrl+K) ──────────────────── */}
-      <CommandPalette />
+          {/* ── Paleta de Comandos (Ctrl+K) ──────────────────── */}
+          <CommandPalette />
 
-      {/* ── Trade Ticket (Ordem Rápida) ──────────────────── */}
-      <TradeTicket />
+          {/* ── Trade Ticket (Ordem Rápida) ──────────────────── */}
+          <TradeTicket />
+        </>
+      ) : (
+        <div className="flex-1 bg-black" />
+      )}
     </div>
   )
 }
