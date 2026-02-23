@@ -284,7 +284,7 @@ export function TerminalHeader() {
                   )}
                   {tab.tecla && (
                     <span
-                      className="text-[8px] opacity-60"
+                      className="text-[8px] opacity-95"
                       style={{ color: activo ? '#000' : grupo.cor }}
                     >
                       {tab.tecla}
