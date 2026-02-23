@@ -1,0 +1,17 @@
+Setting up EMSDK environment (suppress these messages with EMSDK_QUIET=1)
+Adding directories to PATH:
+PATH += /home/gui/emsdk
+PATH += /home/gui/emsdk/upstream/emscripten
+
+Setting environment variables:
+PATH = /home/gui/emsdk:/home/gui/emsdk/upstream/emscripten:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib
+EMSDK = /home/gui/emsdk
+EMSDK_NODE = /home/gui/emsdk/node/22.16.0_64bit/bin/node
+Compiling...
+error: /home/gui/emsdk/upstream/emscripten/src/postlibrary.js: undefined exported symbol: "_malloc" in EXPORTED_RUNTIME_METHODS
+error: /home/gui/emsdk/upstream/emscripten/src/postlibrary.js: undefined exported symbol: "_free" in EXPORTED_RUNTIME_METHODS
+Error: Aborting compilation due to previous errors
+    at finalCombiner (file:///home/gui/emsdk/upstream/emscripten/src/jsifier.mjs:926:13)
+    at Module.runJSify (file:///home/gui/emsdk/upstream/emscripten/src/jsifier.mjs:962:5)
+    at file:///home/gui/emsdk/upstream/emscripten/tools/compiler.mjs:108:17
+emcc: error: '/home/gui/emsdk/node/22.16.0_64bit/bin/node /home/gui/emsdk/upstream/emscripten/tools/compiler.mjs -' failed (returned 1)

@@ -204,39 +204,75 @@ Seed: `GET /api/auth/seed`
 
 ---
 
-## Ambiente Quant (Em Desenvolvimento)
+## Ambiente Quant (IMPLEMENTADO — v2)
 
-### Filosofia
-- **Python via Pyodide** — Python em WebAssembly no browser (sem servidor, sem dependências)
-- **C++ compilado para WebAssembly** — funções matemáticas de alta performance
-- Tudo self-contained, sem APIs externas pagas
+### Arquitectura Tri-Camada
 
-### Ficheiros Planeados
+| Camada | Tecnologia | Estado |
+|--------|-----------|--------|
+| TypeScript | Cálculo imediato no browser | ✓ Activo |
+| Python | numpy/scipy/pandas via `child_process` server-side | ✓ Activo |
+| C++ WASM | Emscripten → `public/wasm/quant.js+wasm` | ✓ Compilado |
+
+### Ficheiros Implementados
 
 ```
 lib/quant/
-├── black-scholes.ts    — Black-Scholes (TypeScript, cálculo imediato)
-├── monte-carlo.ts      — Monte Carlo VaR/simulações
-└── statistics.ts       — Funções estatísticas (correlação, beta, sharpe)
+├── statistics.ts      — normalCDF, media, covariancia, sharpe, beta, maxDrawdown, percentil
+├── black-scholes.ts   — blackScholes (gregas completas), volImplicita, binomialCRR (americanas)
+├── monte-carlo.ts     — simularGBM, calcularVaR (3 métodos), opcaoMonteCarlo (exóticas), Nelson-Siegel
+├── portfolio.ts       — Markowitz (gradient descent), frontEficiente, capm, blackLitterman
+├── volatility.ts      — hestonMC (Milstein), sabrVolImplicita (Hagan), fitGARCH, sviVol, gerarSuperficieHeston
+└── fixed-income.ts    — precoBond, ytmBond, zSpread, analiseCenarios, analisarPortfolioBonds
 
-native/quant/           — Código C++ fonte
-├── black_scholes.cpp   — Compilar com Emscripten → public/wasm/quant.wasm
-├── monte_carlo.cpp
-└── CMakeLists.txt
+native/quant/           — C++ fonte (compilado com Emscripten)
+├── black_scholes.cpp  — bs_call/put, bs_delta/gamma/vega/theta, bs_vol_implicita
+├── monte_carlo.cpp    — mc_opcao (5 tipos), var_historico, var_montecarlo, gbm_precos_finais
+└── CMakeLists.txt     — Instruções de build Emscripten
 
-public/quant/           — Scripts Python para Pyodide
-├── init.py             — Setup (numpy, scipy, pandas)
-└── examples/           — Notebooks financeiros pré-construídos
+public/
+├── wasm/quant.js      — Módulo Emscripten compilado (WASM loader)
+├── wasm/quant.wasm    — Bytecode WebAssembly compilado
+└── quant/init.py      — Preâmbulo Python: bs, mc_gbm, mc_opcao, markowitz, capm,
+                          preco_bond, ytm_bond, garch11, superficie_vol + chart()/tabela()
 
 components/cristal/panels/
-└── QuantPanel.tsx      — UI do ambiente quant
+└── QuantPanel.tsx     — UI completo: editor, output, gráficos recharts, 9 exemplos (6 JS + 3 Python)
 
 app/api/quant/
-└── run/route.ts        — Execução Python server-side (child_process)
+└── run/route.ts       — POST: executa Python via child_process, timeout 45s, parse CHART: prefix
 ```
 
-### Vista: `'quant'` (a adicionar ao VistaTerminal)
-Comandos: `QUANT`, `PY`, `PYTHON`, `CALC`, `MATH`
+### Vista Quant
+- **Comandos**: `QUANT`, `PY`, `PYTHON`, `CALC`, `MATH`, `CPP`, `BS`, `QA`
+- **Atalho teclado**: `Ctrl+Q`
+- **Ctrl+Enter** no editor executa o código
+
+### Python Server-Side
+```python
+# Funções disponíveis em init.py (pré-carregado):
+bs(S, K, T, r, sigma, q=0, tipo='call')     # Black-Scholes + gregas
+vol_implicita(preco_mkt, S, K, T, r)        # IV Newton-Raphson
+mc_gbm(S0, mu, sigma, T, n_sim, n_steps)    # GBM vectorizado numpy
+mc_opcao(S, K, T, r, sigma, tipo)           # Monte Carlo antithetic
+markowitz(retornos_lista, rf, n_portfolios) # Fronteira eficiente MC
+capm(ret_activo, ret_mercado, rf)           # Regressão CAPM
+preco_bond(nominal, cupao, ytm, maturidade) # Bond + duration + DV01
+ytm_bond(preco_mkt, nominal, cupao, mat)    # YTM Newton-Raphson
+garch11(retornos)                           # GARCH(1,1) scipy MLE
+superficie_vol(S, K_list, T_list, r)        # Vol surface parametrizada
+
+# Output:
+chart('line', dados, titulo, xlabel, ylabel) # → CHART: JSON → recharts no painel
+tabela(dict_ou_dataframe)                    # Tabela alinhada
+fmt(v, casas), pct(v), bps(v), moeda(v)     # Formatadores
+```
+
+### Dependências Python (instaladas em WSL)
+```
+numpy 2.4.2, scipy 1.17.1, pandas 3.0.1
+Instaladas em: /usr/lib/python3/ e ~/.local/lib/python3.12/
+```
 
 ---
 
