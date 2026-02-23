@@ -74,6 +74,15 @@ const MAPA_COMANDOS: Record<string, VistaTerminal> = {
   MSG:        'chat',
   MENSAGEM:   'chat',
   IM:         'chat',
+  // Ambiente Quant
+  QUANT:      'quant',
+  PY:         'quant',
+  PYTHON:     'quant',
+  CALC:       'quant',
+  MATH:       'quant',
+  CPP:        'quant',
+  BS:         'quant',
+  QA:         'quant',
 }
 
 // ── Mapeamento de funções de segurança ────────────────────────
@@ -298,6 +307,7 @@ function descreverVista(vista: VistaTerminal): string {
     defi:           'DeFi / On-Chain Tracker',
     sentinela:      'Sentinela IA — Alertas & Triggers',
     chat:           'Chat Institucional — MSG',
+    quant:          'Ambiente Quant — Python + C++ WASM',
     ajuda:          'Centro de Ajuda',
   }
   return descricoes[vista] ?? vista

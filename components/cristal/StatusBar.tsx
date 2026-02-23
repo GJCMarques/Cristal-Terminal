@@ -67,6 +67,7 @@ export function StatusBar() {
     defi: 'DEFI / ON-CHAIN TRACKER',
     sentinela: 'SENTINELA IA — ALERTAS & TRIGGERS',
     chat: 'CHAT INSTITUCIONAL — MSG',
+    quant: 'AMBIENTE QUANT — PYTHON + C++ WASM',
     ajuda: 'CENTRO DE AJUDA',
   }
 

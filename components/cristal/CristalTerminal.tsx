@@ -47,6 +47,7 @@ const CTRL_ATALHOS: Record<string, VistaTerminal> = {
   d: 'defi',
   a: 'sentinela',
   t: 'chat',
+  q: 'quant',
 }
 
 export function CristalTerminal() {

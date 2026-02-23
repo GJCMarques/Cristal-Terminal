@@ -8,7 +8,7 @@ import { corParaTema } from '@/lib/utils'
 
 import { useState, useEffect, useCallback } from 'react'
 import { useTerminalStore } from '@/store/terminal.store'
-import { Globe, Package, Search, X } from 'lucide-react'
+import { Globe, Package, Search, X, TrendingUp, Minus, TrendingDown, Newspaper } from 'lucide-react'
 
 interface Noticia {
   id: string
@@ -31,10 +31,10 @@ const COR_SENT: Record<string, string> = {
   negativo: '#EF4444',
 }
 
-const ICONE_SENT: Record<string, string> = {
-  positivo: '▲',
-  neutro: '■',
-  negativo: '▼',
+const ICONE_SENT: Record<string, React.ReactNode> = {
+  positivo: <TrendingUp size={12} />,
+  neutro: <Minus size={12} />,
+  negativo: <TrendingDown size={12} />,
 }
 
 const CATEGORIAS = [
@@ -204,7 +204,7 @@ export function NewsPanel() {
                     <div className="flex-1 min-w-0">
                       <div className="text-[11px] leading-snug text-neutral-200 mb-1 line-clamp-2">
                         {n.urgente && <span className="text-[8px] font-bold text-red-500 mr-1">URGENTE</span>}
-                        {n.bandeira} {n.titulo}
+                        <Newspaper size={10} className="inline-block relative -top-0.5 mr-1 text-neutral-500" /> {n.titulo}
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[9px] text-neutral-600">{n.fonte}</span>
@@ -237,7 +237,7 @@ export function NewsPanel() {
         {seleccionada && (
           <div className="w-72 border-l border-neutral-800 flex flex-col shrink-0 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-800 shrink-0">
-              <span className="text-[10px] font-bold" style={{ color: COR_SENT[seleccionada.sentimento] }}>
+              <span className="text-[10px] font-bold flex items-center gap-1.5" style={{ color: COR_SENT[seleccionada.sentimento] }}>
                 {seleccionada.sentimento.toUpperCase()} {ICONE_SENT[seleccionada.sentimento]}
               </span>
               <button type="button" onClick={() => setSeleccionada(null)} className="text-neutral-600 hover:text-neutral-400 flex items-center justify-center"><X size={12} /></button>

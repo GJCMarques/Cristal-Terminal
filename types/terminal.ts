@@ -27,6 +27,7 @@ export type VistaTerminal =
   | 'correlacao'     // Matriz de Correlação (CORR)
   | 'defi'           // DeFi/On-Chain Tracker (DEFI)
   | 'sentinela'      // Sentinel IA de Alertas (ALERT)
+  | 'quant'          // Ambiente Quant — Python + C++ WASM (QUANT)
 
 // ── Context menu ──────────────────────────────────────────────
 

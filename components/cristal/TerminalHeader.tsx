@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react'
 import {
   Globe, Star, BookOpen, TrendingDown, TrendingUp, Flame, Circle,
   Search, Link2, Building2, Calendar, Map, Bitcoin, Newspaper, Zap,
-  HelpCircle, Keyboard, LayoutGrid, Wallet, Network, Bell, MessageSquare, Check
+  HelpCircle, Keyboard, LayoutGrid, Wallet, Network, Bell, MessageSquare, Check, FlaskConical
 } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 import { corParaTema, CORES_TEMA } from '@/lib/utils'
@@ -81,7 +81,8 @@ const GRUPOS_TABS: GrupoTabs[] = [
     grupo: 'COMUNICAÇÃO',
     cor: '#06B6D4',
     tabs: [
-      { vista: 'chat', label: 'MSG', tecla: '', icone: <MessageSquare size={10} /> },
+      { vista: 'chat',  label: 'MSG',   tecla: '', icone: <MessageSquare size={10} /> },
+      { vista: 'quant', label: 'QUANT', tecla: '', icone: <FlaskConical  size={10} /> },
     ],
   },
   {

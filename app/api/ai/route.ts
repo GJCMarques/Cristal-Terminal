@@ -6,6 +6,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { PERSONA_ECONOMISTA } from "@/lib/ai/prompts";
 
 export const dynamic = "force-dynamic";
 
@@ -28,12 +29,7 @@ const requestSchema = z.object({
   stream: z.boolean().optional().default(true),
 });
 
-const SISTEMA_ANALISTA = `Você é um analista financeiro sénior do Cristal Capital Terminal.
-Responda SEMPRE em Português de Portugal (PT-PT), de forma concisa e profissional.
-Use terminologia financeira precisa. Baseie as análises nos dados fornecidos.
-NUNCA forneça recomendações específicas de compra ou venda de activos.
-NUNCA invente dados numéricos que não constem no contexto fornecido.
-Limite as respostas a 3-4 parágrafos curtos e objectivos.`;
+// prompt was relocated to lib/ai/prompts
 
 export async function POST(req: NextRequest) {
   // ── Validação ──────────────────────────────────────────────
@@ -49,7 +45,7 @@ export async function POST(req: NextRequest) {
 
   // ── Montar mensagens ───────────────────────────────────────
   const mensagens: { role: string; content: string }[] = [
-    { role: "system", content: SISTEMA_ANALISTA },
+    { role: "system", content: PERSONA_ECONOMISTA },
   ];
 
   if (corpo.context && Object.keys(corpo.context).length > 0) {
@@ -100,7 +96,7 @@ export async function POST(req: NextRequest) {
         const dec = new TextDecoder();
         let buf = "";
         try {
-          for (;;) {
+          for (; ;) {
             const { done, value } = await reader.read();
             if (done) break;
             buf += dec.decode(value, { stream: true });

@@ -26,6 +26,7 @@ import { PortfolioPanel }       from '../panels/PortfolioPanel'
 import { DeFiPanel }            from '../panels/DeFiPanel'
 import { SentinelaPanel }       from '../panels/SentinelaPanel'
 import { ChatPanel }            from '../panels/ChatPanel'
+import { QuantPanel }           from '../panels/QuantPanel'
 import { HelpView }             from '../HelpView'
 
 const Spinner = ({ label }: { label: string }) => (
@@ -67,7 +68,7 @@ function PainelPrincipal() {
   const { vistaActual } = useTerminalStore()
 
   // Painéis sem controlos de zoom externos (têm zoom nativo ou são text-based)
-  const semZoom = vistaActual === 'candlestick' || vistaActual === 'chat'
+  const semZoom = vistaActual === 'candlestick' || vistaActual === 'chat' || vistaActual === 'quant'
 
   const painel = (() => {
     switch (vistaActual) {
@@ -90,6 +91,7 @@ function PainelPrincipal() {
       case 'defi':         return <DeFiPanel />
       case 'sentinela':    return <SentinelaPanel />
       case 'chat':         return <ChatPanel />
+      case 'quant':        return <QuantPanel />
       case 'ajuda':        return <HelpView />
       default:             return <MarketOverviewPanel />
     }

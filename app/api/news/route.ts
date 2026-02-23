@@ -1,9 +1,9 @@
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — API de Notícias
 // NewsAPI.org (se NEWSAPI_KEY definida) ou mocks expandidos
-// ============================================================
-
 import { NextRequest, NextResponse } from 'next/server'
+import { getDb } from '@/lib/db'
+import { PROMPT_NOTICIAS } from '@/lib/ai/prompts'
 
 export const dynamic = 'force-dynamic'
 
@@ -76,12 +76,77 @@ export async function GET(req: NextRequest) {
   const limite = Math.min(Number(searchParams.get('limite') ?? 50), 100)
   const apiKey = process.env.NEWSAPI_KEY
 
+  // ── Helper: Processamento em Background com Ollama ──────
+  const OLLAMA_URL = process.env.OLLAMA_BASE_URL ?? "http://localhost:11434"
+  const MODELO = process.env.OLLAMA_MODEL ?? "llama3"
+
+  const processarComIA = async (noticiasParaAnalisar: NoticiaAPI[]) => {
+    if (noticiasParaAnalisar.length === 0) return
+    try {
+      const db = await getDb()
+      for (const n of noticiasParaAnalisar) {
+        try {
+          const prompt = `${PROMPT_NOTICIAS} \nNotícia: "${n.titulo}" - Resumo: "${n.resumo}"`
+
+          const res = await fetch(`${OLLAMA_URL}/api/generate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: MODELO,
+              prompt: prompt,
+              format: "json",
+              stream: false,
+              options: { temperature: 0.15 } // slightly elevated to avoid freezing
+            })
+          })
+
+          if (res.ok) {
+            const data = await res.json()
+            const parsed = JSON.parse(data.response)
+
+            // Gravar na Base de Dados
+            const key = `news_ai:${n.url}`
+            await db.run('INSERT OR REPLACE INTO kv (key, value) VALUES (?, ?)', key, JSON.stringify({
+              sentimento: ['positivo', 'neutro', 'negativo'].includes(parsed.sentimento) ? parsed.sentimento : 'neutro',
+              pontuacaoSentimento: typeof parsed.pontuacaoSentimento === 'number' ? parsed.pontuacaoSentimento : 0,
+              categoria: parsed.categoria || 'mercados',
+              tickers: Array.isArray(parsed.tickers) ? parsed.tickers.slice(0, 3) : []
+            }))
+          }
+        } catch (e) {
+          console.error("News AI error on article:", e)
+        }
+      }
+    } catch {
+      // Ignorar de forma segura (processo background)
+    }
+  }
+
   // ── Tenta NewsAPI ────────────────────────────────────────
   if (apiKey) {
     try {
-      const query = search || 'stocks OR finance OR economia OR mercados OR bitcoin'
+      let query = 'stocks OR finance OR economia OR mercados OR bitcoin'
+
+      if (search) {
+        query = search
+      } else if (categoria && categoria !== 'todas') {
+        const queryMap: Record<string, string> = {
+          'mercados': 'stock market OR "wall street" OR SP500 OR nasdaq OR dow jones OR ações OR bolsas',
+          'tecnologia': 'technology OR tech OR AI OR "inteligência artificial" OR software OR NVIDIA OR Apple OR Microsoft',
+          'cripto': 'crypto OR cryptocurrency OR bitcoin OR ethereum OR BTC OR solana OR binance',
+          'macro': 'macroeconomia OR PIB OR inflation OR inflação OR "interest rates" OR juros OR desemprego',
+          'commodities': 'commodities OR ouro OR petróleo OR oil OR gas OR gold OR silver OR crude',
+          'bancos-centrais': '"banco central" OR fed OR "federal reserve" OR bce OR "bank of england" OR lagarde OR powell',
+          'europa': 'europe OR europa OR euro OR ECB OR BCE OR DAX OR "zona euro"',
+          'financeiro': 'bancos OR finance OR banking OR jpmorgan OR goldman OR "morgan stanley" OR "bank of america"'
+        }
+        query = queryMap[categoria] ?? query
+      }
+
+      // Removi language=pt para obteres acesso instantaneamente a muito mais notícias a nível mundial.
+      // A IA Ollama consegue ler em inglês mas o terminal/resumo pode ser trabalhado na UI, ou apenas para garantir muito maior volume de mercado real!
       const res = await fetch(
-        `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=pt&sortBy=publishedAt&pageSize=${limite}&page=${pagina}&apiKey=${apiKey}`,
+        `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&pageSize=${limite}&page=${pagina}&apiKey=${apiKey}`,
         { next: { revalidate: 300 } }
       )
       if (res.ok) {
@@ -92,7 +157,7 @@ export async function GET(req: NextRequest) {
           titulo: a.title ?? '',
           resumo: a.description ?? a.content ?? '',
           fonte: a.source?.name ?? 'NewsAPI',
-          categoria: 'mercados',
+          categoria: (categoria && categoria !== 'todas') ? categoria : 'mercados',
           timestamp: a.publishedAt ?? new Date().toISOString(),
           url: a.url ?? '#',
           sentimento: 'neutro' as const,
@@ -101,7 +166,65 @@ export async function GET(req: NextRequest) {
           tickers: [],
           bandeira: '🌐',
         }))
-        return NextResponse.json({ noticias, total: data.totalResults ?? noticias.length, fonte: 'newsapi' })
+
+        // Otimização: Procurar análise na Base de Dados SQLite
+        let db;
+        try { db = await getDb() } catch { /* ignore */ }
+
+        const noticiasParaIA: NoticiaAPI[] = []
+
+        if (db) {
+          for (const n of noticias) {
+            const key = `news_ai:${n.url}`
+            const row = await db.get('SELECT value FROM kv WHERE key = ?', key)
+            if (row && row.value) {
+              try {
+                const aiData = JSON.parse(row.value)
+                n.sentimento = aiData.sentimento ?? n.sentimento
+                n.pontuacaoSentimento = aiData.pontuacaoSentimento ?? n.pontuacaoSentimento
+                n.categoria = aiData.categoria ?? n.categoria
+                n.tickers = aiData.tickers ?? n.tickers
+              } catch {
+                noticiasParaIA.push(n)
+              }
+            } else {
+              noticiasParaIA.push(n)
+            }
+          }
+        } else {
+          noticiasParaIA.push(...noticias)
+        }
+
+        // Enviar os que faltam para ser analisados no background
+        processarComIA(noticiasParaIA)
+
+        let resultadosFinais = noticias
+
+        // Filtrar por texto na resposta caso NewsAPI traga lixo alheio
+        if (search) {
+          const q = search.toLowerCase()
+          resultadosFinais = resultadosFinais.filter((n) =>
+            n.titulo.toLowerCase().includes(q) ||
+            n.resumo.toLowerCase().includes(q) ||
+            n.tickers.some((t) => t.toLowerCase().includes(q))
+          )
+        }
+
+        // Filtrar estritamente pela categoria da IA (já existente em BD)
+        // Lógica permissiva: se não foi processada ainda, assume a categoria da aba para não desaparecer da vista temporariamente
+        if (categoria && categoria !== 'todas') {
+          resultadosFinais = resultadosFinais.filter((n) => n.categoria === categoria)
+        }
+
+        // NewsAPI limit Developer accounts to 100 items MAX.
+        // Se a API disser 5000, o limite será bloqueado a 100 exactos para que o front-end não construa mais de 2 páginas.
+        const totalRealAPI = Math.min(data.totalResults ?? 0, 100)
+
+        return NextResponse.json({
+          noticias: resultadosFinais,
+          total: totalRealAPI,
+          fonte: 'newsapi'
+        })
       }
     } catch {
       // fall through to mocks
