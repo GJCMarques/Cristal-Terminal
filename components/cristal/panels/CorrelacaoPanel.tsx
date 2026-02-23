@@ -20,10 +20,10 @@ export function CorrelacaoPanel() {
 
   const infoSelecionado = selecionado
     ? {
-        ativoA: activos[selecionado.r]!,
-        ativoB: activos[selecionado.c]!,
-        corr:   matrix[selecionado.r]![selecionado.c]!,
-      }
+      ativoA: activos[selecionado.r]!,
+      ativoB: activos[selecionado.c]!,
+      corr: matrix[selecionado.r]![selecionado.c]!,
+    }
     : null
 
   function interpretarCorrelacao(v: number): { texto: string; cor: string } {
@@ -41,13 +41,14 @@ export function CorrelacaoPanel() {
       {/* ── Cabeçalho ─────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-800 shrink-0">
         <div>
-          <span className="text-xs font-bold" style={{ color: corTema }}>CORR — MATRIZ DE CORRELAÇÃO</span>
-          <span className="text-[10px] text-neutral-200 ml-2">60 dias · Fecho diário</span>
+          <span className="text-xs font-bold" style={{ color: corTema }}>MATRIZ DE CORRELAÇÃO</span>
+          <span className="text-[10px] text-neutral-200 ml-2">Modelo Factorial Dinâmico</span>
         </div>
-        <div className="flex items-center gap-3 text-[10px] text-neutral-200">
-          <span className="flex items-center gap-1"><span className="w-3 h-3 inline-block rounded" style={{ background: '#1b5e20' }} /> Forte +</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 inline-block rounded" style={{ background: '#1a1a2e' }} /> Neutra</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 inline-block rounded" style={{ background: '#b71c1c' }} /> Forte −</span>
+        <div className="flex items-center gap-2 text-[9px] text-neutral-400 font-mono">
+          <span>Escala Rápida:</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 inline-block border border-black" style={{ background: '#00FF00' }} /> Forte +</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 inline-block border border-black" style={{ background: '#1A1A1A' }} /> Neutra</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 inline-block border border-black" style={{ background: '#FF0000' }} /> Forte −</span>
         </div>
       </div>
 
@@ -86,11 +87,11 @@ export function CorrelacaoPanel() {
                   </td>
                   {activos.map((_, c) => {
                     const val = matrix[r]![c]!
-                    const bg  = getCorCorrelacao(val)
-                    const fg  = getTextCorrelacao(val)
+                    const bg = getCorCorrelacao(val)
+                    const fg = getTextCorrelacao(val)
                     const isHover = hover?.r === r && hover?.c === c
-                    const isSel   = selecionado?.r === r && selecionado?.c === c
-                    const isDiag  = r === c
+                    const isSel = selecionado?.r === r && selecionado?.c === c
+                    const isDiag = r === c
                     return (
                       <td
                         key={c}
@@ -99,16 +100,19 @@ export function CorrelacaoPanel() {
                         onClick={() => setSelecionado(isSel ? null : { r, c })}
                         className="w-12 h-10 text-center cursor-pointer transition-all"
                         style={{
-                          background: isDiag ? '#1a1a1a' : bg,
-                          color:      isDiag ? '#374151' : fg,
-                          outline:    isHover || isSel ? `1.5px solid ${corTema}` : 'none',
-                          outlineOffset: '-1px',
+                          background: bg,
+                          color: isDiag ? '#555' : fg,
+                          boxShadow: 'inset 0 0 1px 1px rgba(0,0,0,0.6)',
+                          outline: isHover || isSel ? `2px solid ${corTema}` : 'none',
+                          outlineOffset: '-2px',
                           fontSize: 9,
-                          fontFamily: 'IBM Plex Mono',
-                          opacity: hover && !isHover && hover.r !== r && hover.c !== c ? 0.5 : 1,
+                          fontFamily: 'monospace',
+                          textShadow: isDiag ? 'none' : '1px 1px 2px rgba(0,0,0,0.9)',
+                          fontWeight: 'bold',
+                          opacity: hover && !isHover && hover.r !== r && hover.c !== c ? 0.4 : 1,
                         }}
                       >
-                        {isDiag ? '—' : val.toFixed(2)}
+                        {isDiag ? '1.00' : val.toFixed(2)}
                       </td>
                     )
                   })}
@@ -169,13 +173,13 @@ export function CorrelacaoPanel() {
           <div>
             <div className="text-[9px] font-bold text-neutral-300 mb-2">ESCALA</div>
             {[
-              { label: '+0.8 a +1.0', cor: '#1b5e20',  desc: 'Muito forte +' },
-              { label: '+0.5 a +0.8', cor: '#388e3c',  desc: 'Forte +'       },
-              { label: '+0.2 a +0.5', cor: '#66bb6a',  desc: 'Fraca +'       },
-              { label: '−0.2 a +0.2', cor: '#1a1a2e',  desc: 'Sem correlação'},
-              { label: '−0.5 a −0.2', cor: '#e53935',  desc: 'Fraca −'       },
-              { label: '−0.8 a −0.5', cor: '#b71c1c',  desc: 'Forte −'       },
-              { label: '<−0.8',        cor: '#7f0000',  desc: 'Muito forte −' },
+              { label: '+0.8 a +1.0', cor: '#00FF00', desc: 'Muito forte +' },
+              { label: '+0.5 a +0.8', cor: '#00A000', desc: 'Forte +' },
+              { label: '+0.2 a +0.5', cor: '#005000', desc: 'Fraca +' },
+              { label: '−0.2 a +0.2', cor: '#1A1A1A', desc: 'Sem correlação' },
+              { label: '−0.5 a −0.2', cor: '#500000', desc: 'Fraca −' },
+              { label: '−0.8 a −0.5', cor: '#A00000', desc: 'Forte −' },
+              { label: '<−0.8', cor: '#FF0000', desc: 'Muito forte −' },
             ].map((s) => (
               <div key={s.label} className="flex items-center gap-2 mb-1">
                 <span className="w-10 h-3 rounded shrink-0" style={{ background: s.cor }} />
