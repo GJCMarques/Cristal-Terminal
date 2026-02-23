@@ -30,7 +30,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="overflow-hidden bg-black">
+      <body className="overflow-hidden bg-black" suppressHydrationWarning>
         <SessionProvider>{children}</SessionProvider>
       </body>
     </html>

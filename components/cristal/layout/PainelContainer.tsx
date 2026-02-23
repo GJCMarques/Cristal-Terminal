@@ -6,7 +6,7 @@
 // ============================================================
 
 import { useState, useEffect, useCallback } from 'react'
-import { Maximize2, Minimize2, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react'
+import { Maximize2, Minimize2, ZoomIn, ZoomOut, RotateCcw, Search } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 import { corParaTema } from '@/lib/utils'
 
@@ -109,6 +109,19 @@ export function PainelContainer({ children, semZoom = false }: PainelContainerPr
           <div className="w-px h-3 bg-neutral-800 mx-1" />
         </>
       )}
+
+      {/* Search / Lupa */}
+      <button
+        type="button"
+        onClick={() => useTerminalStore.getState().alternarCommandPalette()}
+        className="flex items-center justify-center w-5 h-5 mr-1 rounded transition-colors"
+        style={{ color: '#525252' }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = corTema)}
+        onMouseLeave={(e) => (e.currentTarget.style.color = '#525252')}
+        title="Pesquisar (Ctrl+K)"
+      >
+        <Search size={12} />
+      </button>
 
       {/* Fullscreen */}
       <button

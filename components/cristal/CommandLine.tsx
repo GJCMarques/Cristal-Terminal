@@ -190,14 +190,29 @@ export function CommandLine() {
         )}
 
         {/* Dicas de teclas rápidas */}
-        <div className="hidden md:flex items-center gap-1 shrink-0">
-          {(['F1', 'F2', 'F3', 'F4'] as const).map((f) => (
-            <span
-              key={f}
-              className="font-mono text-[10px] px-1 rounded border border-neutral-700 text-neutral-200"
+        <div className="hidden md:flex items-center gap-3 shrink-0 pr-2 ml-4">
+          {[
+            { id: 'F1', label: 'HELP', vista: 'ajuda' },
+            { id: 'F2', label: 'MKTM', vista: 'mercado' },
+            { id: 'F3', label: 'NWSM', vista: 'noticias' },
+            { id: 'F4', label: 'WL', vista: 'watchlist' },
+          ].map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => definirVista(f.vista as VistaTerminal)}
+              className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity"
             >
-              {f}
-            </span>
+              <span
+                className="font-mono text-[9px] px-1 rounded border font-bold text-black"
+                style={{ backgroundColor: corTema, borderColor: corTema }}
+              >
+                {f.id}
+              </span>
+              <span className="font-mono text-[10px] text-neutral-300 font-bold hover:text-white">
+                {f.label}
+              </span>
+            </button>
           ))}
         </div>
       </div>

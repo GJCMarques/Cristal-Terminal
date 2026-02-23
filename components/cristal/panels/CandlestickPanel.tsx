@@ -49,7 +49,12 @@ export function CandlestickPanel({ ticker: tickerProp }: Props) {
     corParaTema(temaActual)
 
   const info = TICKERS_CONHECIDOS[ticker]
-  const dados = obterDadosCandlestick(ticker)
+  const [dados, setDados] = useState(() => obterDadosCandlestick(ticker))
+
+  // Sincroniza dados base se mudar de Ticker
+  useEffect(() => {
+    setDados(obterDadosCandlestick(ticker))
+  }, [ticker])
 
   // ── Criação do gráfico ─────────────────────────────────────
   useEffect(() => {
@@ -182,9 +187,65 @@ export function CandlestickPanel({ ticker: tickerProp }: Props) {
       ro.disconnect()
       chart.remove()
       chartRef.current = null
+      candleRef.current = null
+      volumeRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ticker, temaActual])
+
+  // ── Engine HOMEMADE RNG (Sendo injetado a cada 800ms) ───
+  useEffect(() => {
+    const simulator = setInterval(() => {
+      setDados((prev) => {
+        if (!prev || prev.length === 0) return prev
+
+        const last = prev[prev.length - 1]
+
+        // Geometric Brownian Motion step
+        const isCripto = info?.classe?.includes('Cripto')
+        const volatility = isCripto ? 0.003 : 0.0008
+        const drift = 0.00005
+        const shock = (Math.random() - 0.5) * 2
+        const pctChange = drift + shock * volatility
+
+        const newClose = last.close * (1 + pctChange)
+        const newHigh = Math.max(last.high, newClose)
+        const newLow = Math.min(last.low, newClose)
+        const newVolume = last.volume + Math.floor(Math.random() * 50000)
+
+        const updatedLast = {
+          ...last,
+          close: newClose,
+          high: newHigh,
+          low: newLow,
+          volume: newVolume,
+        }
+
+        // Live update performance na canvas nativa
+        if (candleRef.current) {
+          candleRef.current.update({
+            time: updatedLast.time as any,
+            open: updatedLast.open,
+            high: updatedLast.high,
+            low: updatedLast.low,
+            close: updatedLast.close,
+          })
+        }
+        if (volumeRef.current) {
+          volumeRef.current.update({
+            time: updatedLast.time as any,
+            value: updatedLast.volume,
+            color: updatedLast.close >= updatedLast.open ? '#10B98144' : '#EF444444',
+          })
+        }
+
+        const nwArr = [...prev]
+        nwArr[nwArr.length - 1] = updatedLast
+        return nwArr
+      })
+    }, 800)
+    return () => clearInterval(simulator)
+  }, [info])
 
   // Preço e variação finais
   const ultimo = dados[dados.length - 1]

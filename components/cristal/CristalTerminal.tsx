@@ -14,6 +14,7 @@ import { StatusBar } from './StatusBar'
 import { ContextMenu } from './ContextMenu'
 import { CommandPalette } from './CommandPalette'
 import { TradeTicket } from './TradeTicket'
+import { Toaster, toast } from 'sonner'
 import type { VistaTerminal } from '@/types/terminal'
 import type { ClasseAtivo } from '@/types/market'
 
@@ -160,6 +161,45 @@ export function CristalTerminal() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
+  // ── Alertas Vivos (Simulador de Fake News/Eventos Reais em Toast) ──
+  useEffect(() => {
+    if (!mounted) return
+    const randomInterval = () => Math.floor(Math.random() * 15000) + 15000 // 15s to 30s
+    let timeoutId: NodeJS.Timeout
+
+    const fireAlert = () => {
+      const eventos = [
+        { msg: 'EURUSD caiu para baixo da marca de 1.0800!', tipo: 'error', icon: '🔴' },
+        { msg: 'Preço Alvo NVDIA atingido: Acima de $145.00', tipo: 'success', icon: '🟢' },
+        { msg: 'Reserva Federal Americana mantem Taxa de Juro base.', tipo: 'info', icon: '🏛️' },
+        { msg: 'Volume atípico detetado em transações OTC de Bitcoin.', tipo: 'warning', icon: '🟠' },
+        { msg: 'Gold (XAU) sobe 0.5% em menos de meia hora.', tipo: 'success', icon: '🟡' },
+        { msg: 'Notícia de Breaking News sobre Apple afeta NASDAQ 100.', tipo: 'error', icon: '🔴' }
+      ]
+      const alert = eventos[Math.floor(Math.random() * eventos.length)]!
+
+      toast(alert.msg, {
+        icon: alert.icon,
+        style: {
+          backgroundColor: '#0a0a0a',
+          color: '#e5e5e5',
+          border: '1px solid #262626',
+          fontFamily: "'IBM Plex Mono', 'Courier New', monospace",
+          fontSize: '12px'
+        },
+        duration: 8000
+      })
+
+      // Agenda o próximo recursivamente com delay variável
+      timeoutId = setTimeout(fireAlert, randomInterval())
+    }
+
+    // Arranca
+    timeoutId = setTimeout(fireAlert, 5000)
+
+    return () => clearTimeout(timeoutId)
+  }, [mounted])
+
   // ── Context menu global (botão direito) ─────────────────
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) => {
@@ -233,6 +273,16 @@ export function CristalTerminal() {
 
           {/* ── Trade Ticket (Ordem Rápida) ──────────────────── */}
           <TradeTicket />
+
+          {/* ── Sistema de Alertas Toast ─────────────────────── */}
+          <Toaster
+            position="bottom-right"
+            theme="dark"
+            offset={40}
+            toastOptions={{
+              className: "font-mono border-neutral-800 bg-[#0A0A0A] text-white"
+            }}
+          />
         </>
       ) : (
         <div className="flex-1 bg-black" />

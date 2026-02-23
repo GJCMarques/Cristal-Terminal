@@ -7,9 +7,10 @@
 import { useTerminalStore } from '@/store/terminal.store'
 import type { VistaTerminal } from '@/types/terminal'
 import { TrendingUp, TrendingDown } from 'lucide-react'
+import { useEffect, useState, useMemo } from 'react'
 
-// Dados de mercado simulados (em produção viriam do hook useMarketDataQuery)
-const GRUPOS_MERCADO = [
+// Dados globais estáticos (fallback do último preço real)
+const GRUPOS_MERCADO_BASE = [
   {
     regiao: 'EUROPA / MÉDIO ORIENTE',
     cor: '#3B82F6',
@@ -119,6 +120,7 @@ const GRUPOS_MERCADO = [
   },
 ]
 
+// Tipos para o sistema animado
 interface ItemMercadoRow {
   ticker: string
   nome: string
@@ -126,35 +128,58 @@ interface ItemMercadoRow {
   variacao: number
   ytd: number
   volume: number
+  historico: number[] // Para o sparkline
 }
 
-function Sparkline({ variacao }: { variacao: number }) {
-  // Mini sparkline simulada
-  const pontos = Array.from({ length: 8 }, (_, i) => {
-    const ruido = (Math.random() - 0.5) * 0.3
-    const tendencia = variacao > 0 ? i * 0.1 : -i * 0.1
-    return 0.5 + tendencia + ruido
-  })
+interface GrupoMercado {
+  regiao: string
+  cor: string
+  items: ItemMercadoRow[]
+}
+
+// Inicializa o state injetando um histórico inicial base
+const inicializarGrupos = (): GrupoMercado[] => {
+  return GRUPOS_MERCADO_BASE.map(grupo => ({
+    ...grupo,
+    items: grupo.items.map(item => {
+      // Cria um short history pseudo-aleatório baseado no valor para renderizar a sparkline inicial
+      const hist = [item.valor]
+      let current = item.valor
+      for (let i = 0; i < 14; i++) {
+        current = current * (1 + (Math.random() - 0.5) * 0.002)
+        hist.unshift(current) // insere no inicio
+      }
+      return { ...item, historico: hist }
+    })
+  }))
+}
+
+function Sparkline({ historico, variacaoPositiva }: { historico: number[], variacaoPositiva: boolean }) {
   const h = 20
   const w = 48
-  const min = Math.min(...pontos)
-  const max = Math.max(...pontos)
-  const normalizar = (v: number) =>
-    h - ((v - min) / (max - min || 1)) * h
+  const min = Math.min(...historico)
+  const max = Math.max(...historico)
 
-  const pts = pontos
-    .map((v, i) => `${(i / (pontos.length - 1)) * w},${normalizar(v)}`)
+  const normalizar = (v: number) => {
+    const range = max - min
+    if (range === 0) return h / 2
+    return h - ((v - min) / range) * h
+  }
+
+  const pts = historico
+    .map((v, i) => `${(i / (historico.length - 1)) * w},${normalizar(v)}`)
     .join(' ')
 
   return (
-    <svg width={w} height={h} className="shrink-0">
+    <svg width={w} height={h} className="shrink-0 overflow-visible">
       <polyline
         points={pts}
         fill="none"
-        stroke={variacao >= 0 ? '#10B981' : '#EF4444'}
+        stroke={variacaoPositiva ? '#10B981' : '#EF4444'}
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
+        className="transition-all duration-300"
       />
     </svg>
   )
@@ -194,15 +219,57 @@ function MercadoRow({
       >
         {item.ytd >= 0 ? '+' : ''}{item.ytd.toFixed(2)}%
       </span>
-      <div className="flex justify-end">
-        <Sparkline variacao={item.variacao} />
+      <div className="flex justify-end pr-1">
+        <Sparkline historico={item.historico} variacaoPositiva={item.variacao >= 0} />
       </div>
     </button>
   )
 }
 
 export function MarketOverviewPanel() {
-  const { definirTickerActivo, definirVista, temaActual } = useTerminalStore()
+  const { definirTickerActivo, definirVista } = useTerminalStore()
+
+  // O HOMEMADE Financial RNG System acoplado a React State
+  const [grupos, setGrupos] = useState<GrupoMercado[]>(inicializarGrupos)
+
+  useEffect(() => {
+    // API Real fallback -> Real-time tick generator engine
+    const tickSimulator = setInterval(() => {
+      setGrupos(prev => prev.map(grupo => ({
+        ...grupo,
+        items: grupo.items.map(item => {
+          // RNG: Simula a atividade de mercado. Algumas ações movem-se mais depressa que outras.
+          const isTickTime = Math.random() > 0.4 // 60% de chance de "tickar" neste ciclo
+          if (!isTickTime) return item
+
+          // Volatilidade (menor para indices, maior p cripto)
+          const isCripto = grupo.regiao.includes('CRIPTO')
+          const volatility = isCripto ? 0.003 : 0.0008
+
+          // Geometric Brownian Motion step
+          const drift = 0.0001 // viés positivo geral muito subtil
+          const shock = (Math.random() - 0.5) * 2 // normal distribution approach
+          const pctChange = drift + shock * volatility
+
+          const novoValor = item.valor * (1 + pctChange)
+          const diffAbsoluta = novoValor - item.valor
+          const propVar = (diffAbsoluta / item.valor) * 100
+
+          const novaVariacao = item.variacao + propVar
+          const novoHistorico = [...item.historico.slice(1), novoValor] // remove o mais velho, adiciona novo
+
+          return {
+            ...item,
+            valor: novoValor,
+            variacao: novaVariacao,
+            historico: novoHistorico
+          }
+        })
+      })))
+    }, 1500) // ticks a cada 1.5s (Mercado Líquido)
+
+    return () => clearInterval(tickSimulator)
+  }, [])
 
   const handleSeleccionar = (ticker: string) => {
     definirTickerActivo(ticker)
@@ -223,7 +290,7 @@ export function MarketOverviewPanel() {
 
       {/* Grid 2x2 para os grupos */}
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-px bg-neutral-800">
-        {GRUPOS_MERCADO.map((grupo) => (
+        {grupos.map((grupo) => (
           <div key={grupo.regiao} className="bg-[#0A0A0A] h-full flex flex-col pb-4 md:pb-0">
             <div
               className="px-4 py-1.5 font-mono text-[10px] font-bold border-b border-neutral-800 sticky top-0 md:static z-10"

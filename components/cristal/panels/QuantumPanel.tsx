@@ -8,35 +8,36 @@
 import { useState, useCallback } from 'react'
 import { corParaTema } from '@/lib/utils'
 import { useTerminalStore } from '@/store/terminal.store'
-import { Atom, Zap, TrendingUp, Shield, BarChart2, Play, Loader2, ChevronRight } from 'lucide-react'
+import { Atom, Zap, TrendingUp, Shield, BarChart2, Play, Loader2, ChevronRight, Layers } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, LineChart, Line, Cell,
 } from 'recharts'
 import {
-  bellState, qaeOpcaoCall, qaoa, grover, quantumVaR,
-  type ResultadoBellState, type ResultadoQAE,
+  bellState, qaeOpcaoCall, qaoa, grover, quantumVaR, vqeLiquidez,
+  type ResultadoBellState, type ResultadoQAE, type ResultadoVQE,
   type ResultadoQAOA, type ResultadoGrover, type ResultadoQuantumVaR,
 } from '@/lib/quantum/algorithms'
 
 // ── Tipos ─────────────────────────────────────────────────────
 
-type DemoId = 'bell' | 'qae-opcao' | 'qaoa' | 'grover' | 'quantum-var'
+type DemoId = 'bell' | 'qae-opcao' | 'qaoa' | 'grover' | 'quantum-var' | 'vqe-liquidez'
 
 interface Demo {
-  id:        DemoId
-  titulo:    string
-  sub:       string
-  icone:     React.ReactNode
+  id: DemoId
+  titulo: string
+  sub: string
+  icone: React.ReactNode
   categoria: string
 }
 
 const DEMOS: Demo[] = [
-  { id:'bell',       titulo:'Bell State',        sub:'Superposição + Emaranhamento quântico',    icone:<Atom size={11}/>,      categoria:'FUNDAMENTOS' },
-  { id:'qae-opcao',  titulo:'QAE — Derivativos', sub:'Precificação quântica vs Monte Carlo',     icone:<Zap size={11}/>,       categoria:'DERIVATIVOS' },
-  { id:'qaoa',       titulo:'QAOA — Portfolio',  sub:'Optimização de portfolio via qubits',      icone:<TrendingUp size={11}/>, categoria:'PORTFOLIO' },
-  { id:'grover',     titulo:'Grover — Anomalias',sub:'Detecção O(√N) vs O(N) clássico',         icone:<Shield size={11}/>,    categoria:'RISCO' },
-  { id:'quantum-var',titulo:'Quantum VaR',        sub:'Value at Risk via amplitude quântica',    icone:<BarChart2 size={11}/>, categoria:'RISCO' },
+  { id: 'bell', titulo: 'Bell State', sub: 'Superposição + Emaranhamento quântico', icone: <Atom size={11} />, categoria: 'FUNDAMENTOS' },
+  { id: 'qae-opcao', titulo: 'QAE — Derivativos', sub: 'Precificação quântica vs Monte Carlo', icone: <Zap size={11} />, categoria: 'DERIVATIVOS' },
+  { id: 'qaoa', titulo: 'QAOA — Portfolio', sub: 'Optimização de portfolio via qubits', icone: <TrendingUp size={11} />, categoria: 'PORTFOLIO' },
+  { id: 'vqe-liquidez', titulo: 'VQE — Liquidez', sub: 'Variational Quantum Eigensolver (Ansatz)', icone: <Layers size={11} />, categoria: 'LIQUIDEZ' },
+  { id: 'grover', titulo: 'Grover — Anomalias', sub: 'Detecção O(√N) vs O(N) clássico', icone: <Shield size={11} />, categoria: 'RISCO' },
+  { id: 'quantum-var', titulo: 'Quantum VaR', sub: 'Value at Risk via amplitude quântica', icone: <BarChart2 size={11} />, categoria: 'RISCO' },
 ]
 
 // ── Componentes auxiliares ────────────────────────────────────
@@ -350,10 +351,83 @@ function RenderQuantumVaR({ r, corTema }: { r: ResultadoQuantumVaR; corTema: str
       <div className="p-3 rounded border border-neutral-800 bg-[#080808]">
         <p className="text-[9px] text-neutral-200 leading-relaxed">
           O <span style={{ color: corTema }}>Quantum VaR</span> usa QAE para estimar a probabilidade da cauda de risco
-          com precisão ε em O(1/ε) avaliações. O computador quântico discretiza a distribuição em {r.avaliacoesQuanticas} pontos
-          e usa estimativa de fase para calcular a amplitude de probabilidade — {r.speedupFator.toLocaleString()}× mais eficiente
-          que MC clássico para a mesma precisão.
+          com precisão <span className="text-neutral-400 italic font-serif">ε</span> em <span className="text-neutral-400 italic font-serif">O(1/ε)</span> avaliações.
+          A matriz Hamiltoniana <span className="text-neutral-400 italic font-serif">H_VaR|ψ⟩</span> transforma o estado limite do <i>Confidence Level</i>
+          num estado ortogonal: <span className="text-neutral-400 font-bold bg-[#1A1A1A] px-1 rounded mx-1">⟨ψ_VaR|H_VaR|ψ_VaR⟩ ≡ -1</span>. Um diferencial
+          massivo perante estatísticas frequentistas cegas de Monte Carlo.
         </p>
+      </div>
+    </div>
+  )
+}
+
+function RenderVQE({ r, corTema }: { r: ResultadoVQE; corTema: string }) {
+  const converData = r.convergenciaEnergia.filter((_, i) => i % 2 === 0).map((v, i) => ({ opt: i * 2, energia: +v.toFixed(3) }))
+
+  return (
+    <div className="space-y-1">
+      <SecTitulo titulo="VQE — VARIATIONAL QUANTUM EIGENSOLVER" corTema={corTema} />
+      <p className="text-[9px] text-neutral-300 -mt-1 mb-3">
+        Minimização iterativa: <b>⟨ψ(θ)| H |ψ(θ)⟩ / ⟨ψ(θ)|ψ(θ)⟩</b> para Liquidity Pool Pairing
+      </p>
+
+      <div className="grid grid-cols-4 gap-2">
+        <MetricaBox label="Eigenvalue Mín." valor={r.eigenvalueMin.toFixed(5)} sub="Energia Hamiltoniana H" corTema={corTema} />
+        <MetricaBox label="Von Neumann Ent." valor={`S(ρ) = ${r.entanglementEntropy.toFixed(3)}`} sub="Decoerência/Mistura" corTema={corTema} />
+        <MetricaBox label="Decoherence Rate" valor={r.decoherenceRate.toExponential(2)} sub="T1/T2 Relaxation T=0K" corTema={corTema} />
+        <MetricaBox label="Ansatz Circuit Depth" valor={r.circuitDepth.toString()} sub={r.ansatz} corTema={corTema} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mt-1">
+        <div>
+          <SecTitulo titulo="CONVERGÊNCIA DO COST FUNCTION ⟨H⟩" corTema={corTema} />
+          <ResponsiveContainer width="100%" height={160}>
+            <LineChart data={converData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
+              <XAxis dataKey="opt" tick={TICK_STYLE} />
+              <YAxis tick={TICK_STYLE} domain={['auto', 'auto']} />
+              <Tooltip contentStyle={TT_STYLE(corTema)} />
+              <Line type="monotone" dataKey="energia" stroke={corTema} strokeWidth={1} dot={false} isAnimationActive={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div>
+          <SecTitulo titulo="PAULI MATRIX OBSERVABLES REDUCTION" corTema={corTema} />
+          <div className="flex flex-col gap-1 p-2 bg-[#080808] border border-neutral-800 rounded">
+            {r.pauliStrings.map((ps, i) => (
+              <div key={i} className="flex justify-between items-center text-[9px] border-b border-neutral-800/50 pb-1 pt-1 first:pt-0 last:border-0 last:pb-0">
+                <span className="font-bold tracking-widest bg-[#151515] px-1 rounded">{ps.operator}</span>
+                <span className="text-neutral-400">c<sub className="opacity-50">{i}</sub>: {ps.weight.toFixed(3)}</span>
+                <span style={{ color: corTema }}>⟨O⟩: {ps.expectation.toFixed(3)}</span>
+              </div>
+            ))}
+            <p className="text-[8px] text-neutral-500 mt-2 font-serif italic text-center border-t border-neutral-800/50 pt-2">
+              H = Σ c_i P_i (Decomposição Espinorial)
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-2 p-3 bg-[#080808] border border-neutral-800 rounded grid grid-cols-[1fr_2fr] gap-4">
+        <div>
+          <p className="text-[8px] text-neutral-300 uppercase tracking-widest mb-2">Partial Trace Density Matrix ρ</p>
+          <div className="grid grid-cols-4 gap-0.5" style={{ aspectRatio: '1/1' }}>
+            {r.matrizDensidade.map((row, i) =>
+              row.map((val, j) => (
+                <div key={`${i}-${j}`} className="flex items-center justify-center text-[7px] font-mono transition-colors"
+                  style={{ backgroundColor: `rgba(215, 181, 109, ${val})` }}>
+                  {val.toFixed(2)}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col justify-center">
+          <p className="text-[9px] text-neutral-200 leading-relaxed text-justify relative">
+            Através de parametrização quântica <b>SU(N)</b>, o <i>Variational Quantum Eigensolver</i> minimiza a curva espectral associada aos entraves estruturais do sistema alvo. A decomposição isotrópica dos operadores Pauli assegura que sub-redes financeiras (liquidity pairing networks) alcancem o seu limite de otimalidade assintótica local.
+          </p>
+        </div>
       </div>
     </div>
   )
@@ -362,20 +436,21 @@ function RenderQuantumVaR({ r, corTema }: { r: ResultadoQuantumVaR; corTema: str
 // ── Componente principal ──────────────────────────────────────
 
 type DemoResultado =
-  | { tipo: 'bell';        dados: ResultadoBellState }
-  | { tipo: 'qae-opcao';  dados: ResultadoQAE }
-  | { tipo: 'qaoa';       dados: ResultadoQAOA }
-  | { tipo: 'grover';     dados: ResultadoGrover }
-  | { tipo: 'quantum-var';dados: ResultadoQuantumVaR }
-  | { tipo: 'erro';        dados: string }
+  | { tipo: 'bell'; dados: ResultadoBellState }
+  | { tipo: 'qae-opcao'; dados: ResultadoQAE }
+  | { tipo: 'qaoa'; dados: ResultadoQAOA }
+  | { tipo: 'vqe-liquidez'; dados: ResultadoVQE }
+  | { tipo: 'grover'; dados: ResultadoGrover }
+  | { tipo: 'quantum-var'; dados: ResultadoQuantumVaR }
+  | { tipo: 'erro'; dados: string }
 
 export function QuantumPanel() {
   const { temaActual } = useTerminalStore()
   const corTema = corParaTema(temaActual)
 
   const [demoActiva, setDemoActiva] = useState<DemoId>('bell')
-  const [resultado, setResultado]   = useState<DemoResultado | null>(null)
-  const [loading, setLoading]       = useState(false)
+  const [resultado, setResultado] = useState<DemoResultado | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const executar = useCallback(async (id: DemoId) => {
     setLoading(true)
@@ -388,16 +463,18 @@ export function QuantumPanel() {
       } else if (id === 'qae-opcao') {
         res = { tipo: 'qae-opcao', dados: qaeOpcaoCall(170, 175, 0.25, 0.05, 0.28) }
       } else if (id === 'qaoa') {
-        const retornos  = [0.12, 0.35, 0.08, 0.22, 0.06, 0.45]
-        const vols      = [0.15, 0.50, 0.08, 0.30, 0.12, 0.80]
-        const rhos      = [
-          [1,.3,.1,.2,.0,.1],[.3,1,.0,.4,.1,.6],[.1,.0,1,.1,.2,.0],
-          [.2,.4,.1,1,.1,.3],[.0,.1,.2,.1,1,.0],[.1,.6,.0,.3,.0,1],
+        const retornos = [0.12, 0.35, 0.08, 0.22, 0.06, 0.45]
+        const vols = [0.15, 0.50, 0.08, 0.30, 0.12, 0.80]
+        const rhos = [
+          [1, .3, .1, .2, .0, .1], [.3, 1, .0, .4, .1, .6], [.1, .0, 1, .1, .2, .0],
+          [.2, .4, .1, 1, .1, .3], [.0, .1, .2, .1, 1, .0], [.1, .6, .0, .3, .0, 1],
         ]
         const cov = Array.from({ length: 6 }, (_, i) =>
           Array.from({ length: 6 }, (_, j) => rhos[i][j] * vols[i] * vols[j])
         )
         res = { tipo: 'qaoa', dados: qaoa(retornos, cov, 0.05, 4) }
+      } else if (id === 'vqe-liquidez') {
+        res = { tipo: 'vqe-liquidez', dados: vqeLiquidez(12) }
       } else if (id === 'grover') {
         // Anomalia: transacção com bits 6 E 7 activos (horário + valor suspeito)
         res = { tipo: 'grover', dados: grover(8, x => (x & 0b11000000) === 0b11000000) }
@@ -422,11 +499,12 @@ export function QuantumPanel() {
     if (resultado.tipo === 'erro') return (
       <div className="p-4 font-mono text-[11px] text-red-400">{resultado.dados}</div>
     )
-    if (resultado.tipo === 'bell')        return <RenderBell        r={resultado.dados} corTema={corTema} />
-    if (resultado.tipo === 'qae-opcao')  return <RenderQAE          r={resultado.dados} corTema={corTema} />
-    if (resultado.tipo === 'qaoa')       return <RenderQAOA         r={resultado.dados} corTema={corTema} />
-    if (resultado.tipo === 'grover')     return <RenderGrover       r={resultado.dados} corTema={corTema} />
-    if (resultado.tipo === 'quantum-var') return <RenderQuantumVaR  r={resultado.dados} corTema={corTema} />
+    if (resultado.tipo === 'bell') return <RenderBell r={resultado.dados} corTema={corTema} />
+    if (resultado.tipo === 'qae-opcao') return <RenderQAE r={resultado.dados} corTema={corTema} />
+    if (resultado.tipo === 'qaoa') return <RenderQAOA r={resultado.dados} corTema={corTema} />
+    if (resultado.tipo === 'vqe-liquidez') return <RenderVQE r={resultado.dados} corTema={corTema} />
+    if (resultado.tipo === 'grover') return <RenderGrover r={resultado.dados} corTema={corTema} />
+    if (resultado.tipo === 'quantum-var') return <RenderQuantumVaR r={resultado.dados} corTema={corTema} />
     return null
   }
 
@@ -476,11 +554,11 @@ export function QuantumPanel() {
 
         {/* Vantagem quântica */}
         <div className="border-t border-neutral-900 p-3">
-          <p className="text-[8px] text-neutral-400 uppercase tracking-widest mb-2">Vantagem Quântica</p>
-          {[['QAE', 'O(1/ε) vs O(1/ε²)'], ['QAOA', 'Optimiz. combinatória'], ['Grover', 'O(√N) vs O(N)']].map(([a, v]) => (
+          <p className="text-[8px] text-neutral-400 uppercase tracking-widest mb-2 font-bold">Vantagem Quântica & Scaling</p>
+          {[['VQE', 'Ansatz Parametrizável SU(N)'], ['QAE', 'O(1/ε) vs O(1/ε²)'], ['QAOA', 'Optimiz. combinatória NP-Hard'], ['Grover', 'O(√N) vs O(N)']].map(([a, v]) => (
             <div key={a} className="flex justify-between mb-1">
-              <span className="text-[8px]" style={{ color: corTema + '99' }}>{a}</span>
-              <span className="text-[8px] text-neutral-300">{v}</span>
+              <span className="text-[8px] font-bold" style={{ color: corTema + '99' }}>{a}</span>
+              <span className="text-[8px] text-neutral-300 font-mono italic">{v}</span>
             </div>
           ))}
         </div>
