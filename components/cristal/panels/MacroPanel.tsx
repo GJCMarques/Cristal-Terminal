@@ -2,12 +2,12 @@
 import { corParaTema } from '@/lib/utils'
 
 import { useState, useCallback } from 'react'
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, Cell } from 'recharts'
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, Cell, LineChart, Line, Legend, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts'
 import { Zap } from 'lucide-react'
-import { DADOS_MACRO, BANCOS_CENTRAIS, type DadosMacro } from '@/lib/mocks/macro'
+import { DADOS_MACRO, BANCOS_CENTRAIS, YIELD_CURVES, RISCO_RECESSAO, type DadosMacro } from '@/lib/mocks/macro'
 import { useTerminalStore } from '@/store/terminal.store'
 
-type TabMacro = 'visao-geral' | 'inflacao' | 'bancos-centrais' | 'pmi'
+type TabMacro = 'visao-geral' | 'inflacao' | 'bancos-centrais' | 'pmi' | 'yield-curves' | 'risco-recessao'
 
 function TooltipMacro({ active, payload, label }: { active?: boolean; payload?: { color: string; name: string; value: number }[]; label?: string }) {
   if (!active || !payload?.length) return null
@@ -87,6 +87,8 @@ export function MacroPanel() {
     { id: 'inflacao', label: 'INFLAÇÃO' },
     { id: 'bancos-centrais', label: 'BANCOS CENTRAIS' },
     { id: 'pmi', label: 'PMI' },
+    { id: 'yield-curves', label: 'YIELD CURVES' },
+    { id: 'risco-recessao', label: 'RISCO DE RECESSÃO' },
   ]
 
   return (
@@ -136,17 +138,43 @@ export function MacroPanel() {
               const corIps = d.ipsCYoY <= 2.5 ? '#10B981' : d.ipsCYoY <= 4 ? '#EAB308' : '#EF4444'
               const corPmi = d.pmi > 50 ? '#10B981' : '#EF4444'
               return (
-                <div key={d.pais} role="button" tabIndex={0} onClick={() => setPaisSeleccionado(d.pais === paisSeleccionado ? null : d.pais)}
-                  className="grid items-center px-4 py-2 border-b border-neutral-900 hover:bg-neutral-900 cursor-pointer transition-colors font-mono text-xs"
-                  style={{ gridTemplateColumns: '1.5rem 10rem 5rem 5rem 5rem 5rem 5rem 4rem', backgroundColor: paisSeleccionado === d.pais ? '#0f1117' : undefined }}>
-                  <span>{d.bandeira}</span>
-                  <span className="text-white font-bold">{d.pais}</span>
-                  <span className="text-right font-bold" style={{ color: corPib }}>{d.pibYoY >= 0 ? '+' : ''}{d.pibYoY.toFixed(1)}%</span>
-                  <span className="text-right" style={{ color: corIps }}>{d.ipsCYoY.toFixed(1)}%</span>
-                  <span className="text-right text-neutral-400">{d.desemprego.toFixed(1)}%</span>
-                  <span className="text-right text-white">{d.taxaJuro.toFixed(2)}%</span>
-                  <span className="text-right font-bold" style={{ color: corPmi }}>{d.pmi.toFixed(1)}</span>
-                  <span className="text-right text-neutral-400">{d.dividaPublica.toFixed(0)}%</span>
+                <div key={d.pais} className="flex flex-col">
+                  <div role="button" tabIndex={0} onClick={() => setPaisSeleccionado(d.pais === paisSeleccionado ? null : d.pais)}
+                    className="grid items-center px-4 py-2 border-b border-neutral-900 hover:bg-neutral-900 cursor-pointer transition-colors font-mono text-xs"
+                    style={{ gridTemplateColumns: '1.5rem 10rem 5rem 5rem 5rem 5rem 5rem 4rem', backgroundColor: paisSeleccionado === d.pais ? '#0f1117' : undefined }}>
+                    <span>{d.bandeira}</span>
+                    <span className="text-white font-bold">{d.pais}</span>
+                    <span className="text-right font-bold" style={{ color: corPib }}>{d.pibYoY >= 0 ? '+' : ''}{d.pibYoY.toFixed(1)}%</span>
+                    <span className="text-right" style={{ color: corIps }}>{d.ipsCYoY.toFixed(1)}%</span>
+                    <span className="text-right text-neutral-400">{d.desemprego.toFixed(1)}%</span>
+                    <span className="text-right text-white">{d.taxaJuro.toFixed(2)}%</span>
+                    <span className="text-right font-bold" style={{ color: corPmi }}>{d.pmi.toFixed(1)}</span>
+                    <span className="text-right text-neutral-400">{d.dividaPublica.toFixed(0)}%</span>
+                  </div>
+                  {paisSeleccionado === d.pais && (
+                    <div className="bg-black border-b border-neutral-900 p-4 font-mono text-[10px] grid grid-cols-4 gap-4 text-neutral-300">
+                      <div>
+                        <div className="text-neutral-500 mb-1">Banco Central</div>
+                        <div className="text-white font-bold">{d.bancoCentral}</div>
+                      </div>
+                      <div>
+                        <div className="text-neutral-500 mb-1">PIB Trimestral (QoQ)</div>
+                        <div className="text-white">{d.pibTrimYoY >= 0 ? '+' : ''}{d.pibTrimYoY.toFixed(1)}%</div>
+                      </div>
+                      <div>
+                        <div className="text-neutral-500 mb-1">Balança Comercial</div>
+                        <div className="text-white">{d.balancaComercial > 0 ? `+${d.balancaComercial}M` : `${d.balancaComercial}M`} USD</div>
+                      </div>
+                      <div>
+                        <div className="text-neutral-500 mb-1">Défice Fiscal</div>
+                        <div className="text-white">{d.deficeFiscal.toFixed(1)}% do PIB</div>
+                      </div>
+                      <div>
+                        <div className="text-neutral-500 mb-1">Inflação Core</div>
+                        <div className="text-white">{d.ipsCCore.toFixed(1)}% YoY</div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -208,6 +236,91 @@ export function MacroPanel() {
               </ResponsiveContainer>
             </div>
             <p className="font-mono text-[10px] text-neutral-300 text-center">PMI acima de 50 = expansão económica  ·  Abaixo de 50 = contracção</p>
+          </div>
+        )}
+
+        {tab === 'yield-curves' && (
+          <div className="p-4">
+            <div className="h-64 mb-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={YIELD_CURVES} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="2 2" stroke="#1F2937" vertical={false} />
+                  <XAxis dataKey="maturidade" tick={{ fill: '#6B7280', fontSize: 10, fontFamily: 'monospace' }} axisLine={{ stroke: '#374151' }} tickLine={false} />
+                  <YAxis tick={{ fill: '#6B7280', fontSize: 10, fontFamily: 'monospace' }} axisLine={false} tickLine={false} domain={['dataMin - 0.5', 'dataMax + 0.5']} tickFormatter={(v) => `${v}%`} />
+                  <Tooltip contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', fontSize: '10px', fontFamily: 'monospace', color: '#FFF' }} />
+                  <Legend wrapperStyle={{ fontSize: '10px', fontFamily: 'monospace' }} />
+                  <Line type="monotone" dataKey="us" name="EUA (Treasuries)" stroke="#3B82F6" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="eu" name="Alemanha (Bunds)" stroke="#10B981" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="uk" name="Reino Unido (Gilts)" stroke="#A78BFA" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="font-mono text-[10px] text-neutral-300 text-center">Uma curva invertida (taxas de curto prazo maiores que de longo prazo) é historicamente um indicador de recessão eminente.</p>
+          </div>
+        )}
+
+        {tab === 'risco-recessao' && (
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+            {/* Gráfico 1: Probabilidade */}
+            <div className="h-[270px] bg-neutral-900 border border-neutral-800 rounded p-4 relative">
+              <span className="text-[10px] font-bold text-neutral-400 mb-2 block">PROBABILIDADE DE RECESSÃO (12M)</span>
+              <div style={{ height: 210 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={RISCO_RECESSAO} layout="vertical" margin={{ top: 10, right: 20, left: 30, bottom: 5 }}>
+                    <XAxis type="number" domain={[0, 100]} hide />
+                    <YAxis type="category" dataKey="pais" tick={{ fill: '#9CA3AF', fontSize: 10, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<TooltipMacro />} />
+                    <Bar dataKey="probabilidade" name="Probabilidade" radius={[0, 4, 4, 0]}>
+                      {RISCO_RECESSAO.map((d) => (
+                        <Cell key={d.pais} fill={d.probabilidade > 60 ? '#EF4444' : d.probabilidade > 40 ? '#F59E0B' : '#10B981'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Gráfico 2: Radar de Vectores */}
+            <div className="h-[270px] bg-neutral-900 border border-neutral-800 rounded p-4 relative">
+              <span className="text-[10px] font-bold text-neutral-400 mb-2 block">VECTORES DE ESTAGNAÇÃO</span>
+              <div style={{ height: 210 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart cx="50%" cy="50%" outerRadius="65%" data={RISCO_RECESSAO}>
+                    <PolarGrid stroke="#374151" />
+                    <PolarAngleAxis dataKey="pais" tick={{ fill: '#9CA3AF', fontSize: 9, fontFamily: 'monospace' }} />
+                    <PolarRadiusAxis angle={30} domain={[40, 110]} tick={{ fill: '#4B5563', fontSize: 8 }} />
+                    <Radar name="Indicador Lider (%)" dataKey="indicadorLider" stroke={corTema} fill={corTema} fillOpacity={0.3} />
+                    <Radar name="Confiança Consum." dataKey="confiancaConsumidor" stroke="#A78BFA" fill="#A78BFA" fillOpacity={0.3} />
+                    <Tooltip contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', fontSize: '10px', fontFamily: 'monospace', color: '#FFF' }} />
+                    <Legend wrapperStyle={{ fontSize: '10px', fontFamily: 'monospace', position: 'relative', marginTop: '-10px' }} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Painel 3: Factores e Sinais */}
+            <div className="h-[270px] bg-neutral-900 border border-neutral-800 rounded flex flex-col p-4 relative overflow-y-auto">
+              <span className="text-[10px] font-bold text-neutral-400 mb-4 border-b border-neutral-800 pb-2">SINAIS TÉCNICOS DE ALERTA</span>
+
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs text-neutral-300 font-bold">Curva de Sahm (Sahm Rule)</span>
+                <span className="text-xs px-1.5 py-0.5 rounded bg-red-900/30 text-red-400">ACTIVADA</span>
+              </div>
+              <p className="text-[10px] text-neutral-500 mb-4">Média móvel de 3M da taxa de desemprego excedeu em 0.5% o mínimo dos últimos 12M.</p>
+
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs text-neutral-300 font-bold">Curva de Juros Invertida</span>
+                <span className="text-xs px-1.5 py-0.5 rounded bg-yellow-900/30 text-yellow-500">PROLONGADA</span>
+              </div>
+              <p className="text-[10px] text-neutral-500 mb-4">Curva US 10Y-2Y a manter-se em territorio negativo há mais de 18 meses consecutivos (factor sistémico grave).</p>
+
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs text-neutral-300 font-bold">Credit Default Swaps (CDS)</span>
+                <span className="text-xs px-1.5 py-0.5 rounded bg-green-900/30 text-green-400">ESTÁVEL</span>
+              </div>
+              <p className="text-[10px] text-neutral-500">Sem stresse no risco de incumprimento bancário nos 5Y de referência da Zona Euro e EUA corporativo.</p>
+            </div>
           </div>
         )}
       </div>
