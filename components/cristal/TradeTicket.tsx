@@ -86,7 +86,7 @@ export function TradeTicket() {
           </div>
           <div className="text-sm text-neutral-400 mb-2">{tradeTicket.ticker}</div>
           <div className="text-2xl font-black text-white">{qtd} × ${precoNum.toFixed(2)}</div>
-          <div className="text-[10px] text-neutral-600 mt-1">Ordem simulada · Sem execução real</div>
+          <div className="text-[10px] text-neutral-300 mt-1">Ordem simulada · Sem execução real</div>
         </div>
       </div>
     )
@@ -105,12 +105,12 @@ export function TradeTicket() {
             <div className="text-xs font-black" style={{ color: corLado }}>
               {lado === 'compra' ? 'COMPRAR' : 'VENDER'} — {tradeTicket.ticker || '—'}
             </div>
-            <div className="text-[10px] text-neutral-500">{tradeTicket.nome || 'Seleccionar instrumento'}</div>
+            <div className="text-[10px] text-neutral-200">{tradeTicket.nome || 'Seleccionar instrumento'}</div>
           </div>
           <button
             type="button"
             onClick={fecharTradeTicket}
-            className="text-neutral-600 hover:text-white transition-colors"
+            className="text-neutral-300 hover:text-white transition-colors"
           >
             <X size={16} />
           </button>
@@ -141,7 +141,7 @@ export function TradeTicket() {
 
           {/* Tipo de ordem */}
           <div>
-            <label className="text-[9px] text-neutral-600 block mb-1">TIPO DE ORDEM</label>
+            <label className="text-[9px] text-neutral-300 block mb-1">TIPO DE ORDEM</label>
             <div className="grid grid-cols-3 gap-1">
               {TIPOS_ORDEM.map((t) => (
                 <button
@@ -163,7 +163,7 @@ export function TradeTicket() {
 
           {/* Quantidade */}
           <div>
-            <label className="text-[9px] text-neutral-600 block mb-1">QUANTIDADE</label>
+            <label className="text-[9px] text-neutral-300 block mb-1">QUANTIDADE</label>
             <input
               type="number"
               value={quantidade}
@@ -177,7 +177,7 @@ export function TradeTicket() {
           {/* Preço (apenas para limite/stop) */}
           {tipoOrdem !== 'mercado' && (
             <div>
-              <label className="text-[9px] text-neutral-600 block mb-1">
+              <label className="text-[9px] text-neutral-300 block mb-1">
                 PREÇO {tipoOrdem === 'limite' ? 'LIMITE' : 'STOP'} ($)
               </label>
               <input
@@ -193,7 +193,7 @@ export function TradeTicket() {
 
           {/* Validade */}
           <div>
-            <label className="text-[9px] text-neutral-600 block mb-1">VALIDADE</label>
+            <label className="text-[9px] text-neutral-300 block mb-1">VALIDADE</label>
             <div className="grid grid-cols-3 gap-1">
               {VALIDADES.map((v) => (
                 <button
@@ -216,11 +216,11 @@ export function TradeTicket() {
           {/* Resumo */}
           <div className="border border-neutral-800 rounded p-3 space-y-1.5">
             <div className="flex justify-between text-[10px]">
-              <span className="text-neutral-600">Valor estimado</span>
+              <span className="text-neutral-300">Valor estimado</span>
               <span className="text-white font-bold">${valorTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-[10px]">
-              <span className="text-neutral-600">Comissão (sim.)</span>
+              <span className="text-neutral-300">Comissão (sim.)</span>
               <span className="text-neutral-400">${comissao.toFixed(2)}</span>
             </div>
             <div className="h-px bg-neutral-800 my-1" />
@@ -233,7 +233,7 @@ export function TradeTicket() {
           </div>
 
           {/* Aviso simulação */}
-          <div className="flex items-center gap-1.5 text-[9px] text-neutral-700">
+          <div className="flex items-center gap-1.5 text-[9px] text-neutral-400">
             <AlertTriangle size={10} />
             <span>Simulação · Sem execução real · Apenas para demonstração</span>
           </div>

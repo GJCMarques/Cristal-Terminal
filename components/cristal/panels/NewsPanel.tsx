@@ -128,7 +128,7 @@ export function NewsPanel() {
         <div className="flex items-center justify-between px-4 py-2">
           <div>
             <span className="text-xs font-bold" style={{ color: corTema }}>NWSM — MONITOR DE NOTÍCIAS</span>
-            <span className="text-[10px] text-neutral-500 ml-2">
+            <span className="text-[10px] text-neutral-200 ml-2">
               {fonteAPI === 'newsapi' ? <><Globe size={10} className="inline-block relative -top-0.5" /> NewsAPI.org</> : <><Package size={10} className="inline-block relative -top-0.5" /> Local</>} · {total} artigos
             </span>
           </div>
@@ -143,7 +143,7 @@ export function NewsPanel() {
             />
             <button type="submit" className="text-[10px] px-2 py-1 rounded border border-neutral-700 text-neutral-400 hover:text-white transition-colors flex items-center justify-center"><Search size={10} /></button>
             {(pesquisa || pesquisaInput) && (
-              <button type="button" onClick={() => { setPesquisa(''); setPesquisaInput('') }} className="text-neutral-500 hover:text-neutral-300 flex items-center justify-center"><X size={12} /></button>
+              <button type="button" onClick={() => { setPesquisa(''); setPesquisaInput('') }} className="text-neutral-200 hover:text-neutral-300 flex items-center justify-center"><X size={12} /></button>
             )}
           </form>
         </div>
@@ -174,11 +174,11 @@ export function NewsPanel() {
         {/* Lista */}
         <div className="flex-1 overflow-y-auto min-w-0">
           {carregando ? (
-            <div className="flex items-center justify-center h-32 text-neutral-600 text-xs animate-pulse">
+            <div className="flex items-center justify-center h-32 text-neutral-300 text-xs animate-pulse">
               A carregar notícias…
             </div>
           ) : noticias.length === 0 ? (
-            <div className="flex items-center justify-center h-32 text-neutral-600 text-xs">
+            <div className="flex items-center justify-center h-32 text-neutral-300 text-xs">
               Sem notícias para os filtros actuais
             </div>
           ) : (
@@ -204,12 +204,12 @@ export function NewsPanel() {
                     <div className="flex-1 min-w-0">
                       <div className="text-[11px] leading-snug text-neutral-200 mb-1 line-clamp-2">
                         {n.urgente && <span className="text-[8px] font-bold text-red-500 mr-1">URGENTE</span>}
-                        <Newspaper size={10} className="inline-block relative -top-0.5 mr-1 text-neutral-500" /> {n.titulo}
+                        <Newspaper size={10} className="inline-block relative -top-0.5 mr-1 text-neutral-200" /> {n.titulo}
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[9px] text-neutral-600">{n.fonte}</span>
-                        <span className="text-[9px] text-neutral-700">·</span>
-                        <span className="text-[9px] text-neutral-600">{tempoRelativo(n.timestamp)}</span>
+                        <span className="text-[9px] text-neutral-300">{n.fonte}</span>
+                        <span className="text-[9px] text-neutral-400">·</span>
+                        <span className="text-[9px] text-neutral-300">{tempoRelativo(n.timestamp)}</span>
                         {n.tickers.map((t) => (
                           <button
                             key={t}
@@ -240,22 +240,22 @@ export function NewsPanel() {
               <span className="text-[10px] font-bold flex items-center gap-1.5" style={{ color: COR_SENT[seleccionada.sentimento] }}>
                 {seleccionada.sentimento.toUpperCase()} {ICONE_SENT[seleccionada.sentimento]}
               </span>
-              <button type="button" onClick={() => setSeleccionada(null)} className="text-neutral-600 hover:text-neutral-400 flex items-center justify-center"><X size={12} /></button>
+              <button type="button" onClick={() => setSeleccionada(null)} className="text-neutral-300 hover:text-neutral-400 flex items-center justify-center"><X size={12} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               <div className="text-xs font-bold text-neutral-100 leading-snug mb-3">{seleccionada.titulo}</div>
               <div className="text-[11px] text-neutral-400 leading-relaxed mb-4">{seleccionada.resumo}</div>
-              <div className="text-[9px] text-neutral-600 space-y-1 mb-3">
+              <div className="text-[9px] text-neutral-300 space-y-1 mb-3">
                 <div>Fonte: <span className="text-neutral-400">{seleccionada.fonte}</span></div>
                 <div>Data: <span className="text-neutral-400">{new Date(seleccionada.timestamp).toLocaleString('pt-PT')}</span></div>
               </div>
               <div className="mb-4">
-                <div className="text-[9px] text-neutral-600 mb-1">SENTIMENTO</div>
+                <div className="text-[9px] text-neutral-300 mb-1">SENTIMENTO</div>
                 <BarraSentimento pontuacao={seleccionada.pontuacaoSentimento} />
               </div>
               {seleccionada.tickers.length > 0 && (
                 <div>
-                  <div className="text-[9px] text-neutral-600 mb-2">INSTRUMENTOS</div>
+                  <div className="text-[9px] text-neutral-300 mb-2">INSTRUMENTOS</div>
                   <div className="flex flex-wrap gap-1">
                     {seleccionada.tickers.map((t) => (
                       <button
@@ -272,7 +272,7 @@ export function NewsPanel() {
                 </div>
               )}
               {seleccionada.url !== '#' && (
-                <a href={seleccionada.url} target="_blank" rel="noopener noreferrer" className="block mt-4 text-[10px] text-neutral-600 hover:text-neutral-400 underline">
+                <a href={seleccionada.url} target="_blank" rel="noopener noreferrer" className="block mt-4 text-[10px] text-neutral-300 hover:text-neutral-400 underline">
                   Ver artigo completo ↗
                 </a>
               )}
@@ -285,7 +285,7 @@ export function NewsPanel() {
       {totalPaginas > 1 && (
         <div className="flex items-center justify-center gap-1.5 px-4 py-1.5 border-t border-neutral-800 shrink-0">
           <button type="button" disabled={pagina === 1} onClick={() => setPagina((p) => p - 1)}
-            className="text-[10px] px-2 py-0.5 rounded border border-neutral-700 text-neutral-500 disabled:opacity-30 hover:text-neutral-300">
+            className="text-[10px] px-2 py-0.5 rounded border border-neutral-700 text-neutral-200 disabled:opacity-30 hover:text-neutral-300">
             ← Ant.
           </button>
           {Array.from({ length: Math.min(7, totalPaginas) }, (_, i) => {
@@ -302,7 +302,7 @@ export function NewsPanel() {
             )
           })}
           <button type="button" disabled={pagina === totalPaginas} onClick={() => setPagina((p) => p + 1)}
-            className="text-[10px] px-2 py-0.5 rounded border border-neutral-700 text-neutral-500 disabled:opacity-30 hover:text-neutral-300">
+            className="text-[10px] px-2 py-0.5 rounded border border-neutral-700 text-neutral-200 disabled:opacity-30 hover:text-neutral-300">
             Seg. →
           </button>
         </div>

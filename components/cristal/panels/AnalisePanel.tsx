@@ -169,7 +169,7 @@ export function AnalisePanel() {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-mono text-sm font-bold text-white">{ticker}</span>
-              {info && <span className="font-mono text-xs text-neutral-500">{info.nome}</span>}
+              {info && <span className="font-mono text-xs text-neutral-200">{info.nome}</span>}
             </div>
             <div className="flex items-center gap-3 mt-0.5 font-mono text-xs">
               <span className="text-white">{preco.toFixed(2)}</span>
@@ -212,7 +212,7 @@ export function AnalisePanel() {
         {/* Estado vazio */}
         {mensagensIA.length === 0 && (
           <div className="space-y-4">
-            <div className="font-mono text-xs text-neutral-600 text-center py-4">
+            <div className="font-mono text-xs text-neutral-300 text-center py-4">
               Análise IA por Llama 3 — Faça uma pergunta sobre {ticker}
             </div>
             <div className="grid grid-cols-1 gap-2">
@@ -256,11 +256,11 @@ export function AnalisePanel() {
               }}
             >
               {msg.conteudo === '' && iaACarregar ? (
-                <span className="animate-pulse text-neutral-500">A gerar análise…</span>
+                <span className="animate-pulse text-neutral-200">A gerar análise…</span>
               ) : (
                 <span className="whitespace-pre-wrap">{msg.conteudo}</span>
               )}
-              <div className="text-[10px] text-neutral-600 mt-1 text-right">
+              <div className="text-[10px] text-neutral-300 mt-1 text-right">
                 {formatarTs(msg.timestamp)}
               </div>
             </div>
@@ -285,7 +285,7 @@ export function AnalisePanel() {
             onChange={(e) => setInputPergunta(e.target.value)}
             placeholder={`Pergunte sobre ${ticker}…`}
             disabled={iaACarregar || iaDisponivel === false}
-            className="flex-1 bg-neutral-900 border border-neutral-700 rounded px-3 py-2 font-mono text-xs text-white placeholder:text-neutral-600 outline-none focus:border-neutral-500 disabled:opacity-50"
+            className="flex-1 bg-neutral-900 border border-neutral-700 rounded px-3 py-2 font-mono text-xs text-white placeholder:text-neutral-300 outline-none focus:border-neutral-500 disabled:opacity-50"
           />
           <button
             type="submit"

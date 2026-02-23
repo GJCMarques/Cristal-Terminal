@@ -233,7 +233,7 @@ export function CommandPalette() {
             placeholder="Pesquisar comandos, tickers, vistas…"
             className="flex-1 bg-transparent outline-none text-sm text-white placeholder-neutral-600"
           />
-          <span className="text-[10px] text-neutral-600 border border-neutral-700 rounded px-1.5 py-0.5">ESC</span>
+          <span className="text-[10px] text-neutral-300 border border-neutral-700 rounded px-1.5 py-0.5">ESC</span>
         </div>
 
         {/* Lista de resultados */}
@@ -269,19 +269,19 @@ export function CommandPalette() {
                     {opcao.icone}
                   </span>
                   <span className="flex-1 text-xs text-neutral-200 truncate">{opcao.label}</span>
-                  <span className="text-[10px] text-neutral-600 shrink-0">{opcao.descricao}</span>
+                  <span className="text-[10px] text-neutral-300 shrink-0">{opcao.descricao}</span>
                 </button>
               ))}
             </div>
           ))}
           {lista.length === 0 && (
-            <div className="px-4 py-8 text-center text-neutral-600 text-xs">
+            <div className="px-4 py-8 text-center text-neutral-300 text-xs">
               Sem resultados para &quot;{query}&quot;
             </div>
           )}
         </div>
 
-        <div className="text-[10px] text-neutral-700 text-center mt-2">
+        <div className="text-[10px] text-neutral-400 text-center mt-2">
           ↑↓ navegar · Enter seleccionar · Esc fechar
         </div>
       </div>

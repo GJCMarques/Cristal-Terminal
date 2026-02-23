@@ -212,7 +212,7 @@ export function MarketOverviewPanel() {
   return (
     <div className="flex flex-col h-full bg-[#0A0A0A] overflow-y-auto">
       {/* Cabeçalho das colunas (mobile only - para desktop está dentro da grid) */}
-      <div className="md:hidden sticky top-0 z-10 grid grid-cols-[2fr_2fr_1fr_1fr_1fr_48px] gap-2 items-center px-4 py-2 text-right bg-neutral-950 border-b border-neutral-800 font-mono text-[10px] text-neutral-600">
+      <div className="md:hidden sticky top-0 z-10 grid grid-cols-[2fr_2fr_1fr_1fr_1fr_48px] gap-2 items-center px-4 py-2 text-right bg-neutral-950 border-b border-neutral-800 font-mono text-[10px] text-neutral-300">
         <span className="text-left">TICKER</span>
         <span className="text-left">NOME</span>
         <span>ÚLTIMO</span>
@@ -233,7 +233,7 @@ export function MarketOverviewPanel() {
             </div>
 
             {/* Cabeçalho por painel no desktop */}
-            <div className="hidden md:grid grid-cols-[2fr_2fr_1fr_1fr_1fr_48px] gap-2 items-center px-4 py-1.5 text-right bg-neutral-950/50 border-b border-neutral-800/50 font-mono text-[9px] text-neutral-600">
+            <div className="hidden md:grid grid-cols-[2fr_2fr_1fr_1fr_1fr_48px] gap-2 items-center px-4 py-1.5 text-right bg-neutral-950/50 border-b border-neutral-800/50 font-mono text-[9px] text-neutral-300">
               <span className="text-left">TICKER</span>
               <span className="text-left">NOME</span>
               <span>ÚLTIMO</span>

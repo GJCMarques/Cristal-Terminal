@@ -75,56 +75,56 @@ const PainelInfo = memo(function PainelInfo({
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="text-lg" style={{ color: corTema }}>{pais.bandeira} {pais.nome}</div>
-          <div className="text-[10px] text-neutral-500">{pais.moeda} · Taxa: {pais.taxaJuro.toFixed(2)}%</div>
+          <div className="text-[10px] text-neutral-200">{pais.moeda} · Taxa: {pais.taxaJuro.toFixed(2)}%</div>
         </div>
         <div className="text-right">
           <div className="text-2xl font-black" style={{ color: cor }}>{formatarValor(v, metrica)}</div>
-          <div className="text-[10px] text-neutral-500">{METRICAS.find((m) => m.id === metrica)?.label}</div>
+          <div className="text-[10px] text-neutral-200">{METRICAS.find((m) => m.id === metrica)?.label}</div>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] mb-3">
         <div className="flex justify-between">
-          <span className="text-neutral-600">PIB per cap.</span>
+          <span className="text-neutral-300">PIB per cap.</span>
           <span className="text-neutral-300">${pais.pib.toFixed(1)}k</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-neutral-600">Cresc. PIB</span>
+          <span className="text-neutral-300">Cresc. PIB</span>
           <span style={{ color: pais.crescimentoPib >= 0 ? '#10B981' : '#EF4444' }}>
             {pais.crescimentoPib >= 0 ? '+' : ''}{pais.crescimentoPib.toFixed(1)}%
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-neutral-600">Inflação</span>
+          <span className="text-neutral-300">Inflação</span>
           <span style={{ color: pais.inflacao > 5 ? '#EF4444' : pais.inflacao > 2 ? '#F59E0B' : '#10B981' }}>
             {pais.inflacao.toFixed(1)}%
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-neutral-600">Desemprego</span>
+          <span className="text-neutral-300">Desemprego</span>
           <span style={{ color: pais.desemprego > 8 ? '#EF4444' : pais.desemprego > 5 ? '#F59E0B' : '#10B981' }}>
             {pais.desemprego.toFixed(1)}%
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-neutral-600">Dívida/PIB</span>
+          <span className="text-neutral-300">Dívida/PIB</span>
           <span style={{ color: pais.dividaPublica > 100 ? '#EF4444' : '#9CA3AF' }}>
             {pais.dividaPublica.toFixed(1)}%
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-neutral-600">Mercado YTD</span>
+          <span className="text-neutral-300">Mercado YTD</span>
           <span style={{ color: pais.mercado >= 0 ? '#10B981' : '#EF4444' }}>
             {pais.mercado >= 0 ? '+' : ''}{pais.mercado.toFixed(1)}%
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-neutral-600">Bal. Comercial</span>
+          <span className="text-neutral-300">Bal. Comercial</span>
           <span style={{ color: pais.balancaComercial >= 0 ? '#10B981' : '#EF4444' }}>
             {pais.balancaComercial >= 0 ? '+' : ''}{pais.balancaComercial.toFixed(1)}% PIB
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-neutral-600">Taxa de juro</span>
+          <span className="text-neutral-300">Taxa de juro</span>
           <span className="text-neutral-300">{pais.taxaJuro.toFixed(2)}%</span>
         </div>
       </div>
@@ -170,7 +170,7 @@ export function MapaMundoPanel() {
         <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-800 shrink-0">
           <div>
             <span className="text-xs font-bold" style={{ color: corTema }}>WMAP — MAPA ECONÓMICO MUNDIAL</span>
-            <span className="text-[10px] text-neutral-500 ml-2">Clique num país para detalhes · Scroll para zoom</span>
+            <span className="text-[10px] text-neutral-200 ml-2">Clique num país para detalhes · Scroll para zoom</span>
           </div>
           <div className="flex items-center gap-1">
             {METRICAS.map((m) => (
@@ -281,11 +281,11 @@ export function MapaMundoPanel() {
 
         {/* Legenda */}
         <div className="flex items-center gap-3 px-4 py-2 border-t border-neutral-800 shrink-0">
-          <span className="text-[9px] text-neutral-600">LEGENDA</span>
+          <span className="text-[9px] text-neutral-300">LEGENDA</span>
           {legenda.map((l) => (
             <div key={l.label} className="flex items-center gap-1">
               <span className="w-3 h-3 rounded-sm shrink-0" style={{ background: l.cor }} />
-              <span className="text-[9px] text-neutral-500">{l.label}</span>
+              <span className="text-[9px] text-neutral-200">{l.label}</span>
             </div>
           ))}
         </div>
@@ -315,7 +315,7 @@ export function MapaMundoPanel() {
                   className="w-full flex items-center gap-2 px-3 py-1.5 border-b border-neutral-900 hover:bg-neutral-900 transition-colors text-left"
                   style={{ background: paisSel?.iso3 === d.iso3 ? corTema + '18' : 'transparent' }}
                 >
-                  <span className="text-[9px] text-neutral-700 w-4 shrink-0">{i + 1}</span>
+                  <span className="text-[9px] text-neutral-400 w-4 shrink-0">{i + 1}</span>
                   <span className="text-sm w-5 shrink-0">{d.bandeira}</span>
                   <span className="flex-1 text-[10px] text-neutral-400 truncate">{d.nome}</span>
                   <span className="text-[10px] font-bold shrink-0" style={{ color: cor }}>

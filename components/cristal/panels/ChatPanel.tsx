@@ -88,7 +88,7 @@ function BolhaMensagem({
       </div>
 
       {/* Hora */}
-      <span className="font-mono text-[8px] text-neutral-700 mt-0.5 mx-1">{hora}</span>
+      <span className="font-mono text-[8px] text-neutral-400 mt-0.5 mx-1">{hora}</span>
     </div>
   )
 }
@@ -234,7 +234,7 @@ export function ChatPanel() {
             onClick={() => setCanal(c)}
             className="flex items-center gap-1 px-3 py-2 text-[10px] font-bold border-r border-neutral-900 shrink-0 transition-colors whitespace-nowrap"
             style={{
-              color: canal === c ? corTema : '#555',
+              color: canal === c ? corTema : '#d4d4d4',
               backgroundColor: canal === c ? corTema + '11' : 'transparent',
               borderBottom: canal === c ? `2px solid ${corTema}` : '2px solid transparent',
             }}
@@ -250,7 +250,7 @@ export function ChatPanel() {
         <button
           type="button"
           onClick={() => setMostrarOnline((v) => !v)}
-          className="flex items-center gap-1 px-3 py-2 text-[10px] text-neutral-500 hover:text-neutral-300 transition-colors shrink-0"
+          className="flex items-center gap-1 px-3 py-2 text-[10px] text-neutral-200 hover:text-neutral-300 transition-colors shrink-0"
           title="Utilizadores online"
         >
           <Circle size={6} className="fill-emerald-500 text-emerald-500" />
@@ -281,12 +281,12 @@ export function ChatPanel() {
         style={{ scrollbarWidth: 'thin', scrollbarColor: '#333 transparent' }}
       >
         {carregando ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-neutral-500">
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-neutral-200">
             <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: corTema + '44', borderTopColor: corTema }} />
             <span className="text-xs font-mono animate-pulse" style={{ color: corTema }}>A desencriptar histórico...</span>
           </div>
         ) : msgs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-2 text-neutral-700">
+          <div className="flex flex-col items-center justify-center h-full gap-2 text-neutral-400">
             <Hash size={20} className="opacity-30" />
             <span className="text-xs">Sem mensagens em {LABEL_CANAL[canal]}.</span>
             <span className="text-[10px]">Aguardando transmissão...</span>
@@ -305,8 +305,8 @@ export function ChatPanel() {
 
       {/* ── Linha de composição ──────────────────────────────── */}
       <div className="flex items-center gap-2 px-3 py-2 border-t border-neutral-800 shrink-0">
-        <span className="text-neutral-600 text-[10px] shrink-0">{LABEL_CANAL[canal]}</span>
-        <span className="text-neutral-700 flex items-center justify-center"><ChevronRight size={12} /></span>
+        <span className="text-neutral-300 text-[10px] shrink-0">{LABEL_CANAL[canal]}</span>
+        <span className="text-neutral-400 flex items-center justify-center"><ChevronRight size={12} /></span>
         <input
           ref={inputRef}
           type="text"
@@ -315,11 +315,11 @@ export function ChatPanel() {
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar() } }}
           placeholder="Escrever mensagem…"
           maxLength={500}
-          className="flex-1 bg-transparent outline-none text-xs text-white placeholder:text-neutral-700"
+          className="flex-1 bg-transparent outline-none text-xs text-white placeholder:text-neutral-400"
           style={{ caretColor: corTema }}
         />
         {texto.length > 400 && (
-          <span className="text-[9px] text-neutral-600 shrink-0">{texto.length}/500</span>
+          <span className="text-[9px] text-neutral-300 shrink-0">{texto.length}/500</span>
         )}
         <button
           type="button"

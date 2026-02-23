@@ -44,9 +44,9 @@ const DEMOS: Demo[] = [
 function MetricaBox({ label, valor, sub, corTema }: { label: string; valor: string; sub?: string; corTema: string }) {
   return (
     <div className="border border-neutral-800 rounded p-3 bg-[#080808]">
-      <p className="text-[8px] text-neutral-600 uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-[8px] text-neutral-300 uppercase tracking-widest mb-1">{label}</p>
       <p className="text-[15px] font-bold leading-tight" style={{ color: corTema }}>{valor}</p>
-      {sub && <p className="text-[8px] text-neutral-600 mt-0.5">{sub}</p>}
+      {sub && <p className="text-[8px] text-neutral-300 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -110,9 +110,9 @@ function RenderBell({ r, corTema }: { r: ResultadoBellState; corTema: string }) 
       </ResponsiveContainer>
 
       <div className="p-3 rounded border border-neutral-800 bg-[#080808] mt-3">
-        <p className="text-[8px] text-neutral-600 uppercase tracking-widest mb-1">Explicação</p>
+        <p className="text-[8px] text-neutral-300 uppercase tracking-widest mb-1">Explicação</p>
         {r.descricao.split('\n').map((linha, i) => (
-          <p key={i} className="text-[9px] text-neutral-500 leading-relaxed">{linha}</p>
+          <p key={i} className="text-[9px] text-neutral-200 leading-relaxed">{linha}</p>
         ))}
       </div>
     </div>
@@ -127,7 +127,7 @@ function RenderQAE({ r, corTema }: { r: ResultadoQAE; corTema: string }) {
   return (
     <div className="space-y-1">
       <SecTitulo titulo="QAE — QUANTUM AMPLITUDE ESTIMATION" corTema={corTema} />
-      <p className="text-[9px] text-neutral-600 -mt-1 mb-3">
+      <p className="text-[9px] text-neutral-300 -mt-1 mb-3">
         Opção Call: S=170 K=175 T=3m r=5% σ=28% | {r.avaliacoesQuanticas.toLocaleString()} avaliações quânticas (2⁸)
       </p>
 
@@ -151,8 +151,8 @@ function RenderQAE({ r, corTema }: { r: ResultadoQAE; corTema: string }) {
         </div>
         <div>
           <div className="flex justify-between mb-1">
-            <span className="text-[9px] text-neutral-500">Monte Carlo Clássico — O(1/ε²)</span>
-            <span className="text-[9px] font-bold text-neutral-500">{r.avaliacoesClassicas.toLocaleString()}</span>
+            <span className="text-[9px] text-neutral-200">Monte Carlo Clássico — O(1/ε²)</span>
+            <span className="text-[9px] font-bold text-neutral-200">{r.avaliacoesClassicas.toLocaleString()}</span>
           </div>
           <div className="h-4 rounded-sm overflow-hidden bg-neutral-800">
             <div className="h-full rounded-sm bg-neutral-600" style={{ width: '100%' }} />
@@ -167,7 +167,7 @@ function RenderQAE({ r, corTema }: { r: ResultadoQAE; corTema: string }) {
       </div>
 
       <div className="p-3 rounded border border-neutral-800 bg-[#080808] mt-1">
-        <p className="text-[9px] text-neutral-500 leading-relaxed">
+        <p className="text-[9px] text-neutral-200 leading-relaxed">
           <span style={{ color: corTema }}>Quantum Amplitude Estimation</span> usa estimativa de fase quântica
           para avaliar E[f(X)] com precisão ε em apenas O(1/ε) chamadas ao oráculo —
           uma <span style={{ color: corTema }}>vantagem quadrática</span> sobre o Monte Carlo clássico que precisa de O(1/ε²) amostras.
@@ -240,7 +240,7 @@ function RenderQAOA({ r, corTema }: { r: ResultadoQAOA; corTema: string }) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <p className="text-[8px] text-neutral-600">
+      <p className="text-[8px] text-neutral-300">
         Cada estado binário (ex: 110100) representa um portfolio onde 1=incluir activo, 0=excluir.
         O QAOA amplifica a probabilidade do portfolio de Sharpe máximo.
       </p>
@@ -258,7 +258,7 @@ function RenderGrover({ r, corTema }: { r: ResultadoGrover; corTema: string }) {
   return (
     <div className="space-y-1">
       <SecTitulo titulo="GROVER — DETECÇÃO QUÂNTICA DE ANOMALIAS" corTema={corTema} />
-      <p className="text-[9px] text-neutral-600 -mt-1 mb-3">
+      <p className="text-[9px] text-neutral-300 -mt-1 mb-3">
         Espaço: 2⁸ = 256 padrões de transacção | Anomalias: bits 6+7 activos (horário + valor suspeito)
       </p>
 
@@ -281,7 +281,7 @@ function RenderGrover({ r, corTema }: { r: ResultadoGrover; corTema: string }) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <p className="text-[8px] text-neutral-600">
+      <p className="text-[8px] text-neutral-300">
         <span className="text-red-500">■</span> Estados marcados como anómalos &nbsp;|&nbsp;
         <span style={{ color: corTema + '88' }}>■</span> Padrões normais
       </p>
@@ -293,7 +293,7 @@ function RenderGrover({ r, corTema }: { r: ResultadoGrover; corTema: string }) {
       </pre>
 
       <div className="p-3 rounded border border-neutral-800 bg-[#080808]">
-        <p className="text-[9px] text-neutral-500 leading-relaxed">
+        <p className="text-[9px] text-neutral-200 leading-relaxed">
           O <span style={{ color: corTema }}>Algoritmo de Grover</span> amplifica a amplitude dos estados marcados
           (anomalias/fraudes) em apenas O(√N) iterações. Para 256 padrões: {r.iteracoesQuanticas} iter. quânticas
           vs {r.iteracoesClassicas} verificações clássicas — <span style={{ color: corTema }}>speedup de {r.speedup}×</span>.
@@ -314,7 +314,7 @@ function RenderQuantumVaR({ r, corTema }: { r: ResultadoQuantumVaR; corTema: str
   return (
     <div className="space-y-1">
       <SecTitulo titulo="QUANTUM VaR — RISK MEASUREMENT VIA QAE" corTema={corTema} />
-      <p className="text-[9px] text-neutral-600 -mt-1 mb-3">
+      <p className="text-[9px] text-neutral-300 -mt-1 mb-3">
         Portfolio: μ=8%/ano σ=20%/ano | Horizonte: 10 dias | 2⁸={r.avaliacoesQuanticas} pontos quânticos
       </p>
 
@@ -337,7 +337,7 @@ function RenderQuantumVaR({ r, corTema }: { r: ResultadoQuantumVaR; corTema: str
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <p className="text-[8px] text-neutral-600">
+      <p className="text-[8px] text-neutral-300">
         <span className="text-red-500">■</span> Cauda de risco (perda &gt; VaR 95%) &nbsp;|&nbsp;
         <span style={{ color: corTema + '88' }}>■</span> Distribuição normal dos retornos
       </p>
@@ -348,7 +348,7 @@ function RenderQuantumVaR({ r, corTema }: { r: ResultadoQuantumVaR; corTema: str
       </div>
 
       <div className="p-3 rounded border border-neutral-800 bg-[#080808]">
-        <p className="text-[9px] text-neutral-500 leading-relaxed">
+        <p className="text-[9px] text-neutral-200 leading-relaxed">
           O <span style={{ color: corTema }}>Quantum VaR</span> usa QAE para estimar a probabilidade da cauda de risco
           com precisão ε em O(1/ε) avaliações. O computador quântico discretiza a distribuição em {r.avaliacoesQuanticas} pontos
           e usa estimativa de fase para calcular a amplitude de probabilidade — {r.speedupFator.toLocaleString()}× mais eficiente
@@ -416,7 +416,7 @@ export function QuantumPanel() {
     if (!resultado) return (
       <div className="flex flex-col items-center justify-center h-full gap-4 opacity-30">
         <Atom size={48} strokeWidth={0.8} style={{ color: corTema }} />
-        <p className="text-[11px] font-mono text-neutral-600">Selecciona um algoritmo quântico</p>
+        <p className="text-[11px] font-mono text-neutral-300">Selecciona um algoritmo quântico</p>
       </div>
     )
     if (resultado.tipo === 'erro') return (
@@ -441,7 +441,7 @@ export function QuantumPanel() {
             <Atom size={11} style={{ color: corTema }} />
             <span className="text-[10px] font-bold tracking-widest" style={{ color: corTema }}>FINANÇA QUÂNTICA</span>
           </div>
-          <p className="text-[8px] text-neutral-700">Simulador de algoritmos quânticos financeiros</p>
+          <p className="text-[8px] text-neutral-400">Simulador de algoritmos quânticos financeiros</p>
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -453,7 +453,7 @@ export function QuantumPanel() {
               return (
                 <div key={d.id}>
                   {showCat && (
-                    <p className="px-3 pt-3 pb-1 text-[8px] tracking-widest text-neutral-700">{d.categoria}</p>
+                    <p className="px-3 pt-3 pb-1 text-[8px] tracking-widest text-neutral-400">{d.categoria}</p>
                   )}
                   <button
                     onClick={() => executar(d.id)}
@@ -466,7 +466,7 @@ export function QuantumPanel() {
                       {d.icone}
                       <span className="text-[9px] font-bold">{d.titulo}</span>
                     </div>
-                    <p className="text-[8px] text-neutral-600 pl-4">{d.sub}</p>
+                    <p className="text-[8px] text-neutral-300 pl-4">{d.sub}</p>
                   </button>
                 </div>
               )
@@ -476,11 +476,11 @@ export function QuantumPanel() {
 
         {/* Vantagem quântica */}
         <div className="border-t border-neutral-900 p-3">
-          <p className="text-[8px] text-neutral-700 uppercase tracking-widest mb-2">Vantagem Quântica</p>
+          <p className="text-[8px] text-neutral-400 uppercase tracking-widest mb-2">Vantagem Quântica</p>
           {[['QAE', 'O(1/ε) vs O(1/ε²)'], ['QAOA', 'Optimiz. combinatória'], ['Grover', 'O(√N) vs O(N)']].map(([a, v]) => (
             <div key={a} className="flex justify-between mb-1">
               <span className="text-[8px]" style={{ color: corTema + '99' }}>{a}</span>
-              <span className="text-[8px] text-neutral-600">{v}</span>
+              <span className="text-[8px] text-neutral-300">{v}</span>
             </div>
           ))}
         </div>
@@ -495,7 +495,7 @@ export function QuantumPanel() {
             <span className="text-[10px] font-bold tracking-widest" style={{ color: corTema }}>
               {DEMOS.find(d => d.id === demoActiva)?.titulo.toUpperCase()}
             </span>
-            <span className="text-[9px] text-neutral-600">
+            <span className="text-[9px] text-neutral-300">
               {DEMOS.find(d => d.id === demoActiva)?.sub}
             </span>
           </div>

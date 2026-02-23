@@ -32,11 +32,11 @@ function CardBancoCentral({ b }: { b: typeof BANCOS_CENTRAIS[0] }) {
       <div className="flex items-center justify-between mb-2">
         <div>
           <div className="font-mono text-sm font-bold text-white">{b.banco}</div>
-          <div className="font-mono text-[10px] text-neutral-500">{b.pais}</div>
+          <div className="font-mono text-[10px] text-neutral-200">{b.pais}</div>
         </div>
         <div className="text-right">
           <div className="font-mono text-xl font-bold text-white">{b.taxaActual.toFixed(2)}%</div>
-          <div className="font-mono text-[10px] text-neutral-500">taxa directora</div>
+          <div className="font-mono text-[10px] text-neutral-200">taxa directora</div>
         </div>
       </div>
       <div className="flex items-center justify-between">
@@ -44,7 +44,7 @@ function CardBancoCentral({ b }: { b: typeof BANCOS_CENTRAIS[0] }) {
           {labelCiclo}
         </span>
         <div className="text-right">
-          <div className="font-mono text-[10px] text-neutral-500">Próxima: {b.proximaReuniao}</div>
+          <div className="font-mono text-[10px] text-neutral-200">Próxima: {b.proximaReuniao}</div>
           <div className="font-mono text-[10px] font-bold" style={{ color: corProx }}>{labelProx}</div>
         </div>
       </div>
@@ -126,7 +126,7 @@ export function MacroPanel() {
         {tab === 'visao-geral' && (
           <div>
             {/* Cabeçalho tabela */}
-            <div className="sticky top-0 z-10 grid bg-neutral-950 border-b border-neutral-800 font-mono text-[10px] text-neutral-600 px-4 py-1.5"
+            <div className="sticky top-0 z-10 grid bg-neutral-950 border-b border-neutral-800 font-mono text-[10px] text-neutral-300 px-4 py-1.5"
               style={{ gridTemplateColumns: '1.5rem 10rem 5rem 5rem 5rem 5rem 5rem 4rem' }}>
               <span></span><span>PAÍS</span><span className="text-right">PIB YoY</span><span className="text-right">IPC YoY</span>
               <span className="text-right">DESEMP.</span><span className="text-right">TAXA JR</span><span className="text-right">PMI</span><span className="text-right">DÍVIDA/PIB</span>
@@ -177,7 +177,7 @@ export function MacroPanel() {
                   <span className="text-neutral-400">{d.bandeira} {d.pais}</span>
                   <div className="text-right">
                     <div className="font-bold" style={{ color: d.ipsCYoY <= 2.5 ? '#10B981' : d.ipsCYoY <= 4 ? '#EAB308' : '#EF4444' }}>{d.ipsCYoY.toFixed(1)}%</div>
-                    <div className="text-[10px] text-neutral-600">Core: {d.ipsCCore.toFixed(1)}%</div>
+                    <div className="text-[10px] text-neutral-300">Core: {d.ipsCCore.toFixed(1)}%</div>
                   </div>
                 </div>
               ))}
@@ -207,7 +207,7 @@ export function MacroPanel() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <p className="font-mono text-[10px] text-neutral-600 text-center">PMI acima de 50 = expansão económica  ·  Abaixo de 50 = contracção</p>
+            <p className="font-mono text-[10px] text-neutral-300 text-center">PMI acima de 50 = expansão económica  ·  Abaixo de 50 = contracção</p>
           </div>
         )}
       </div>

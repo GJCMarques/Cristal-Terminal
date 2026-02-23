@@ -135,7 +135,7 @@ export default function NewsView({ isDarkMode, onBack }: NewsViewProps) {
                   </a>
                 </div>
                 <p className="text-xs mb-2">{item.summary}</p>
-                <div className="flex justify-between text-xs text-gray-500">
+                <div className="flex justify-between text-xs text-white">
                   <span>{item.source}</span>
                   <span>{formatPublishedTime(item.time_published)}</span>
                 </div>

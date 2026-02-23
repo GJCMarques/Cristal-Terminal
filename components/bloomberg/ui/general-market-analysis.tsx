@@ -105,7 +105,7 @@ export function GeneralMarketAnalysis({ marketData, colors }: GeneralMarketAnaly
         ) : messages.length > 0 && messages[messages.length - 1].role === "assistant" ? (
           <p className="text-xs whitespace-pre-line">{messages[messages.length - 1].content}</p>
         ) : (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-white">
             Click MARKET OVERVIEW to generate AI commentary on current market conditions, or ask a
             specific question below.
           </p>

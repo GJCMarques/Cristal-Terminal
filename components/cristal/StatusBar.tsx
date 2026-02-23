@@ -32,7 +32,7 @@ function TickerChip({ item }: { item: TickerStatus }) {
 
   return (
     <div className="flex items-center gap-1.5 border-r border-neutral-800 px-3 shrink-0">
-      <span className="font-mono text-[10px] text-neutral-500">{item.label}</span>
+      <span className="font-mono text-[10px] text-neutral-200">{item.label}</span>
       <span className="font-mono text-[11px] text-white">{item.valor}</span>
       <span className="font-mono text-[10px] flex items-center justify-center gap-0.5" style={{ color: cor }}>
         {item.variacao >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
@@ -95,7 +95,7 @@ export function StatusBar() {
       <div
         className="flex items-center px-3 border-l border-neutral-800 shrink-0 h-full"
       >
-        <span className="font-mono text-[9px] text-neutral-600">
+        <span className="font-mono text-[9px] text-neutral-300">
           © {new Date().getFullYear()} CRISTAL CAPITAL TERMINAL
         </span>
       </div>

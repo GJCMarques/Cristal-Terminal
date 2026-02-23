@@ -75,7 +75,7 @@ function TooltipCustom({ active, payload }: any) {
       <div className="text-neutral-300 mt-1">Preço: <span className="text-white">${d.preco.toFixed(2)}</span></div>
       <div style={{ color: d.variacao1D >= 0 ? '#10B981' : '#EF4444' }}>Hoje: {sinal}{Math.abs(d.variacao1D).toFixed(2)}%</div>
       <div style={{ color: d.x >= 0 ? '#10B981' : '#EF4444' }}>YTD: {d.x >= 0 ? '+' : ''}{d.x.toFixed(1)}%</div>
-      <div className="text-neutral-500 text-[10px] mt-1">Vol. médio: {d.z}k/dia</div>
+      <div className="text-neutral-200 text-[10px] mt-1">Vol. médio: {d.z}k/dia</div>
     </div>
   )
 }
@@ -116,7 +116,7 @@ export function BolhasPanel() {
       <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-800 shrink-0">
         <div>
           <span className="text-xs font-bold" style={{ color: corTema }}>BUBBLE MAP</span>
-          <span className="text-[10px] text-neutral-500 ml-2">Gráfico de Bolhas de Mercado</span>
+          <span className="text-[10px] text-neutral-200 ml-2">Gráfico de Bolhas de Mercado</span>
         </div>
         <div className="flex items-center gap-2">
           {/* Filtro sector */}
@@ -222,7 +222,7 @@ export function BolhasPanel() {
       <div className="border-t border-neutral-800 shrink-0 max-h-28 overflow-y-auto">
         <table className="w-full text-[10px]">
           <thead className="sticky top-0 bg-[#080808]">
-            <tr className="text-neutral-600 border-b border-neutral-900">
+            <tr className="text-neutral-300 border-b border-neutral-900">
               <th className="text-left px-3 py-1">TICKER</th>
               <th className="text-right px-3">SETOR</th>
               <th className="text-right px-3">YTD</th>
@@ -239,7 +239,7 @@ export function BolhasPanel() {
                   className="border-b border-neutral-900 cursor-pointer hover:bg-neutral-900 transition-colors"
                 >
                   <td className="px-3 py-1" style={{ color: COR_SECTOR[d.sector] ?? '#fff' }}>{d.ticker}</td>
-                  <td className="px-3 text-right text-neutral-500">{d.sector}</td>
+                  <td className="px-3 text-right text-neutral-200">{d.sector}</td>
                   <td className="px-3 text-right" style={{ color: d.x >= 0 ? '#10B981' : '#EF4444' }}>
                     {d.x >= 0 ? '+' : ''}{d.x.toFixed(1)}%
                   </td>

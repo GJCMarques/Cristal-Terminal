@@ -105,18 +105,18 @@ export function OrderBookPanel({ ticker: tickerProp, niveis = 10 }: Props) {
         </div>
         <div className="flex items-center gap-4 text-xs">
           <div>
-            <span className="text-neutral-500">SPREAD </span>
+            <span className="text-neutral-200">SPREAD </span>
             <span className="text-yellow-400 font-bold">
               {livro.spread.toFixed(livro.moeda === 'JPY' ? 3 : 4)}
             </span>
           </div>
           <div>
-            <span className="text-neutral-500">MID </span>
+            <span className="text-neutral-200">MID </span>
             <span className="text-white font-bold">
               {livro.precoMedio.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="text-[10px] text-neutral-600">
+          <div className="text-[10px] text-neutral-300">
             {new Date(livro.timestamp).toLocaleTimeString('pt-PT')}
           </div>
         </div>
@@ -124,11 +124,11 @@ export function OrderBookPanel({ ticker: tickerProp, niveis = 10 }: Props) {
 
       {/* ── Cabeçalhos das colunas ──────────────────────── */}
       <div className="grid grid-cols-2 border-b border-neutral-800 shrink-0">
-        <div className="flex items-center gap-2 px-2 py-1 text-[10px] text-neutral-600 border-r border-neutral-800">
+        <div className="flex items-center gap-2 px-2 py-1 text-[10px] text-neutral-300 border-r border-neutral-800">
           <span className="flex-1 text-right">QTD</span>
           <span className="w-24 text-right text-red-400">OFERTA (ASK)</span>
         </div>
-        <div className="flex items-center gap-2 px-2 py-1 text-[10px] text-neutral-600">
+        <div className="flex items-center gap-2 px-2 py-1 text-[10px] text-neutral-300">
           <span className="w-24 text-left text-green-400">PEDIDO (BID)</span>
           <span className="flex-1 text-left">QTD</span>
         </div>

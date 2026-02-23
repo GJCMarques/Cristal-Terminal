@@ -176,7 +176,7 @@ export function DeFiPanel() {
           <button
             type="button"
             onClick={carregarDados}
-            className="text-neutral-600 hover:text-neutral-400 transition-colors"
+            className="text-neutral-300 hover:text-neutral-400 transition-colors"
             title="Atualizar"
           >
             <RefreshCw size={12} className={carregando ? 'animate-spin' : ''} />
@@ -224,7 +224,7 @@ export function DeFiPanel() {
           },
         ].map(({ label, val, cor }) => (
           <div key={label} className="flex flex-col items-center justify-center py-2 border-r border-neutral-900 last:border-r-0">
-            <span className="text-[9px] text-neutral-600">{label}</span>
+            <span className="text-[9px] text-neutral-300">{label}</span>
             <span className={`text-sm font-bold mt-0.5 ${cor}`}>{val}</span>
           </div>
         ))}
@@ -258,22 +258,22 @@ export function DeFiPanel() {
               <table className="w-full text-[10px] border-collapse">
                 <thead className="sticky top-0 bg-[#0A0A0A] z-10">
                   <tr className="border-b border-neutral-800">
-                    <th className="text-left px-3 py-2 text-neutral-600 font-normal w-8">#</th>
-                    <th className="text-left px-3 py-2 text-neutral-600 font-normal">PROTOCOLO</th>
-                    <th className="text-right px-3 py-2 text-neutral-600 font-normal">TVL</th>
-                    <th className="text-right px-3 py-2 text-neutral-600 font-normal">1D%</th>
-                    <th className="text-right px-3 py-2 text-neutral-600 font-normal">7D%</th>
-                    <th className="text-right px-3 py-2 text-neutral-600 font-normal">CHAIN</th>
-                    <th className="text-right px-3 py-2 text-neutral-600 font-normal">CATEGORIA</th>
+                    <th className="text-left px-3 py-2 text-neutral-300 font-normal w-8">#</th>
+                    <th className="text-left px-3 py-2 text-neutral-300 font-normal">PROTOCOLO</th>
+                    <th className="text-right px-3 py-2 text-neutral-300 font-normal">TVL</th>
+                    <th className="text-right px-3 py-2 text-neutral-300 font-normal">1D%</th>
+                    <th className="text-right px-3 py-2 text-neutral-300 font-normal">7D%</th>
+                    <th className="text-right px-3 py-2 text-neutral-300 font-normal">CHAIN</th>
+                    <th className="text-right px-3 py-2 text-neutral-300 font-normal">CATEGORIA</th>
                   </tr>
                 </thead>
                 <tbody>
                   {protocolosFiltrados.map((p, i) => (
                     <tr key={p.id} className="border-b border-neutral-900 hover:bg-neutral-900 transition-colors">
-                      <td className="px-3 py-1.5 text-neutral-700">{i + 1}</td>
+                      <td className="px-3 py-1.5 text-neutral-400">{i + 1}</td>
                       <td className="px-3 py-1.5">
                         <div className="font-bold text-white">{p.name}</div>
-                        <div className="text-[9px] text-neutral-600">{p.symbol}</div>
+                        <div className="text-[9px] text-neutral-300">{p.symbol}</div>
                       </td>
                       <td className="px-3 py-1.5 text-right text-white font-bold">{fmtTvl(p.tvl)}</td>
                       <td className="px-3 py-1.5 text-right" style={{ color: p.change1d >= 0 ? '#10B981' : '#EF4444' }}>
@@ -290,7 +290,7 @@ export function DeFiPanel() {
                           {p.chain}
                         </span>
                       </td>
-                      <td className="px-3 py-1.5 text-right text-[9px] text-neutral-600">{p.category}</td>
+                      <td className="px-3 py-1.5 text-right text-[9px] text-neutral-300">{p.category}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -301,7 +301,7 @@ export function DeFiPanel() {
 
         {aba === 'dex' && (
           <div className="p-4 overflow-auto h-full">
-            <div className="text-[9px] text-neutral-600 mb-3">VOLUME 24H — DEX AGGREGADO</div>
+            <div className="text-[9px] text-neutral-300 mb-3">VOLUME 24H — DEX AGGREGADO</div>
             {dexVolumes.map((d, i) => {
               const maxVol = Math.max(...dexVolumes.map((x) => x.volume24h))
               const pct = (d.volume24h / maxVol) * 100
@@ -350,16 +350,16 @@ export function DeFiPanel() {
                 { label: 'RÁPIDO', val: gas.rapido, cor: '#EF4444', eta: '<30 seg' },
               ].map((g) => (
                 <div key={g.label} className="flex flex-col items-center border border-neutral-800 rounded-lg p-6">
-                  <div className="text-[9px] text-neutral-600 mb-2">{g.label}</div>
+                  <div className="text-[9px] text-neutral-300 mb-2">{g.label}</div>
                   <div className="text-4xl font-black mb-1" style={{ color: g.cor }}>
                     {g.val}
                   </div>
-                  <div className="text-[10px] text-neutral-600">gwei</div>
-                  <div className="text-[9px] text-neutral-700 mt-2">{g.eta}</div>
+                  <div className="text-[10px] text-neutral-300">gwei</div>
+                  <div className="text-[9px] text-neutral-400 mt-2">{g.eta}</div>
                 </div>
               ))}
             </div>
-            <div className="text-[10px] text-neutral-700">
+            <div className="text-[10px] text-neutral-400">
               Gas simulado — em produção via Etherscan API
             </div>
           </div>

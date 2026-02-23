@@ -98,7 +98,7 @@ export function ShortcutsHelp({ shortcuts, isOpen, onClose, isDarkMode }: Shortc
             <button
               type="button"
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-white hover:text-gray-700"
               aria-label="Close"
             >
               <X className="h-4 w-4" />

@@ -35,7 +35,7 @@ function BadgeEstado({ evento }: { evento: EventoEconomico }) {
   if (diffMs < 3_600_000) {
     return <span className="font-mono text-[10px] text-orange-400 animate-pulse">Em breve</span>
   }
-  return <span className="font-mono text-[10px] text-neutral-600">{formatarCountdown(evento.timestamp)}</span>
+  return <span className="font-mono text-[10px] text-neutral-300">{formatarCountdown(evento.timestamp)}</span>
 }
 
 function EventoRow({ evento, activo, onClick }: { evento: EventoEconomico; activo: boolean; onClick: () => void }) {
@@ -58,16 +58,16 @@ function EventoRow({ evento, activo, onClick }: { evento: EventoEconomico; activ
       }}
     >
       <div>
-        <div className="text-neutral-500 text-[10px]">{dataEvento}</div>
+        <div className="text-neutral-200 text-[10px]">{dataEvento}</div>
         <div className="text-white">{hora} UTC</div>
       </div>
       <span>{evento.bandeira}</span>
       <div>
         <div className="text-white truncate">{evento.evento}</div>
-        <div className="text-[10px] text-neutral-600">{evento.categoria}</div>
+        <div className="text-[10px] text-neutral-300">{evento.categoria}</div>
       </div>
       <BadgeImportancia importancia={evento.importancia} />
-      <span className="text-neutral-500 text-right">{evento.anterior ?? '—'}</span>
+      <span className="text-neutral-200 text-right">{evento.anterior ?? '—'}</span>
       <span className="text-neutral-400 text-right">{evento.previsao ?? '—'}</span>
       <div className="text-right">
         {evento.estado === 'publicado' && desvio !== null ? (
@@ -136,11 +136,11 @@ export function CalendarioPanel() {
             </button>
           )
         })}
-        <span className="ml-auto font-mono text-[10px] text-neutral-600">{eventos.length} eventos</span>
+        <span className="ml-auto font-mono text-[10px] text-neutral-300">{eventos.length} eventos</span>
       </div>
 
       {/* Cabeçalhos colunas */}
-      <div className="sticky top-0 z-10 grid px-4 py-1.5 bg-neutral-950 border-b border-neutral-800 font-mono text-[10px] text-neutral-600"
+      <div className="sticky top-0 z-10 grid px-4 py-1.5 bg-neutral-950 border-b border-neutral-800 font-mono text-[10px] text-neutral-300"
         style={{ gridTemplateColumns: '5rem 2rem 10rem 1fr 5rem 5rem 5rem' }}>
         <span>DATA/HORA</span><span></span><span>EVENTO</span><span>IMP.</span>
         <span className="text-right">ANTERIOR</span><span className="text-right">PREVISÃO</span><span className="text-right">ACTUAL</span>
@@ -160,9 +160,9 @@ export function CalendarioPanel() {
           <div className="flex items-start justify-between mb-2">
             <div>
               <div className="text-sm font-bold text-white">{eventoDetalhe.evento}</div>
-              <div className="text-neutral-500 mt-0.5">{eventoDetalhe.bandeira} {eventoDetalhe.pais} · {eventoDetalhe.categoria}</div>
+              <div className="text-neutral-200 mt-0.5">{eventoDetalhe.bandeira} {eventoDetalhe.pais} · {eventoDetalhe.categoria}</div>
             </div>
-            <button type="button" onClick={() => setEventoActivo(null)} className="text-neutral-600 hover:text-white">✕</button>
+            <button type="button" onClick={() => setEventoActivo(null)} className="text-neutral-300 hover:text-white">✕</button>
           </div>
           <div className="grid grid-cols-3 gap-3 mb-3">
             {[
@@ -171,14 +171,14 @@ export function CalendarioPanel() {
               { label: 'ACTUAL', valor: eventoDetalhe.actual ?? (eventoDetalhe.estado === 'pendente' ? 'Pendente' : '—'), cor: eventoDetalhe.actual ? '#10B981' : '#6B7280' },
             ].map((m) => (
               <div key={m.label} className="border border-neutral-800 rounded px-3 py-2 text-center">
-                <div className="text-[10px] text-neutral-600 mb-1">{m.label}</div>
+                <div className="text-[10px] text-neutral-300 mb-1">{m.label}</div>
                 <div className="font-bold text-sm" style={{ color: m.cor }}>{m.valor}</div>
               </div>
             ))}
           </div>
           {eventoDetalhe.impactoTickers.length > 0 && (
             <div>
-              <span className="text-neutral-600 mr-2">IMPACTO:</span>
+              <span className="text-neutral-300 mr-2">IMPACTO:</span>
               {eventoDetalhe.impactoTickers.map((t) => (
                 <button key={t} type="button"
                   onClick={() => { definirTickerActivo(t); definirVista('candlestick') }}

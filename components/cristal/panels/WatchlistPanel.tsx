@@ -110,7 +110,7 @@ export function WatchlistPanel() {
                 <button type="button" onClick={confirmarEdicao} className="text-emerald-400 hover:text-emerald-300">
                   <Check size={11} />
                 </button>
-                <button type="button" onClick={cancelarEdicao} className="text-neutral-500 hover:text-neutral-300">
+                <button type="button" onClick={cancelarEdicao} className="text-neutral-200 hover:text-neutral-300">
                   <X size={11} />
                 </button>
               </div>
@@ -134,7 +134,7 @@ export function WatchlistPanel() {
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); iniciarEdicao(idx) }}
-                    className="text-neutral-600 hover:text-neutral-300 p-0.5"
+                    className="text-neutral-300 hover:text-neutral-300 p-0.5"
                     title="Renomear lista"
                   >
                     <Pencil size={9} />
@@ -143,7 +143,7 @@ export function WatchlistPanel() {
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); handleRemoverLista(idx) }}
-                      className="text-neutral-600 hover:text-red-400 p-0.5"
+                      className="text-neutral-300 hover:text-red-400 p-0.5"
                       title="Eliminar lista"
                     >
                       <Trash2 size={9} />
@@ -164,13 +164,13 @@ export function WatchlistPanel() {
               onChange={(e) => setNovaListaNome(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Escape') { setCriandoLista(false); setNovaListaNome('') } }}
               placeholder="Nome da lista…"
-              className="bg-neutral-800 border border-neutral-600 rounded px-1.5 py-0.5 font-mono text-[11px] text-white outline-none w-28 placeholder:text-neutral-600"
+              className="bg-neutral-800 border border-neutral-600 rounded px-1.5 py-0.5 font-mono text-[11px] text-white outline-none w-28 placeholder:text-neutral-300"
               maxLength={20}
             />
             <button type="submit" className="text-emerald-400 hover:text-emerald-300">
               <Check size={11} />
             </button>
-            <button type="button" onClick={() => { setCriandoLista(false); setNovaListaNome('') }} className="text-neutral-500 hover:text-neutral-300">
+            <button type="button" onClick={() => { setCriandoLista(false); setNovaListaNome('') }} className="text-neutral-200 hover:text-neutral-300">
               <X size={11} />
             </button>
           </form>
@@ -178,7 +178,7 @@ export function WatchlistPanel() {
           <button
             type="button"
             onClick={() => setCriandoLista(true)}
-            className="flex items-center gap-1 px-3 py-2 font-mono text-[11px] text-neutral-600 hover:text-neutral-300 shrink-0 transition-colors"
+            className="flex items-center gap-1 px-3 py-2 font-mono text-[11px] text-neutral-300 hover:text-neutral-300 shrink-0 transition-colors"
             title="Criar nova lista"
           >
             <Plus size={11} />
@@ -186,7 +186,7 @@ export function WatchlistPanel() {
         )}
 
         <div className="flex-1" />
-        <span className="font-mono text-[10px] text-neutral-600 px-3 shrink-0">
+        <span className="font-mono text-[10px] text-neutral-300 px-3 shrink-0">
           {listaActiva.length} inst.
         </span>
       </div>
@@ -194,14 +194,14 @@ export function WatchlistPanel() {
       {/* ── Lista de instrumentos ─────────────────────── */}
       <div className="flex-1 min-h-0 overflow-y-auto">
         {/* Cabeçalho */}
-        <div className="sticky top-0 grid grid-cols-[1fr_2fr_1fr] gap-2 px-4 py-1.5 bg-neutral-950 border-b border-neutral-800 font-mono text-[10px] text-neutral-600">
+        <div className="sticky top-0 grid grid-cols-[1fr_2fr_1fr] gap-2 px-4 py-1.5 bg-neutral-950 border-b border-neutral-800 font-mono text-[10px] text-neutral-300">
           <span>TICKER</span>
           <span className="text-right">ÚLTIMO</span>
           <span className="text-right">VAR%</span>
         </div>
 
         {listaActiva.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-24 gap-2 font-mono text-sm text-neutral-700">
+          <div className="flex flex-col items-center justify-center h-24 gap-2 font-mono text-sm text-neutral-400">
             <Star size={18} className="opacity-30" />
             <span className="text-xs">Lista vazia. Adicione instrumentos abaixo.</span>
           </div>
@@ -238,7 +238,7 @@ export function WatchlistPanel() {
                 <button
                   type="button"
                   onClick={() => removerDoWatchlist(item.ticker)}
-                  className="ml-1 text-neutral-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                  className="ml-1 text-neutral-400 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
                   title="Remover"
                 >
                   <X size={11} />
@@ -259,7 +259,7 @@ export function WatchlistPanel() {
           value={novoTicker}
           onChange={(e) => setNovoTicker(e.target.value.toUpperCase())}
           placeholder="Adicionar ticker…"
-          className="flex-1 bg-neutral-900 border border-neutral-700 rounded px-2 py-1 font-mono text-xs text-white placeholder:text-neutral-600 outline-none focus:border-neutral-500"
+          className="flex-1 bg-neutral-900 border border-neutral-700 rounded px-2 py-1 font-mono text-xs text-white placeholder:text-neutral-300 outline-none focus:border-neutral-500"
           maxLength={12}
         />
         <button

@@ -661,7 +661,7 @@ export function QuantPanel() {
           )}
         </ResponsiveContainer>
         {cd.xlabel && cd.ylabel && (
-          <p className="text-center font-mono text-[9px] text-neutral-700 mt-1">{cd.xlabel} → {cd.ylabel}</p>
+          <p className="text-center font-mono text-[9px] text-neutral-400 mt-1">{cd.xlabel} → {cd.ylabel}</p>
         )}
       </div>
     )
@@ -704,7 +704,7 @@ export function QuantPanel() {
           <span className="text-[9px]" style={{ color: wasmOK ? '#10B981' : '#374151' }}>
             C++ WASM {wasmOK ? 'carregado' : 'indisponível'}
           </span>
-          <span className="text-[9px] text-neutral-700 ml-auto">
+          <span className="text-[9px] text-neutral-400 ml-auto">
             {lang === 'python' ? 'numpy/scipy' : wasmOK ? 'JS + WASM' : 'JS'}
           </span>
         </div>
@@ -733,7 +733,7 @@ export function QuantPanel() {
                   {ex.icone}
                   <span className="text-[9px] font-bold truncate">{ex.titulo}</span>
                 </div>
-                <p className="text-[8px] text-neutral-600 pl-4 truncate">{ex.desc}</p>
+                <p className="text-[8px] text-neutral-300 pl-4 truncate">{ex.desc}</p>
               </button>
             ))
           ) : (
@@ -762,15 +762,15 @@ export function QuantPanel() {
                   ].map(([fn, d]) => (
                     <div key={fn} className="mb-1">
                       <div className="text-[9px]" style={{ color: corTema }}>{fn}</div>
-                      <div className="text-[8px] text-neutral-600 pl-1">{d}</div>
+                      <div className="text-[8px] text-neutral-300 pl-1">{d}</div>
                     </div>
                   ))}
                   <div className="border-t border-neutral-900 pt-2 mt-2">
-                    <p className="text-[8px] text-neutral-600 mb-1 uppercase tracking-widest">Output</p>
+                    <p className="text-[8px] text-neutral-300 mb-1 uppercase tracking-widest">Output</p>
                     {[['tabela({...})', 'Dict alinhado'], ['outputChart({tipo,dados})', 'Gráfico recharts'], ['print(v)', 'Texto']].map(([f,d]) => (
                       <div key={f} className="mb-1">
                         <div className="text-[9px]" style={{ color: corTema + 'BB' }}>{f}</div>
-                        <div className="text-[8px] text-neutral-600 pl-1">{d}</div>
+                        <div className="text-[8px] text-neutral-300 pl-1">{d}</div>
                       </div>
                     ))}
                   </div>
@@ -792,15 +792,15 @@ export function QuantPanel() {
                   ].map(([fn, d]) => (
                     <div key={fn} className="mb-1">
                       <div className="text-[9px]" style={{ color: corTema }}>{fn}</div>
-                      <div className="text-[8px] text-neutral-600 pl-1">{d}</div>
+                      <div className="text-[8px] text-neutral-300 pl-1">{d}</div>
                     </div>
                   ))}
                   <div className="border-t border-neutral-900 pt-2 mt-2">
-                    <p className="text-[8px] text-neutral-600 mb-1 uppercase tracking-widest">Output</p>
+                    <p className="text-[8px] text-neutral-300 mb-1 uppercase tracking-widest">Output</p>
                     {[['tabela(dict|df)', 'Tabela alinhada'], ["chart('line',dados)", 'Gráfico recharts'], ['print(v)', 'stdout'], ['fmt/pct/bps', 'Formatadores']].map(([f,d]) => (
                       <div key={f} className="mb-1">
                         <div className="text-[9px]" style={{ color: corTema + 'BB' }}>{f}</div>
-                        <div className="text-[8px] text-neutral-600 pl-1">{d}</div>
+                        <div className="text-[8px] text-neutral-300 pl-1">{d}</div>
                       </div>
                     ))}
                   </div>
@@ -825,8 +825,8 @@ export function QuantPanel() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[9px] text-neutral-700">Ctrl+Enter</span>
-            <button onClick={() => setOutput([])} className="flex items-center gap-1 px-2 py-1 text-[9px] text-neutral-600 hover:text-neutral-400 border border-neutral-800 rounded">
+            <span className="text-[9px] text-neutral-400">Ctrl+Enter</span>
+            <button onClick={() => setOutput([])} className="flex items-center gap-1 px-2 py-1 text-[9px] text-neutral-300 hover:text-neutral-400 border border-neutral-800 rounded">
               <RotateCcw size={9} /> Limpar
             </button>
             <button onClick={executar} disabled={loading}
@@ -856,7 +856,7 @@ export function QuantPanel() {
           <div className="flex items-center gap-2 px-3 py-1 border-b border-neutral-900 bg-[#080808] shrink-0">
             <ChevronRight size={10} style={{ color: corTema }} />
             <span className="text-[9px] font-bold tracking-widest" style={{ color: corTema }}>OUTPUT</span>
-            <span className="text-[9px] text-neutral-700">{output.length} linhas</span>
+            <span className="text-[9px] text-neutral-400">{output.length} linhas</span>
           </div>
           <div ref={outRef} className="flex-1 overflow-y-auto p-3 space-y-0.5">
             {output.map(l => (

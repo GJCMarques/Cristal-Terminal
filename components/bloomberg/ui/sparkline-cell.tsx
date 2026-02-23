@@ -49,7 +49,7 @@ export function SparklineCell({ item, region, isDarkMode, isHighlighted }: Spark
           color2={item.change > 0 ? colors.positive : colors.negative}
           isRealData={!!item.sparklineUpdated || show10D}
         />
-        {show10D && <div className="absolute top-0 right-0 text-[8px] text-gray-500">10D</div>}
+        {show10D && <div className="absolute top-0 right-0 text-[8px] text-white">10D</div>}
       </div>
     </TableCell>
   );

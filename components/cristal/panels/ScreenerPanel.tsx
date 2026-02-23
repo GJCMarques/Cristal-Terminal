@@ -85,7 +85,7 @@ export function ScreenerPanel() {
       <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-800 shrink-0">
         <div>
           <span className="text-xs font-bold" style={{ color: corTema }}>SCR — SCREENER DE ACÇÕES</span>
-          <span className="text-[10px] text-neutral-500 ml-2">{dados.length} resultados</span>
+          <span className="text-[10px] text-neutral-200 ml-2">{dados.length} resultados</span>
         </div>
         <div className="relative">
           <input
@@ -121,7 +121,7 @@ export function ScreenerPanel() {
           <button
             type="button"
             onClick={() => { setFiltros({}); setPresetActivo(null) }}
-            className="text-[10px] px-2 py-1 rounded border border-neutral-700 text-neutral-500 hover:text-neutral-300 transition-colors shrink-0"
+            className="text-[10px] px-2 py-1 rounded border border-neutral-700 text-neutral-200 hover:text-neutral-300 transition-colors shrink-0"
           >
             <X size={10} className="inline mr-1" /> Limpar
           </button>
@@ -131,7 +131,7 @@ export function ScreenerPanel() {
       {/* ── Filtros rápidos ────────────────────────────────────── */}
       <div className="flex flex-wrap gap-3 px-4 py-2 border-b border-neutral-900 shrink-0 text-[10px]">
         <div className="flex items-center gap-1.5">
-          <span className="text-neutral-600">P/E max:</span>
+          <span className="text-neutral-300">P/E max:</span>
           <input
             type="number"
             value={filtros.peMax ?? ''}
@@ -141,7 +141,7 @@ export function ScreenerPanel() {
           />
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-neutral-600">Div.% mín:</span>
+          <span className="text-neutral-300">Div.% mín:</span>
           <input
             type="number"
             step="0.1"
@@ -152,7 +152,7 @@ export function ScreenerPanel() {
           />
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-neutral-600">Beta max:</span>
+          <span className="text-neutral-300">Beta max:</span>
           <input
             type="number"
             step="0.1"
@@ -163,7 +163,7 @@ export function ScreenerPanel() {
           />
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-neutral-600">Cap mín($B):</span>
+          <span className="text-neutral-300">Cap mín($B):</span>
           <input
             type="number"
             value={filtros.capitalMercMin ?? ''}
@@ -179,8 +179,8 @@ export function ScreenerPanel() {
         <table className="w-full text-[10px] border-collapse">
           <thead className="sticky top-0 bg-[#0A0A0A] z-10">
             <tr className="border-b border-neutral-800">
-              <th className="text-left px-3 py-2 text-neutral-600 font-normal w-6">#</th>
-              <th className="text-left px-3 py-2 text-neutral-600 font-normal w-8"><Globe size={11} className="inline-block" /></th>
+              <th className="text-left px-3 py-2 text-neutral-300 font-normal w-6">#</th>
+              <th className="text-left px-3 py-2 text-neutral-300 font-normal w-8"><Globe size={11} className="inline-block" /></th>
               {COLUNAS.map((col) => (
                 <th
                   key={col.key}
@@ -194,7 +194,7 @@ export function ScreenerPanel() {
                   )}
                 </th>
               ))}
-              <th className="text-right px-3 py-2 text-neutral-600 font-normal w-20">SECTOR</th>
+              <th className="text-right px-3 py-2 text-neutral-300 font-normal w-20">SECTOR</th>
             </tr>
           </thead>
           <tbody>
@@ -204,7 +204,7 @@ export function ScreenerPanel() {
                 onClick={() => { definirTickerActivo(a.ticker); definirVista('candlestick') }}
                 className="border-b border-neutral-900 hover:bg-neutral-900 cursor-pointer transition-colors group"
               >
-                <td className="px-3 py-1.5 text-neutral-700">{i + 1}</td>
+                <td className="px-3 py-1.5 text-neutral-400">{i + 1}</td>
                 <td className="px-3 py-1.5 text-sm">{a.pais}</td>
                 {COLUNAS.map((col) => {
                   const cor = col.cor ? col.cor(a) : undefined
@@ -224,14 +224,14 @@ export function ScreenerPanel() {
                     </td>
                   )
                 })}
-                <td className="px-3 py-1.5 text-right text-[9px] text-neutral-600 group-hover:text-neutral-500">
+                <td className="px-3 py-1.5 text-right text-[9px] text-neutral-300 group-hover:text-neutral-200">
                   {a.sector}
                 </td>
               </tr>
             ))}
             {dados.length === 0 && (
               <tr>
-                <td colSpan={COLUNAS.length + 3} className="px-4 py-8 text-center text-neutral-600">
+                <td colSpan={COLUNAS.length + 3} className="px-4 py-8 text-center text-neutral-300">
                   Sem resultados para os filtros actuais
                 </td>
               </tr>
@@ -241,7 +241,7 @@ export function ScreenerPanel() {
       </div>
 
       {/* ── Footer com métricas do grupo ───────────────────────── */}
-      <div className="flex items-center gap-4 px-4 py-1.5 border-t border-neutral-800 shrink-0 text-[10px] text-neutral-600">
+      <div className="flex items-center gap-4 px-4 py-1.5 border-t border-neutral-800 shrink-0 text-[10px] text-neutral-300">
         <span>Cap média: <span className="text-neutral-400">${(dados.reduce((s, a) => s + a.capitalMerc, 0) / (dados.length || 1)).toFixed(0)}B</span></span>
         <span>P/E médio: <span className="text-neutral-400">{(dados.reduce((s, a) => s + a.pe, 0) / (dados.length || 1)).toFixed(1)}x</span></span>
         <span>Div. médio: <span className="text-neutral-400">{(dados.reduce((s, a) => s + a.dividendo, 0) / (dados.length || 1)).toFixed(2)}%</span></span>

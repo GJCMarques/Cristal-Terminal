@@ -31,7 +31,7 @@ import { QuantumPanel }         from '../panels/QuantumPanel'
 import { HelpView }             from '../HelpView'
 
 const Spinner = ({ label }: { label: string }) => (
-  <div className="flex items-center justify-center h-full bg-[#0A0A0A] font-mono text-xs text-neutral-600">
+  <div className="flex items-center justify-center h-full bg-[#0A0A0A] font-mono text-xs text-neutral-300">
     <span className="animate-pulse">A carregar {label}…</span>
   </div>
 )

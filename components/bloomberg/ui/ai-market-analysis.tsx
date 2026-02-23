@@ -122,7 +122,7 @@ export function AiMarketAnalysis({
         ) : messages.length > 0 && messages[messages.length - 1].role === "assistant" ? (
           <p className="text-xs whitespace-pre-line">{messages[messages.length - 1].content}</p>
         ) : (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-white">
             Click REFRESH to generate AI commentary on {selectedSecurity?.id} compared to{" "}
             {benchmarkSecurity?.id}.
           </p>

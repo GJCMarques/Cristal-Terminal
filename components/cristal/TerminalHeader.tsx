@@ -81,9 +81,9 @@ const GRUPOS_TABS: GrupoTabs[] = [
     grupo: 'COMUNICAÇÃO',
     cor: '#06B6D4',
     tabs: [
-      { vista: 'chat',    label: 'MSG',     tecla: '', icone: <MessageSquare size={10} /> },
-      { vista: 'quant',   label: 'QUANT',   tecla: '', icone: <FlaskConical  size={10} /> },
-      { vista: 'quantum', label: 'QUANTUM', tecla: '', icone: <Atom          size={10} /> },
+      { vista: 'chat', label: 'MSG', tecla: '', icone: <MessageSquare size={10} /> },
+      { vista: 'quant', label: 'QUANT', tecla: '', icone: <FlaskConical size={10} /> },
+      { vista: 'quantum', label: 'QUANTUM', tecla: '', icone: <Atom size={10} /> },
     ],
   },
   {
@@ -140,16 +140,16 @@ export function TerminalHeader() {
             <path d="M32 4 L60 32 L32 60 L4 32 Z" stroke="#D7B56D" strokeWidth="6" strokeLinejoin="miter" />
           </svg>
           <span className="font-mono text-[11px] font-bold" style={{ color: corTema }}>CRISTAL CAPITAL</span>
-          <span className="font-mono text-[9px] text-neutral-700">TERMINAL PRO</span>
+          <span className="font-mono text-[9px] text-neutral-400">TERMINAL PRO</span>
         </div>
 
         {/* Ticker activo */}
         {tickerActivo && (
           <div className="flex items-center px-3 border-r border-neutral-800 h-full gap-2 shrink-0">
-            <span className="font-mono text-[9px] text-neutral-600">►</span>
+            <span className="font-mono text-[9px] text-neutral-300">►</span>
             <span className="font-mono text-xs font-bold" style={{ color: corTema }}>{tickerActivo}</span>
             {nomeActivoAtivo && (
-              <span className="font-mono text-[10px] text-neutral-500">— {nomeActivoAtivo}</span>
+              <span className="font-mono text-[10px] text-neutral-200">— {nomeActivoAtivo}</span>
             )}
           </div>
         )}
@@ -158,7 +158,7 @@ export function TerminalHeader() {
         <button
           type="button"
           onClick={alternarCommandPalette}
-          className="flex items-center gap-1.5 px-3 border-r border-neutral-800 h-full font-mono text-[10px] text-neutral-600 hover:text-neutral-400 transition-colors shrink-0"
+          className="flex items-center gap-1.5 px-3 border-r border-neutral-800 h-full font-mono text-[10px] text-neutral-300 hover:text-neutral-400 transition-colors shrink-0"
           title="Ctrl+K"
         >
           <Keyboard size={11} />
@@ -175,8 +175,8 @@ export function TerminalHeader() {
             className="flex items-center gap-1.5 px-3 border-l border-neutral-800 h-full shrink-0 hover:bg-neutral-900 transition-colors"
             title="Alertas Sentinela"
           >
-            <Bell size={11} className="animate-pulse" style={{ color: '#F59E0B' }} />
-            <span className="font-mono text-[9px]" style={{ color: '#F59E0B' }}>{alertasActivos} ALERTAS</span>
+            <Bell size={11} className="animate-pulse" style={{ color: corTema }} />
+            <span className="font-mono text-[9px]" style={{ color: corTema }}>{alertasActivos} ALERTAS</span>
           </button>
         )}
 
@@ -186,7 +186,7 @@ export function TerminalHeader() {
             className="w-1.5 h-1.5 rounded-full animate-pulse"
             style={{ backgroundColor: iaDisponivel === true ? '#10B981' : iaDisponivel === false ? '#EF4444' : '#6B7280' }}
           />
-          <span className="font-mono text-[9px] text-neutral-500">
+          <span className="font-mono text-[9px] text-neutral-200">
             {iaDisponivel === true ? 'LLAMA 3 ONLINE' : iaDisponivel === false ? 'IA OFFLINE' : '…'}
           </span>
         </div>
@@ -196,7 +196,7 @@ export function TerminalHeader() {
           <button
             type="button"
             onClick={() => setMostrarTemas(!mostrarTemas)}
-            className="flex items-center gap-1.5 px-3 h-full font-mono text-[10px] text-neutral-500 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-3 h-full font-mono text-[10px] text-neutral-200 hover:text-white transition-colors"
           >
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: corTema }} />
             TEMA
@@ -230,7 +230,7 @@ export function TerminalHeader() {
         <button
           type="button"
           onClick={alternarPainelLateral}
-          className="flex items-center justify-center px-3 h-full border-l border-neutral-800 text-neutral-600 hover:text-white transition-colors shrink-0"
+          className="flex items-center justify-center px-3 h-full border-l border-neutral-800 text-neutral-300 hover:text-white transition-colors shrink-0"
           title="Ctrl+B — Alternar painel lateral"
         >
           <LayoutGrid size={13} />
@@ -245,7 +245,7 @@ export function TerminalHeader() {
         {/* Relógio */}
         <div className="flex flex-col items-end justify-center px-3 border-l border-neutral-800 h-full shrink-0">
           <span className="font-mono text-sm font-bold leading-none" style={{ color: corTema }}>{hora}</span>
-          <span className="font-mono text-[9px] text-neutral-600 uppercase leading-none mt-0.5">{data}</span>
+          <span className="font-mono text-[9px] text-neutral-300 uppercase leading-none mt-0.5">{data}</span>
         </div>
       </div>
 
@@ -273,7 +273,7 @@ export function TerminalHeader() {
                   onClick={() => definirVista(tab.vista)}
                   className="relative flex items-center gap-1 px-2.5 font-mono text-[10px] transition-all shrink-0 whitespace-nowrap border-r border-neutral-900 group"
                   style={{
-                    color: activo ? '#000' : '#555',
+                    color: activo ? '#000' : '#d4d4d4',
                     backgroundColor: activo ? grupo.cor : 'transparent',
                     borderBottom: activo ? 'none' : '2px solid transparent',
                   }}
@@ -320,7 +320,7 @@ export function TerminalHeader() {
               type="button"
               onClick={() => definirVista('candlestick')}
               className="flex items-center gap-1.5 px-3 h-full border-l border-neutral-800 font-mono text-[10px] shrink-0 transition-colors"
-              style={{ color: vistaActual === 'candlestick' ? corTema : '#5a5a5a' }}
+              style={{ color: vistaActual === 'candlestick' ? corTema : '#d4d4d4' }}
             >
               <TrendingUp size={11} />
               <span className="font-bold">{tickerActivo}</span>

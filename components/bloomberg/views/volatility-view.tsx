@@ -330,7 +330,7 @@ export default function VolatilityView({
   const getTrendIcon = (trend: "up" | "down" | "stable") => {
     if (trend === "up") return <TrendingUp className={`h-3 w-3 text-[${colors.negative}]`} />;
     if (trend === "down") return <TrendingDown className={`h-3 w-3 text-[${colors.positive}]`} />;
-    return <span className="text-gray-500">—</span>;
+    return <span className="text-white">—</span>;
   };
 
   const filteredData = getFilteredAndSortedData();

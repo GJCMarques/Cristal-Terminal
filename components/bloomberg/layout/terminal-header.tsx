@@ -149,7 +149,7 @@ export function TerminalHeader({
             {dataSource === "alpha-vantage" ? "API" : isFromRedis ? "Redis" : "Local"}
           </span>
           {getDataFreshnessIndicator()}
-          {lastUpdated && <span className="text-gray-400">{lastUpdated.toLocaleTimeString()}</span>}
+          {lastUpdated && <span className="text-gray-100">{lastUpdated.toLocaleTimeString()}</span>}
         </div>
       </div>
     </div>

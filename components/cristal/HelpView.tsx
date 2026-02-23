@@ -118,10 +118,10 @@ export function HelpView() {
         >
           ◆ CRISTAL CAPITAL TERMINAL
         </div>
-        <div className="text-neutral-500 text-sm">
+        <div className="text-neutral-200 text-sm">
           Terminal Profissional de Mercados Financeiros — Ajuda e Referência de Comandos
         </div>
-        <div className="text-neutral-700 text-xs mt-1">
+        <div className="text-neutral-400 text-xs mt-1">
           v2.0.0 · Llama 3 via Ollama · React 19 · Next.js 15
         </div>
       </div>
@@ -150,7 +150,7 @@ export function HelpView() {
                   </code>
                   <span className="text-xs text-neutral-400 flex-1">{item.descricao}</span>
                   {item.atalho && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded border border-neutral-700 text-neutral-500 shrink-0">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded border border-neutral-700 text-neutral-200 shrink-0">
                       {item.atalho}
                     </span>
                   )}
@@ -172,7 +172,7 @@ export function HelpView() {
         <div className="p-4 space-y-3">
           {TICKERS_RAPIDOS.map((g) => (
             <div key={g.g} className="flex items-center gap-3">
-              <span className="text-[10px] text-neutral-600 w-24 shrink-0">{g.g}</span>
+              <span className="text-[10px] text-neutral-300 w-24 shrink-0">{g.g}</span>
               <div className="flex flex-wrap gap-2">
                 {g.tickers.map((t) => (
                   <button
@@ -194,7 +194,7 @@ export function HelpView() {
       </div>
 
       {/* ── Créditos ────────────────────────────────────── */}
-      <div className="mt-6 text-center text-neutral-700 text-[10px]">
+      <div className="mt-6 text-center text-neutral-400 text-[10px]">
         © {new Date().getFullYear()} Cristal Capital · Terminal Financeiro Profissional · Todos os direitos reservados
       </div>
     </div>

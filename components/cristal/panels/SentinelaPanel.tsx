@@ -116,7 +116,7 @@ export function SentinelaPanel() {
           <div className="text-[9px] font-bold mb-2" style={{ color: corTema }}>CONFIGURAR ALERTA</div>
           <div className="flex flex-wrap gap-2 items-end">
             <div className="flex flex-col gap-1">
-              <label className="text-[9px] text-neutral-600">TICKER</label>
+              <label className="text-[9px] text-neutral-300">TICKER</label>
               <input
                 type="text"
                 value={novoTicker}
@@ -126,7 +126,7 @@ export function SentinelaPanel() {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[9px] text-neutral-600">CONDIÇÃO</label>
+              <label className="text-[9px] text-neutral-300">CONDIÇÃO</label>
               <select
                 value={novoTipo}
                 onChange={(e) => setNovoTipo(e.target.value as TipoAlerta)}
@@ -139,7 +139,7 @@ export function SentinelaPanel() {
             </div>
             {novoTipo !== 'noticia' && novoTipo !== 'volume_spike' && (
               <div className="flex flex-col gap-1">
-                <label className="text-[9px] text-neutral-600">VALOR</label>
+                <label className="text-[9px] text-neutral-300">VALOR</label>
                 <input
                   type="number"
                   value={novoValor}
@@ -162,14 +162,14 @@ export function SentinelaPanel() {
 
           {/* Templates rápidos */}
           <div className="mt-3">
-            <div className="text-[9px] text-neutral-600 mb-1.5">TEMPLATES RÁPIDOS</div>
+            <div className="text-[9px] text-neutral-300 mb-1.5">TEMPLATES RÁPIDOS</div>
             <div className="flex flex-wrap gap-1.5">
               {TEMPLATES.map((t) => (
                 <button
                   key={t.label}
                   type="button"
                   onClick={() => adicionarAlerta({ ticker: t.ticker, tipo: t.tipo, valor: t.valor, label: t.label, ativo: true })}
-                  className="text-[9px] px-2 py-0.5 rounded border border-neutral-800 text-neutral-500 hover:text-neutral-300 hover:border-neutral-600 transition-colors"
+                  className="text-[9px] px-2 py-0.5 rounded border border-neutral-800 text-neutral-200 hover:text-neutral-300 hover:border-neutral-600 transition-colors"
                 >
                   + {t.label}
                 </button>
@@ -203,7 +203,7 @@ export function SentinelaPanel() {
                     )}
                     <span className="text-[11px] text-white truncate">{a.label}</span>
                   </div>
-                  <div className="text-[9px] text-neutral-600 mt-0.5">
+                  <div className="text-[9px] text-neutral-300 mt-0.5">
                     <Clock size={8} className="inline mr-1" />
                     Criado {formatarData(a.criadoEm)}
                   </div>
@@ -213,7 +213,7 @@ export function SentinelaPanel() {
                     type="button"
                     onClick={() => toggleAlerta(a.id)}
                     title="Desactivar"
-                    className="text-neutral-600 hover:text-amber-400 transition-colors"
+                    className="text-neutral-300 hover:text-amber-400 transition-colors"
                   >
                     <BellOff size={12} />
                   </button>
@@ -221,7 +221,7 @@ export function SentinelaPanel() {
                     type="button"
                     onClick={() => removerAlerta(a.id)}
                     title="Remover"
-                    className="text-neutral-600 hover:text-red-400 transition-colors"
+                    className="text-neutral-300 hover:text-red-400 transition-colors"
                   >
                     <Trash2 size={12} />
                   </button>
@@ -252,14 +252,14 @@ export function SentinelaPanel() {
                   {a.mensagem && (
                     <div className="text-[9px] text-amber-600 mt-0.5">{a.mensagem}</div>
                   )}
-                  <div className="text-[9px] text-neutral-600 mt-0.5">
+                  <div className="text-[9px] text-neutral-300 mt-0.5">
                     Disparado {a.disparadoEm ? formatarData(a.disparadoEm) : '—'}
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => removerAlerta(a.id)}
-                  className="opacity-0 group-hover:opacity-100 text-neutral-600 hover:text-red-400 transition-all"
+                  className="opacity-0 group-hover:opacity-100 text-neutral-300 hover:text-red-400 transition-all"
                 >
                   <Trash2 size={12} />
                 </button>
@@ -271,7 +271,7 @@ export function SentinelaPanel() {
         {/* Inactivos */}
         {alertasInactivos.length > 0 && (
           <div>
-            <div className="px-4 py-1.5 text-[9px] font-bold border-b border-neutral-900 sticky top-0 bg-[#0A0A0A] text-neutral-600">
+            <div className="px-4 py-1.5 text-[9px] font-bold border-b border-neutral-900 sticky top-0 bg-[#0A0A0A] text-neutral-300">
               INACTIVOS
             </div>
             {alertasInactivos.map((a) => (
@@ -280,11 +280,11 @@ export function SentinelaPanel() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     {a.ticker && (
-                      <span className="text-[10px] font-bold px-1 rounded bg-neutral-800 text-neutral-500">
+                      <span className="text-[10px] font-bold px-1 rounded bg-neutral-800 text-neutral-200">
                         {a.ticker}
                       </span>
                     )}
-                    <span className="text-[11px] text-neutral-500 truncate">{a.label}</span>
+                    <span className="text-[11px] text-neutral-200 truncate">{a.label}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -292,7 +292,7 @@ export function SentinelaPanel() {
                     type="button"
                     onClick={() => toggleAlerta(a.id)}
                     title="Activar"
-                    className="text-neutral-600 hover:text-green-400 transition-colors"
+                    className="text-neutral-300 hover:text-green-400 transition-colors"
                   >
                     <Bell size={12} />
                   </button>
@@ -300,7 +300,7 @@ export function SentinelaPanel() {
                     type="button"
                     onClick={() => removerAlerta(a.id)}
                     title="Remover"
-                    className="text-neutral-600 hover:text-red-400 transition-colors"
+                    className="text-neutral-300 hover:text-red-400 transition-colors"
                   >
                     <Trash2 size={12} />
                   </button>
@@ -311,14 +311,14 @@ export function SentinelaPanel() {
         )}
 
         {alertasSentinela.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-neutral-700 gap-3 p-8">
+          <div className="flex flex-col items-center justify-center h-full text-neutral-400 gap-3 p-8">
             <Bell size={32} />
             <div className="text-sm">Sem alertas configurados</div>
             <div className="text-xs text-center">Crie triggers automáticos para ser notificado quando as condições de mercado forem atingidas</div>
             <button
               type="button"
               onClick={() => setFormAberto(true)}
-              className="text-[10px] px-4 py-2 rounded border border-neutral-700 text-neutral-500 hover:text-white hover:border-neutral-500 transition-colors mt-2"
+              className="text-[10px] px-4 py-2 rounded border border-neutral-700 text-neutral-200 hover:text-white hover:border-neutral-500 transition-colors mt-2"
             >
               + Criar primeiro alerta
             </button>
@@ -327,7 +327,7 @@ export function SentinelaPanel() {
       </div>
 
       {/* ── Footer info ──────────────────────────────────── */}
-      <div className="flex items-center gap-4 px-4 py-1.5 border-t border-neutral-800 shrink-0 text-[9px] text-neutral-700">
+      <div className="flex items-center gap-4 px-4 py-1.5 border-t border-neutral-800 shrink-0 text-[9px] text-neutral-400">
         <span>{alertasSentinela.length} alertas totais</span>
         <span>·</span>
         <span>{alertasActivos.length} activos</span>

@@ -34,7 +34,7 @@ export function LocaleSelector() {
       <button
         type="button"
         onClick={() => setAberto((a) => !a)}
-        className="flex items-center gap-1 px-2.5 h-full font-mono text-[10px] text-neutral-500 hover:text-white transition-colors"
+        className="flex items-center gap-1 px-2.5 h-full font-mono text-[10px] text-neutral-200 hover:text-white transition-colors"
         title="Idioma / Language"
       >
         <span className="text-[11px]">{BANDEIRAS_LOCALE[locale]}</span>

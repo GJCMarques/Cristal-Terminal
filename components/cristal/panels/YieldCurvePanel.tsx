@@ -156,7 +156,7 @@ function BondCalculator({ corTema }: { corTema: string }) {
           { label: 'PREÇO MERCADO ($) opt.', val: precoInput, set: setPrecoInput, step: '0.01', placeholder: 'ex: 1050' },
         ].map(({ label, val, set, step, placeholder }) => (
           <div key={label}>
-            <label className="text-[9px] text-neutral-600 block mb-1">{label}</label>
+            <label className="text-[9px] text-neutral-300 block mb-1">{label}</label>
             <input
               type="number"
               value={val}
@@ -184,14 +184,14 @@ function BondCalculator({ corTema }: { corTema: string }) {
               { label: 'DV01 ($/pb)',         val: `$${resultado.dv01.toFixed(3)}`,                 cor: 'text-amber-400'   },
             ].map(({ label, val, cor, bold }) => (
               <div key={label} className="flex items-center justify-between border border-neutral-900 rounded px-3 py-2">
-                <span className="text-[9px] text-neutral-600">{label}</span>
+                <span className="text-[9px] text-neutral-300">{label}</span>
                 <span className={`text-[12px] font-mono ${bold ? 'font-bold' : ''} ${cor}`}>{val}</span>
               </div>
             ))}
 
             {premium !== null && (
               <div className="flex items-center justify-between border border-neutral-900 rounded px-3 py-2">
-                <span className="text-[9px] text-neutral-600">PRÉMIO/DESCONTO</span>
+                <span className="text-[9px] text-neutral-300">PRÉMIO/DESCONTO</span>
                 <span className={`text-[12px] font-bold font-mono ${premium >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {premium >= 0 ? '+' : ''}{premium.toFixed(2)}%
                 </span>
@@ -200,7 +200,7 @@ function BondCalculator({ corTema }: { corTema: string }) {
 
             {/* Sensibilidade */}
             <div className="border border-neutral-800 rounded p-3 mt-2">
-              <div className="text-[9px] text-neutral-600 mb-2">SENSIBILIDADE AO YIELD</div>
+              <div className="text-[9px] text-neutral-300 mb-2">SENSIBILIDADE AO YIELD</div>
               {[
                 { delta: -0.5, label: 'YTM −50pb' },
                 { delta: -0.25, label: 'YTM −25pb' },
@@ -213,7 +213,7 @@ function BondCalculator({ corTema }: { corTema: string }) {
                 const difPreco = res.preco - resultado.preco
                 return (
                   <div key={label} className="flex justify-between text-[9px] mb-1">
-                    <span className="text-neutral-700">{label}</span>
+                    <span className="text-neutral-400">{label}</span>
                     <span style={{ color: difPreco >= 0 ? '#10B981' : '#EF4444' }}>
                       {difPreco >= 0 ? '+' : ''}${difPreco.toFixed(2)}
                     </span>
@@ -223,7 +223,7 @@ function BondCalculator({ corTema }: { corTema: string }) {
             </div>
           </>
         ) : (
-          <div className="text-[10px] text-neutral-700 mt-4">Introduza parâmetros válidos</div>
+          <div className="text-[10px] text-neutral-400 mt-4">Introduza parâmetros válidos</div>
         )}
       </div>
     </div>
@@ -276,17 +276,17 @@ export function YieldCurvePanel() {
           </div>
           <div className="flex items-center gap-4 mt-1 font-mono text-xs">
             <div>
-              <span className="text-neutral-500">UST 2A-10A: </span>
+              <span className="text-neutral-200">UST 2A-10A: </span>
               <span className="font-bold" style={{ color: spread2a10a >= 0 ? '#10B981' : '#EF4444' }}>
                 {spread2a10a >= 0 ? '+' : ''}{(spread2a10a * 100).toFixed(0)}pb
               </span>
             </div>
             <div>
-              <span className="text-neutral-500">UST 10A: </span>
+              <span className="text-neutral-200">UST 10A: </span>
               <span className="text-white font-bold">{ust10a.toFixed(2)}%</span>
             </div>
             <div>
-              <span className="text-neutral-500">Bund 10A: </span>
+              <span className="text-neutral-200">Bund 10A: </span>
               <span className="text-white font-bold">
                 {curvasFiltradas.find((c) => c.benchmark === 'BUND')
                   ?.pontos.find((p) => p.maturidade === '10A')?.rendimento.toFixed(2) ?? '—'}%
@@ -380,9 +380,9 @@ export function YieldCurvePanel() {
             <table className="w-full font-mono text-xs">
               <thead>
                 <tr className="border-b border-neutral-800">
-                  <th className="text-left px-3 py-1.5 text-neutral-600 font-normal">BENCHMARK</th>
+                  <th className="text-left px-3 py-1.5 text-neutral-300 font-normal">BENCHMARK</th>
                   {curvasFiltradas[0]?.pontos.map((p) => (
-                    <th key={p.maturidade} className="text-right px-3 py-1.5 text-neutral-600 font-normal">
+                    <th key={p.maturidade} className="text-right px-3 py-1.5 text-neutral-300 font-normal">
                       {p.maturidade}
                     </th>
                   ))}

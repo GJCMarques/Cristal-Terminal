@@ -42,9 +42,9 @@ export function CorrelacaoPanel() {
       <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-800 shrink-0">
         <div>
           <span className="text-xs font-bold" style={{ color: corTema }}>CORR — MATRIZ DE CORRELAÇÃO</span>
-          <span className="text-[10px] text-neutral-500 ml-2">60 dias · Fecho diário</span>
+          <span className="text-[10px] text-neutral-200 ml-2">60 dias · Fecho diário</span>
         </div>
-        <div className="flex items-center gap-3 text-[10px] text-neutral-500">
+        <div className="flex items-center gap-3 text-[10px] text-neutral-200">
           <span className="flex items-center gap-1"><span className="w-3 h-3 inline-block rounded" style={{ background: '#1b5e20' }} /> Forte +</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 inline-block rounded" style={{ background: '#1a1a2e' }} /> Neutra</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 inline-block rounded" style={{ background: '#b71c1c' }} /> Forte −</span>
@@ -134,7 +134,7 @@ export function CorrelacaoPanel() {
                 >
                   {infoSelecionado.ativoA}
                 </button>
-                <span className="text-neutral-600">×</span>
+                <span className="text-neutral-300">×</span>
                 <button
                   type="button"
                   onClick={() => { definirTickerActivo(infoSelecionado.ativoB); definirVista('candlestick') }}
@@ -154,20 +154,20 @@ export function CorrelacaoPanel() {
                 return <div className="text-[10px] text-center" style={{ color: cor }}>{texto}</div>
               })()}
 
-              <div className="mt-3 text-[9px] text-neutral-600 space-y-1">
+              <div className="mt-3 text-[9px] text-neutral-300 space-y-1">
                 <div>{nomes[infoSelecionado.ativoA]} · {categorias[infoSelecionado.ativoA]}</div>
                 <div>{nomes[infoSelecionado.ativoB]} · {categorias[infoSelecionado.ativoB]}</div>
               </div>
             </div>
           ) : (
-            <div className="text-[10px] text-neutral-600 text-center pt-4">
+            <div className="text-[10px] text-neutral-300 text-center pt-4">
               Clique numa célula para ver detalhes do par
             </div>
           )}
 
           {/* Escala de correlação */}
           <div>
-            <div className="text-[9px] font-bold text-neutral-600 mb-2">ESCALA</div>
+            <div className="text-[9px] font-bold text-neutral-300 mb-2">ESCALA</div>
             {[
               { label: '+0.8 a +1.0', cor: '#1b5e20',  desc: 'Muito forte +' },
               { label: '+0.5 a +0.8', cor: '#388e3c',  desc: 'Forte +'       },
@@ -180,7 +180,7 @@ export function CorrelacaoPanel() {
               <div key={s.label} className="flex items-center gap-2 mb-1">
                 <span className="w-10 h-3 rounded shrink-0" style={{ background: s.cor }} />
                 <div className="text-[9px] leading-tight">
-                  <div className="text-neutral-500">{s.label}</div>
+                  <div className="text-neutral-200">{s.label}</div>
                 </div>
               </div>
             ))}
@@ -188,7 +188,7 @@ export function CorrelacaoPanel() {
 
           {/* Top correlações */}
           <div>
-            <div className="text-[9px] font-bold text-neutral-600 mb-2">MAIORES CORRELAÇÕES</div>
+            <div className="text-[9px] font-bold text-neutral-300 mb-2">MAIORES CORRELAÇÕES</div>
             {Array.from({ length: n }, (_, r) =>
               Array.from({ length: n }, (_, c) =>
                 r < c ? { r, c, v: matrix[r]![c]! } : null
@@ -203,7 +203,7 @@ export function CorrelacaoPanel() {
                   className="flex items-center justify-between mb-1 cursor-pointer hover:bg-neutral-900 rounded px-1"
                   onClick={() => setSelecionado({ r: p.r, c: p.c })}
                 >
-                  <span className="text-[9px] text-neutral-500">
+                  <span className="text-[9px] text-neutral-200">
                     {activos[p.r]}/{activos[p.c]}
                   </span>
                   <span

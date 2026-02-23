@@ -66,7 +66,7 @@ export function PainelContainer({ children, semZoom = false }: PainelContainerPr
             type="button"
             onClick={zoomOut}
             disabled={zoom <= 0.31}
-            className="flex items-center justify-center w-5 h-5 rounded text-neutral-600 hover:text-neutral-300 hover:bg-neutral-800 transition-colors disabled:opacity-25"
+            className="flex items-center justify-center w-5 h-5 rounded text-neutral-300 hover:text-neutral-300 hover:bg-neutral-800 transition-colors disabled:opacity-25"
             title="Diminuir (−)"
           >
             <ZoomOut size={11} />
@@ -86,7 +86,7 @@ export function PainelContainer({ children, semZoom = false }: PainelContainerPr
             type="button"
             onClick={zoomIn}
             disabled={zoom >= 2.99}
-            className="flex items-center justify-center w-5 h-5 rounded text-neutral-600 hover:text-neutral-300 hover:bg-neutral-800 transition-colors disabled:opacity-25"
+            className="flex items-center justify-center w-5 h-5 rounded text-neutral-300 hover:text-neutral-300 hover:bg-neutral-800 transition-colors disabled:opacity-25"
             title="Aumentar (+)"
           >
             <ZoomIn size={11} />
@@ -96,7 +96,7 @@ export function PainelContainer({ children, semZoom = false }: PainelContainerPr
             <button
               type="button"
               onClick={resetar}
-              className="flex items-center justify-center w-5 h-5 rounded text-neutral-600 hover:text-amber-400 hover:bg-neutral-800 transition-colors"
+              className="flex items-center justify-center w-5 h-5 rounded text-neutral-300 hover:text-amber-400 hover:bg-neutral-800 transition-colors"
               title="Repor 100%"
             >
               <RotateCcw size={10} />

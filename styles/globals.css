@@ -45,6 +45,7 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -57,7 +58,7 @@
     --secondary: 0 0% 14.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
+    --muted-foreground: 0 0% 90%;
     --accent: 0 0% 14.9%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
@@ -85,6 +86,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'IBM Plex Mono', 'Courier New', Courier, monospace;
@@ -101,17 +103,21 @@
   width: 4px;
   height: 4px;
 }
+
 ::-webkit-scrollbar-track {
   background: #050505;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #1f1f1f;
   border-radius: 2px;
   transition: background 0.2s;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #F59E0B;
 }
+
 ::-webkit-scrollbar-corner {
   background: #050505;
 }
@@ -124,9 +130,17 @@
 
 /* ── Terminal animations ────────────────────────────────────── */
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
+
 .terminal-cursor::after {
   content: '█';
   animation: blink 1s step-start infinite;
@@ -135,33 +149,46 @@
 }
 
 @keyframes scanline {
-  0%   { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(100vh);
+  }
 }
 
 /* ── Glow effect for active elements ───────────────────────── */
 .glow-amber {
   text-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
 }
+
 .glow-green {
   text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
 }
 
 /* ── Ticker tape animation ──────────────────────────────────── */
 @keyframes ticker-scroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
 }
+
 .ticker-tape {
   animation: ticker-scroll 40s linear infinite;
   white-space: nowrap;
 }
+
 .ticker-tape:hover {
   animation-play-state: paused;
 }
 
 /* ── Panel resize handle active state ──────────────────────── */
-[data-resize-handle-active] ~ * {
+[data-resize-handle-active]~* {
   pointer-events: none;
   user-select: none;
 }
@@ -171,34 +198,62 @@
   animation: context-appear 0.08s ease-out;
   transform-origin: top left;
 }
+
 @keyframes context-appear {
-  from { opacity: 0; transform: scale(0.95) translateY(-4px); }
-  to   { opacity: 1; transform: scale(1)    translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* ── Command palette backdrop ───────────────────────────────── */
 .cristal-palette-backdrop {
   animation: palette-appear 0.12s ease-out;
 }
+
 @keyframes palette-appear {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* ── Tooltip global ─────────────────────────────────────────── */
 .cristal-tooltip {
   animation: tooltip-appear 0.1s ease-out;
 }
+
 @keyframes tooltip-appear {
-  from { opacity: 0; transform: translateY(2px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Shimmer loading effect ─────────────────────────────────── */
 @keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
 }
+
 .shimmer {
   background: linear-gradient(90deg, #111 25%, #1a1a1a 50%, #111 75%);
   background-size: 200% auto;
@@ -207,10 +262,19 @@
 
 /* ── Pulse ring for urgent news ─────────────────────────────── */
 @keyframes pulse-ring {
-  0%   { box-shadow: 0 0 0 0   rgba(239, 68, 68, 0.4); }
-  70%  { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);   }
-  100% { box-shadow: 0 0 0 0   rgba(239, 68, 68, 0);   }
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
+
 .pulse-ring {
   animation: pulse-ring 2s cubic-bezier(0.215, 0.610, 0.355, 1) infinite;
 }
@@ -222,6 +286,7 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -239,6 +304,7 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }

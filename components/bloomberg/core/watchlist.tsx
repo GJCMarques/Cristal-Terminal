@@ -113,7 +113,7 @@ export function Watchlist({ isOpen, onClose, isDarkMode, marketIndices, onSave }
               <button
                 type="button"
                 onClick={() => setIsEditing(!isEditing)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-white hover:text-gray-700"
                 aria-label={isEditing ? "Save name" : "Edit name"}
               >
                 {isEditing ? <Save className="h-3 w-3" /> : <Edit className="h-3 w-3" />}
@@ -122,7 +122,7 @@ export function Watchlist({ isOpen, onClose, isDarkMode, marketIndices, onSave }
             <button
               type="button"
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-white hover:text-gray-700"
               aria-label="Close"
             >
               <X className="h-4 w-4" />

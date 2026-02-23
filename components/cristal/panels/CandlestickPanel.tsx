@@ -203,7 +203,7 @@ export function CandlestickPanel({ ticker: tickerProp }: Props) {
           <div className="flex items-center gap-2">
             <span className="font-mono text-base font-bold text-white">{ticker}</span>
             {info && (
-              <span className="font-mono text-xs text-neutral-500">{info.nome}</span>
+              <span className="font-mono text-xs text-neutral-200">{info.nome}</span>
             )}
             <span
               className="font-mono text-[10px] px-1.5 py-0.5 rounded"
@@ -231,7 +231,7 @@ export function CandlestickPanel({ ticker: tickerProp }: Props) {
         {/* Tooltip cruzamento */}
         {tooltip && (
           <div className="ml-auto flex items-center gap-4 font-mono text-xs">
-            <span className="text-neutral-500">{tooltip.data}</span>
+            <span className="text-neutral-200">{tooltip.data}</span>
             <span className="text-neutral-400">
               A: <span className="text-white">{tooltip.open.toFixed(2)}</span>
             </span>

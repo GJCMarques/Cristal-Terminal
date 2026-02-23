@@ -70,7 +70,7 @@ function TooltipHeatmap({ active, payload }: { active?: boolean; payload?: { pay
           {d.variacao >= 0 ? '+' : ''}{d.variacao.toFixed(2)}%
         </span>
       </div>
-      <div className="text-neutral-500 mt-1">Cap: ${d.capMerc.toFixed(1)}T</div>
+      <div className="text-neutral-200 mt-1">Cap: ${d.capMerc.toFixed(1)}T</div>
     </div>
   )
 }
@@ -128,7 +128,7 @@ export function HeatmapPanel() {
         <div className="flex items-center gap-2">
           {nivel === 'acoes' && sectorDetalhes && (
             <button type="button" onClick={() => { setNivel('sectores'); setSectorActivo(null) }}
-              className="font-mono text-[10px] text-neutral-500 hover:text-white mr-2">‹ Sectores</button>
+              className="font-mono text-[10px] text-neutral-200 hover:text-white mr-2">‹ Sectores</button>
           )}
           <span className="font-mono text-sm font-bold text-white">
             {nivel === 'sectores' ? 'MAPA DE CALOR — S&P 500' : `${sectorDetalhes?.nome.toUpperCase() ?? ''} — ACÇÕES`}
@@ -176,10 +176,10 @@ export function HeatmapPanel() {
         ].map((l) => (
           <div key={l.label} className="flex items-center gap-1">
             <div className="w-3 h-3 rounded" style={{ backgroundColor: l.cor }} />
-            <span className="font-mono text-[9px] text-neutral-600">{l.label}</span>
+            <span className="font-mono text-[9px] text-neutral-300">{l.label}</span>
           </div>
         ))}
-        <span className="font-mono text-[9px] text-neutral-700 ml-3">· Clique num sector para detalhe</span>
+        <span className="font-mono text-[9px] text-neutral-400 ml-3">· Clique num sector para detalhe</span>
       </div>
     </div>
   )

@@ -73,7 +73,7 @@ export function UserButton() {
           <span className="font-mono text-[10px] text-neutral-300 max-w-[80px] truncate">{nome}</span>
           <span className="font-mono text-[8px]" style={{ color: cor }}>{role}</span>
         </div>
-        <ChevronDown size={10} className="text-neutral-600" />
+        <ChevronDown size={10} className="text-neutral-300" />
       </button>
 
       {/* Dropdown */}
@@ -82,7 +82,7 @@ export function UserButton() {
           {/* Info do utilizador */}
           <div className="px-3 py-2.5 border-b border-neutral-800">
             <p className="font-mono text-xs text-white font-bold truncate">{nome}</p>
-            <p className="font-mono text-[10px] text-neutral-500 truncate">{email}</p>
+            <p className="font-mono text-[10px] text-neutral-200 truncate">{email}</p>
             <div
               className="inline-block mt-1 px-1.5 py-0.5 rounded font-mono text-[9px] font-bold"
               style={{ backgroundColor: cor + '22', color: cor, border: `1px solid ${cor}44` }}

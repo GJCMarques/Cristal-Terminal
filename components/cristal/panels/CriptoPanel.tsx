@@ -38,7 +38,7 @@ function GaugeIndicador({ valor, label }: { valor: number; label: string }) {
         <text x="60" y="52" textAnchor="middle" fill={cor} fontSize="14" fontWeight="bold" fontFamily="monospace">{valor}</text>
       </svg>
       <span className="font-mono text-[10px] font-bold" style={{ color: cor }}>{desc}</span>
-      <span className="font-mono text-[9px] text-neutral-600 mt-0.5">{label}</span>
+      <span className="font-mono text-[9px] text-neutral-300 mt-0.5">{label}</span>
     </div>
   )
 }
@@ -55,7 +55,7 @@ function CriptoRow({ item, onSeleccionar }: { item: CriptoItem; onSeleccionar: (
       className="grid items-center px-4 py-2 border-b border-neutral-900 hover:bg-neutral-900 transition-colors cursor-pointer font-mono text-xs"
       style={{ gridTemplateColumns: '2rem 2.5rem 7rem 7rem 5rem 5rem 7rem' }}
     >
-      <span className="text-neutral-600">{item.rank}</span>
+      <span className="text-neutral-300">{item.rank}</span>
       <span className="font-bold" style={{ color: item.cor }}>{item.ticker}</span>
       <span className="text-white">${formatarPreco(item.preco)}</span>
       <div className="text-right pr-4">
@@ -72,7 +72,7 @@ function CriptoRow({ item, onSeleccionar }: { item: CriptoItem; onSeleccionar: (
             style={{ width: `${(item.capMerc / METRICAS_GLOBAIS.capTotalMercado) * 100 * 3}%`, backgroundColor: item.cor }}
           />
         </div>
-        <span className="text-neutral-600 text-[10px]">
+        <span className="text-neutral-300 text-[10px]">
           {((item.capMerc / METRICAS_GLOBAIS.capTotalMercado) * 100).toFixed(1)}%
         </span>
       </div>
@@ -148,9 +148,9 @@ export function CriptoPanel() {
           { label: 'CRIPTOS', valor: m.totalCriptos.toLocaleString('pt-PT'), sub: 'activos listados' },
         ].map((m2) => (
           <div key={m2.label} className="bg-[#0A0A0A] px-4 py-2">
-            <div className="font-mono text-[10px] text-neutral-600">{m2.label}</div>
+            <div className="font-mono text-[10px] text-neutral-300">{m2.label}</div>
             <div className="font-mono text-base font-bold text-white">{m2.valor}</div>
-            <div className="font-mono text-[10px] text-neutral-500">{m2.sub}</div>
+            <div className="font-mono text-[10px] text-neutral-200">{m2.sub}</div>
           </div>
         ))}
       </div>
@@ -163,7 +163,7 @@ export function CriptoPanel() {
         <div className="w-px h-12 bg-neutral-800" />
         <div className="text-center">
           <div className="font-mono text-2xl font-bold text-white">${formatarPreco(m.btcPreco)}</div>
-          <div className="font-mono text-[10px] text-neutral-500 mt-1">BTC/USD — Referência</div>
+          <div className="font-mono text-[10px] text-neutral-200 mt-1">BTC/USD — Referência</div>
           <div className="font-mono text-xs text-green-400 mt-0.5">▲ 4.20% (24h)</div>
         </div>
       </div>
@@ -180,7 +180,7 @@ export function CriptoPanel() {
       <div className="flex-1 min-h-0 overflow-y-auto">
         {/* Cabeçalhos */}
         <div
-          className="sticky top-0 z-10 grid px-4 py-1.5 bg-neutral-950 border-b border-neutral-800 font-mono text-[10px] text-neutral-600"
+          className="sticky top-0 z-10 grid px-4 py-1.5 bg-neutral-950 border-b border-neutral-800 font-mono text-[10px] text-neutral-300"
           style={{ gridTemplateColumns: '2rem 2.5rem 7rem 7rem 5rem 5rem 7rem' }}
         >
           <span>#</span><span>TICK</span><span>PREÇO</span><span className="text-right pr-4">VAR 24H / 7D</span>

@@ -178,7 +178,7 @@ export function CommandLine() {
           autoCorrect="off"
           autoCapitalize="off"
           placeholder="AAPL <Equity>  |  EURUSD <Curncy>  |  HELP  |  MKTM"
-          className="flex-1 bg-transparent font-mono text-sm outline-none text-white placeholder:text-neutral-700 uppercase"
+          className="flex-1 bg-transparent font-mono text-sm outline-none text-white placeholder:text-neutral-400 uppercase"
           style={{ caretColor: corTema }}
         />
 
@@ -194,7 +194,7 @@ export function CommandLine() {
           {(['F1', 'F2', 'F3', 'F4'] as const).map((f) => (
             <span
               key={f}
-              className="font-mono text-[10px] px-1 rounded border border-neutral-700 text-neutral-500"
+              className="font-mono text-[10px] px-1 rounded border border-neutral-700 text-neutral-200"
             >
               {f}
             </span>
@@ -241,7 +241,7 @@ export function CommandLine() {
               <span className="font-mono text-sm text-white">{s.texto}</span>
 
               {/* Descrição */}
-              <span className="font-mono text-xs text-neutral-500 ml-auto">
+              <span className="font-mono text-xs text-neutral-200 ml-auto">
                 {s.descricao}
               </span>
             </button>
@@ -249,7 +249,7 @@ export function CommandLine() {
 
           {/* Dica inferior */}
           <div className="px-4 py-1 border-t border-neutral-800 flex items-center gap-4">
-            <span className="font-mono text-[10px] text-neutral-600">
+            <span className="font-mono text-[10px] text-neutral-300">
               ↑↓ navegar  ·  TAB completar  ·  ENTER executar  ·  ESC fechar
             </span>
           </div>

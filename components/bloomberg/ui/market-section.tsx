@@ -106,7 +106,7 @@ export function MarketSection({
         </TableRow>
         <TableRow>
           <TableCell colSpan={10} className="text-center py-2">
-            <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+            <div className="flex items-center justify-center gap-2 text-xs text-white">
               <span>No matching items with current filters</span>
             </div>
           </TableCell>
