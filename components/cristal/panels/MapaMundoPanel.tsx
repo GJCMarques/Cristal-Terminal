@@ -1,5 +1,5 @@
 import { corParaTema } from '@/lib/utils'
-import { DollarSign, TrendingUp, HardHat, Landmark, BarChart2, Zap } from 'lucide-react'
+import { DollarSign, TrendingUp, HardHat, Landmark, BarChart2, Zap, Globe } from 'lucide-react'
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Mapa Mundial Económico
@@ -74,7 +74,7 @@ const PainelInfo = memo(function PainelInfo({
     <div className="border-t border-neutral-800 p-4 shrink-0">
       <div className="flex items-start justify-between mb-3">
         <div>
-          <div className="text-lg" style={{ color: corTema }}>{pais.bandeira} {pais.nome}</div>
+          <div className="text-lg flex items-center gap-1" style={{ color: corTema }}>{pais.bandeira === '🗺️' ? <Globe size={18} className="text-neutral-500" /> : pais.bandeira} {pais.nome}</div>
           <div className="text-[10px] text-neutral-200">{pais.moeda} · Taxa: {pais.taxaJuro.toFixed(2)}%</div>
         </div>
         <div className="text-right">
@@ -246,8 +246,8 @@ export function MapaMundoPanel() {
               className="fixed z-50 pointer-events-none bg-[#0D0D0D] border border-neutral-700 rounded px-3 py-2 text-[10px] shadow-xl"
               style={{ left: tooltip.x + 12, top: tooltip.y - 60 }}
             >
-              <div className="font-bold text-white mb-0.5">
-                {tooltip.pais.bandeira} {tooltip.pais.nome}
+              <div className="font-bold text-white mb-0.5 flex items-center gap-1">
+                {tooltip.pais.bandeira === '🗺️' ? <Globe size={12} className="text-neutral-500" /> : tooltip.pais.bandeira} {tooltip.pais.nome}
               </div>
               <div className="text-neutral-400">
                 {METRICAS.find((m) => m.id === metrica)?.label}:{' '}
@@ -315,7 +315,7 @@ export function MapaMundoPanel() {
                   style={{ background: paisSel?.iso3 === d.iso3 ? corTema + '18' : 'transparent' }}
                 >
                   <span className="text-[9px] text-neutral-400 w-4 shrink-0">{i + 1}</span>
-                  <span className="text-sm w-5 shrink-0">{d.bandeira}</span>
+                  <span className="text-sm w-5 shrink-0 flex items-center">{d.bandeira === '🗺️' ? <Globe size={14} className="text-neutral-500" /> : d.bandeira}</span>
                   <span className="flex-1 text-[10px] text-neutral-400 truncate">{d.nome}</span>
                   <span className="text-[10px] font-bold shrink-0" style={{ color: cor }}>
                     {formatarValor(v, metrica)}
