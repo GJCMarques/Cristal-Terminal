@@ -156,14 +156,20 @@ function BondCalculator({ corTema }: { corTema: string }) {
           ].map(({ label, val, set, step, placeholder }) => (
             <div key={label} className="bg-[#0A0C10] p-3 border border-neutral-800/50 rounded flex flex-col justify-between hover:border-neutral-700 transition-colors">
               <label className="text-[9px] text-neutral-500 font-mono uppercase tracking-wider mb-2">{label}</label>
-              <input
-                type="number"
-                value={val}
-                onChange={(e) => set(e.target.value)}
-                step={step}
-                placeholder={placeholder}
-                className="w-full bg-transparent text-xl md:text-2xl text-white font-mono font-bold outline-none placeholder-neutral-800"
-              />
+              <div className="flex items-center">
+                <input
+                  type="number"
+                  value={val}
+                  onChange={(e) => set(e.target.value)}
+                  step={step}
+                  placeholder={placeholder}
+                  className="w-full bg-transparent text-xl md:text-2xl text-white font-mono font-bold outline-none placeholder-neutral-800 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <div className="flex flex-col ml-2 w-6 shrink-0 bg-[#1f1f1f] rounded-sm overflow-hidden border border-neutral-800 h-10">
+                  <button onClick={() => set(String(Math.round((Number(val) + Number(step)) * 10000) / 10000))} className="flex-1 hover:bg-[#F59E0B] flex items-center justify-center text-[#888] hover:text-black transition-colors text-[10px]">▲</button>
+                  <button onClick={() => set(String(Math.round((Number(val) - Number(step)) * 10000) / 10000))} className="flex-1 hover:bg-[#F59E0B] flex items-center justify-center text-[#888] hover:text-black transition-colors border-t border-neutral-800 text-[10px]">▼</button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -171,14 +177,22 @@ function BondCalculator({ corTema }: { corTema: string }) {
         <div className="bg-[#0A0C10] p-4 border border-violet-900/30 rounded relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-violet-600/5 blur-3xl group-hover:bg-violet-600/10 transition-colors" />
           <label className="text-[9px] text-violet-400 font-mono uppercase tracking-wider mb-2 block relative z-10">PREÇO DE MERCADO (CALCULAR YTM INVERSO)</label>
-          <input
-            type="number"
-            value={precoInput}
-            onChange={(e) => setPrecoInput(e.target.value)}
-            step="0.01"
-            placeholder="Opcional: Forçar Preço..."
-            className="w-full bg-transparent text-xl md:text-2xl text-white font-mono font-bold outline-none placeholder-neutral-700 relative z-10"
-          />
+          <div className="flex items-center relative z-10">
+            <input
+              type="number"
+              value={precoInput}
+              onChange={(e) => setPrecoInput(e.target.value)}
+              step="0.01"
+              placeholder="Opcional: Forçar Preço..."
+              className="w-full bg-transparent text-xl md:text-2xl text-white font-mono font-bold outline-none placeholder-neutral-700 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            {precoInput !== '' && (
+              <div className="flex flex-col ml-2 w-6 shrink-0 bg-[#1f1f1f] rounded-sm overflow-hidden border border-neutral-800 h-10">
+                <button onClick={() => setPrecoInput(String(Math.round((Number(precoInput) + 0.01) * 100) / 100))} className="flex-1 hover:bg-[#F59E0B] flex items-center justify-center text-[#888] hover:text-black transition-colors text-[10px]">▲</button>
+                <button onClick={() => setPrecoInput(String(Math.round((Number(precoInput) - 0.01) * 100) / 100))} className="flex-1 hover:bg-[#F59E0B] flex items-center justify-center text-[#888] hover:text-black transition-colors border-t border-neutral-800 text-[10px]">▼</button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
