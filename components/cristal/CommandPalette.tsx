@@ -10,7 +10,7 @@ import {
   Globe, Newspaper, Star, TrendingDown, BookOpen, Bitcoin, Building2,
   Flame, Calendar, Map, Circle, Search, Link2, Wallet, Network, Bell,
   Zap, HelpCircle, Clock, ChevronRight, Settings, BarChart2, TrendingUp,
-  Keyboard, MessageSquare, FlaskConical,
+  Keyboard, MessageSquare, FlaskConical, Atom,
 } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 import { obterSugestoes } from '@/lib/command-parser'
@@ -45,8 +45,9 @@ const VISTAS_RAPIDAS: { id: VistaTerminal; label: string; icone: React.ReactNode
   { id: 'sentinela',    label: 'Sentinela — Alertas',    icone: <Bell           size={13} />, atalho: 'ALERT'  },
   { id: 'analise',      label: 'Análise IA — Llama 3',   icone: <Zap            size={13} />, atalho: 'IA'     },
   { id: 'chat',         label: 'Chat Institucional',      icone: <MessageSquare  size={13} />, atalho: 'MSG'    },
-  { id: 'quant',        label: 'Ambiente Quant',          icone: <FlaskConical   size={13} />, atalho: 'QUANT'  },
-  { id: 'ajuda',        label: 'Centro de Ajuda',         icone: <HelpCircle     size={13} />, atalho: 'F1'     },
+  { id: 'quant',        label: 'Ambiente Quant',          icone: <FlaskConical   size={13} />, atalho: 'QUANT'   },
+  { id: 'quantum',      label: 'Finança Quântica',        icone: <Atom           size={13} />, atalho: 'QUANTUM' },
+  { id: 'ajuda',        label: 'Centro de Ajuda',         icone: <HelpCircle     size={13} />, atalho: 'F1'      },
 ]
 
 // Tickers com ícone Lucide neutro (sem emojis de bandeira/cor)

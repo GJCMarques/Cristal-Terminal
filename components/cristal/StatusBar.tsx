@@ -68,6 +68,7 @@ export function StatusBar() {
     sentinela: 'SENTINELA IA — ALERTAS & TRIGGERS',
     chat: 'CHAT INSTITUCIONAL — MSG',
     quant: 'AMBIENTE QUANT — PYTHON + C++ WASM',
+    quantum: 'FINANÇA QUÂNTICA — QAE · QAOA · GROVER · QUANTUM VaR',
     ajuda: 'CENTRO DE AJUDA',
   }
 

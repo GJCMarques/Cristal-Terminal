@@ -83,6 +83,16 @@ const MAPA_COMANDOS: Record<string, VistaTerminal> = {
   CPP:        'quant',
   BS:         'quant',
   QA:         'quant',
+  // Finança Quântica
+  QUANTUM:    'quantum',
+  QC:         'quantum',
+  QUBIT:      'quantum',
+  QUBITS:     'quantum',
+  QFINANCE:   'quantum',
+  QAE:        'quantum',
+  QAOA:       'quantum',
+  GROVER:     'quantum',
+  BELL:       'quantum',
 }
 
 // ── Mapeamento de funções de segurança ────────────────────────
@@ -308,6 +318,7 @@ function descreverVista(vista: VistaTerminal): string {
     sentinela:      'Sentinela IA — Alertas & Triggers',
     chat:           'Chat Institucional — MSG',
     quant:          'Ambiente Quant — Python + C++ WASM',
+    quantum:        'Finança Quântica — QAE · QAOA · Grover',
     ajuda:          'Centro de Ajuda',
   }
   return descricoes[vista] ?? vista
