@@ -95,6 +95,7 @@
     background-color: #000;
     color: #fff;
     overflow: hidden;
+    color-scheme: dark;
   }
 }
 
@@ -307,4 +308,33 @@
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ── Custom Number Input Spinners ───────────────────────────── */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  opacity: 1;
+  display: block;
+  margin: 0;
+  width: 20px;
+  background-color: #1f1f1f;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='16' viewBox='0 0 12 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 4 L3 7 H9 Z' fill='%23aaa'/%3E%3Cpath d='M6 12 L3 9 H9 Z' fill='%23aaa'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 2px;
+  cursor: pointer;
+  box-shadow: -1px 0 0 rgba(0, 0, 0, 0.5);
+}
+
+input[type="number"]::-webkit-inner-spin-button:hover,
+input[type="number"]::-webkit-outer-spin-button:hover {
+  background-color: #F59E0B;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='16' viewBox='0 0 12 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 4 L3 7 H9 Z' fill='%23000'/%3E%3Cpath d='M6 12 L3 9 H9 Z' fill='%23000'/%3E%3C/svg%3E");
+}
+
+input[type="number"]::-webkit-inner-spin-button:active,
+input[type="number"]::-webkit-outer-spin-button:active {
+  background-color: #D97706;
 }

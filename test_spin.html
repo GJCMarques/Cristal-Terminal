@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: monospace; }
+  
+  .spin-test {
+    font-size: 24px;
+    background: transparent;
+    color: white;
+    border: 1px solid #333;
+    padding: 10px;
+    outline: none;
+  }
+
+  .spin-test::-webkit-inner-spin-button, 
+  .spin-test::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    opacity: 1;
+    display: block;
+    margin: 0;
+    width: 20px;
+    background-color: #1f1f1f;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='16' viewBox='0 0 12 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 4 L3 7 H9 Z' fill='%23aaa'/%3E%3Cpath d='M6 12 L3 9 H9 Z' fill='%23aaa'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 2px;
+    cursor: pointer;
+    box-shadow: -1px 0 0 rgba(0,0,0,0.5);
+  }
+
+  .spin-test::-webkit-inner-spin-button:hover, 
+  .spin-test::-webkit-outer-spin-button:hover {
+    background-color: #F59E0B;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='16' viewBox='0 0 12 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 4 L3 7 H9 Z' fill='%23000'/%3E%3Cpath d='M6 12 L3 9 H9 Z' fill='%23000'/%3E%3C/svg%3E");
+  }
+</style>
+</head>
+<body>
+  <input type="number" class="spin-test" value="4.25" step="0.125">
+</body>
+</html>
