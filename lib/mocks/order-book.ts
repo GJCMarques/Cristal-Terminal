@@ -13,23 +13,23 @@ interface ConfigSpread {
 
 const CONFIGS_SPREAD: Record<string, ConfigSpread> = {
   // Ações americanas
-  AAPL:   { spreadPct: 0.0001, decimais: 2, tamanhoBase: 500 },
-  MSFT:   { spreadPct: 0.0001, decimais: 2, tamanhoBase: 400 },
-  GOOGL:  { spreadPct: 0.0002, decimais: 2, tamanhoBase: 300 },
-  NVDA:   { spreadPct: 0.0002, decimais: 2, tamanhoBase: 600 },
-  TSLA:   { spreadPct: 0.0003, decimais: 2, tamanhoBase: 700 },
+  AAPL: { spreadPct: 0.0001, decimais: 2, tamanhoBase: 500 },
+  MSFT: { spreadPct: 0.0001, decimais: 2, tamanhoBase: 400 },
+  GOOGL: { spreadPct: 0.0002, decimais: 2, tamanhoBase: 300 },
+  NVDA: { spreadPct: 0.0002, decimais: 2, tamanhoBase: 600 },
+  TSLA: { spreadPct: 0.0003, decimais: 2, tamanhoBase: 700 },
   // Pares de moeda (spread muito apertado)
   EURUSD: { spreadPct: 0.00002, decimais: 5, tamanhoBase: 1_000_000 },
   GBPUSD: { spreadPct: 0.00003, decimais: 5, tamanhoBase: 800_000 },
   USDJPY: { spreadPct: 0.00002, decimais: 3, tamanhoBase: 1_000_000 },
   // Commodities
-  'XAU':  { spreadPct: 0.0003, decimais: 2, tamanhoBase: 50 },
-  'CL1':  { spreadPct: 0.0005, decimais: 2, tamanhoBase: 1_000 },
-  'CO1':  { spreadPct: 0.0005, decimais: 2, tamanhoBase: 1_000 },
+  'XAU': { spreadPct: 0.0003, decimais: 2, tamanhoBase: 50 },
+  'CL1': { spreadPct: 0.0005, decimais: 2, tamanhoBase: 1_000 },
+  'CO1': { spreadPct: 0.0005, decimais: 2, tamanhoBase: 1_000 },
   // Índices / ETF
-  SPX:    { spreadPct: 0.0001, decimais: 2, tamanhoBase: 200 },
-  DAX:    { spreadPct: 0.0002, decimais: 2, tamanhoBase: 150 },
-  PSI20:  { spreadPct: 0.0008, decimais: 2, tamanhoBase: 100 },
+  SPX: { spreadPct: 0.0001, decimais: 2, tamanhoBase: 200 },
+  DAX: { spreadPct: 0.0002, decimais: 2, tamanhoBase: 150 },
+  PSI20: { spreadPct: 0.0008, decimais: 2, tamanhoBase: 100 },
 }
 
 function arredondar(n: number, decimais: number): number {
@@ -110,7 +110,7 @@ export function actualizarLivroOrdens(livro: LivroOrdens): LivroOrdens {
   const novoPreco = arredondar(livro.precoMedio + deriva, config.decimais)
 
   return {
-    ...gerarLivroOrdens(livro.ticker),
+    ...gerarLivroOrdens(livro.ticker, livro.pedidos.length),
     precoMedio: novoPreco,
     timestamp: Date.now(),
   }

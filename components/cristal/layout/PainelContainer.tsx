@@ -21,10 +21,10 @@ export function PainelContainer({ children, semZoom = false }: PainelContainerPr
   const corTema = corParaTema(temaActual)
 
   const [expandido, setExpandido] = useState(false)
-  const [zoom,      setZoom]      = useState(1)
+  const [zoom, setZoom] = useState(1)
 
   const toggleExpandir = useCallback(() => setExpandido((e) => !e), [])
-  const zoomIn  = useCallback(() => setZoom((z) => Math.min(+(z + 0.1).toFixed(1), 3.0)), [])
+  const zoomIn = useCallback(() => setZoom((z) => Math.min(+(z + 0.1).toFixed(1), 3.0)), [])
   const zoomOut = useCallback(() => setZoom((z) => Math.max(+(z - 0.1).toFixed(1), 0.3)), [])
   const resetar = useCallback(() => setZoom(1), [])
 
@@ -46,8 +46,8 @@ export function PainelContainer({ children, semZoom = false }: PainelContainerPr
       // Só quando expandido: +/- para zoom
       if (expandido) {
         if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomIn() }
-        if (e.key === '-')                  { e.preventDefault(); zoomOut() }
-        if (e.key === '0')                  { e.preventDefault(); resetar() }
+        if (e.key === '-') { e.preventDefault(); zoomOut() }
+        if (e.key === '0') { e.preventDefault(); resetar() }
       }
     }
     window.addEventListener('keydown', onKey, true)
@@ -58,6 +58,9 @@ export function PainelContainer({ children, semZoom = false }: PainelContainerPr
   const barra = (
     <div className="flex items-center gap-0.5 px-2 shrink-0 border-b border-neutral-800 bg-[#0A0A0A]" style={{ height: '26px' }}>
       <div className="flex-1" />
+
+      {/* Extra tools portal hook */}
+      <div id="painel-header-tools" className="flex items-center gap-1 mr-2" />
 
       {/* Zoom */}
       {!semZoom && (
@@ -129,7 +132,7 @@ export function PainelContainer({ children, semZoom = false }: PainelContainerPr
         style={zoom !== 1 ? {
           transform: `scale(${zoom})`,
           transformOrigin: 'top left',
-          width:  `${(100 / zoom).toFixed(4)}%`,
+          width: `${(100 / zoom).toFixed(4)}%`,
           height: `${(100 / zoom).toFixed(4)}%`,
           position: 'absolute',
           top: 0,
