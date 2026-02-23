@@ -263,39 +263,35 @@ export function MacroPanel() {
           <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
             {/* Gráfico 1: Probabilidade */}
-            <div className="h-[270px] bg-neutral-900 border border-neutral-800 rounded p-4 relative">
-              <span className="text-[10px] font-bold text-neutral-400 mb-2 block">PROBABILIDADE DE RECESSÃO (12M)</span>
-              <div style={{ height: 210 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={RISCO_RECESSAO} layout="vertical" margin={{ top: 10, right: 20, left: 30, bottom: 5 }}>
-                    <XAxis type="number" domain={[0, 100]} hide />
-                    <YAxis type="category" dataKey="pais" tick={{ fill: '#9CA3AF', fontSize: 10, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<TooltipMacro />} />
-                    <Bar dataKey="probabilidade" name="Probabilidade" radius={[0, 4, 4, 0]}>
-                      {RISCO_RECESSAO.map((d) => (
-                        <Cell key={d.pais} fill={d.probabilidade > 60 ? '#EF4444' : d.probabilidade > 40 ? '#F59E0B' : '#10B981'} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+            <div className="h-[270px] bg-neutral-900 border border-neutral-800 rounded p-4 relative flex flex-col items-center justify-center overflow-hidden">
+              <span className="text-[10px] font-bold text-neutral-400 absolute top-4 left-4 z-10">PROBABILIDADE DE RECESSÃO (12M)</span>
+              <div className="mt-5 flex items-center justify-center w-full h-[210px] min-w-[300px]">
+                <BarChart width={320} height={210} data={RISCO_RECESSAO} layout="vertical" margin={{ top: 10, right: 30, left: 30, bottom: 5 }}>
+                  <XAxis type="number" domain={[0, 100]} hide />
+                  <YAxis type="category" dataKey="pais" tick={{ fill: '#9CA3AF', fontSize: 10, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<TooltipMacro />} />
+                  <Bar dataKey="probabilidade" name="Probabilidade" radius={[0, 4, 4, 0]}>
+                    {RISCO_RECESSAO.map((d) => (
+                      <Cell key={d.pais} fill={d.probabilidade > 60 ? '#EF4444' : d.probabilidade > 40 ? '#F59E0B' : '#10B981'} />
+                    ))}
+                  </Bar>
+                </BarChart>
               </div>
             </div>
 
             {/* Gráfico 2: Radar de Vectores */}
-            <div className="h-[270px] bg-neutral-900 border border-neutral-800 rounded p-4 relative">
-              <span className="text-[10px] font-bold text-neutral-400 mb-2 block">VECTORES DE ESTAGNAÇÃO</span>
-              <div style={{ height: 210 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="65%" data={RISCO_RECESSAO}>
-                    <PolarGrid stroke="#374151" />
-                    <PolarAngleAxis dataKey="pais" tick={{ fill: '#9CA3AF', fontSize: 9, fontFamily: 'monospace' }} />
-                    <PolarRadiusAxis angle={30} domain={[40, 110]} tick={{ fill: '#4B5563', fontSize: 8 }} />
-                    <Radar name="Indicador Lider (%)" dataKey="indicadorLider" stroke={corTema} fill={corTema} fillOpacity={0.3} />
-                    <Radar name="Confiança Consum." dataKey="confiancaConsumidor" stroke="#A78BFA" fill="#A78BFA" fillOpacity={0.3} />
-                    <Tooltip contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', fontSize: '10px', fontFamily: 'monospace', color: '#FFF' }} />
-                    <Legend wrapperStyle={{ fontSize: '10px', fontFamily: 'monospace', position: 'relative', marginTop: '-10px' }} />
-                  </RadarChart>
-                </ResponsiveContainer>
+            <div className="h-[270px] bg-neutral-900 border border-neutral-800 rounded p-4 relative flex flex-col items-center justify-center overflow-hidden">
+              <span className="text-[10px] font-bold text-neutral-400 absolute top-4 left-4 z-10">VECTORES DE ESTAGNAÇÃO</span>
+              <div className="mt-5 flex items-center justify-center w-full h-[210px] min-w-[300px]">
+                <RadarChart width={320} height={210} cx="50%" cy="50%" outerRadius={60} data={RISCO_RECESSAO}>
+                  <PolarGrid stroke="#374151" />
+                  <PolarAngleAxis dataKey="pais" tick={{ fill: '#9CA3AF', fontSize: 9, fontFamily: 'monospace' }} />
+                  <PolarRadiusAxis angle={30} domain={[40, 110]} tick={{ fill: '#4B5563', fontSize: 8 }} />
+                  <Radar name="Indicador Lider (%)" dataKey="indicadorLider" stroke={corTema} fill={corTema} fillOpacity={0.3} />
+                  <Radar name="Confiança Consum." dataKey="confiancaConsumidor" stroke="#A78BFA" fill="#A78BFA" fillOpacity={0.3} />
+                  <Tooltip contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', fontSize: '10px', fontFamily: 'monospace', color: '#FFF' }} />
+                  <Legend wrapperStyle={{ fontSize: '10px', fontFamily: 'monospace', paddingTop: '10px' }} />
+                </RadarChart>
               </div>
             </div>
 

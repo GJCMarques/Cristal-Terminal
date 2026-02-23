@@ -13,14 +13,14 @@ type Nivel = 'sectores' | 'acoes'
 const MULT: Record<Periodo, number> = { '1D': 1, '1S': 4.2, '1M': 12.8, 'YTD': 32.1 }
 
 function getCorHeatmap(v: number): string {
-  if (v >= 3)   return '#065f46'
-  if (v >= 1.5) return '#047857'
-  if (v >= 0.5) return '#059669'
-  if (v >= 0)   return '#10b981'
-  if (v >= -0.5)return '#dc2626'
-  if (v >= -1.5)return '#b91c1c'
-  if (v >= -3)  return '#991b1b'
-  return '#7f1d1d'
+  if (v >= 3) return '#00FF00' // Bright Green
+  if (v >= 1.5) return '#00C000' // Mid Green
+  if (v >= 0.5) return '#008000' // Dark Green
+  if (v >= 0) return '#004000' // Very Dark Green
+  if (v >= -0.5) return '#400000' // Very Dark Red
+  if (v >= -1.5) return '#800000' // Dark Red
+  if (v >= -3) return '#C00000' // Mid Red
+  return '#FF0000'               // Bright Red
 }
 
 interface TreemapContentProps {
@@ -34,22 +34,51 @@ interface TreemapContentProps {
 
 function CustomContent(props: TreemapContentProps) {
   const { x = 0, y = 0, width = 0, height = 0, name = '', variacao = 0, depth = 0 } = props
-  if (width < 20 || height < 20) return null
+  if (width < 25 || height < 25) return null
   const cor = getCorHeatmap(variacao)
-  const sinal = variacao >= 0 ? '+' : ''
-  const mostrarTexto = width > 60 && height > 40
+  const sinal = variacao > 0 ? '+' : ''
+  const isSector = name.length > 5 // Tickers are usually short
+
+  // Dynamic font sizing
+  const fontSizeTicker = Math.min(16, width / 4, height / 3)
+  const fontSizeVar = Math.max(8, fontSizeTicker * 0.75)
+
+  const showText = width > 45 && height > 35
+  const showFullDetails = width > 70 && height > 55
 
   return (
     <g>
-      <rect x={x + 1} y={y + 1} width={width - 2} height={height - 2} rx={3} fill={cor} stroke="#0A0A0A" strokeWidth={2} />
-      {mostrarTexto && (
+      <rect
+        x={x} y={y} width={width} height={height}
+        fill={cor} stroke="#000000" strokeWidth={2}
+        style={{ cursor: 'pointer', transition: 'fill 0.2s', filter: 'brightness(0.95)' }}
+      />
+      {/* 3D Inner Bevel Highlight effect */}
+      <rect x={x + 2} y={y + 2} width={width - 4} height={height - 4} fill="none" stroke="#ffffff" strokeOpacity={0.1} strokeWidth={1} pointerEvents="none" />
+
+      {showText && (
         <>
-          <text x={x + width / 2} y={y + height / 2 - 8} textAnchor="middle" fill="#fff" fontSize={Math.min(14, width / 6)} fontWeight="bold" fontFamily="monospace">
-            {name}
+          <text
+            x={x + width / 2} y={y + height / 2 - (showFullDetails ? 4 : -2)}
+            textAnchor="middle" fill="#FFFFFF"
+            fontSize={fontSizeTicker} fontWeight="bold" fontFamily="monospace"
+            pointerEvents="none"
+            style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+          >
+            {name.length > Math.floor(width / (fontSizeTicker * 0.65)) ? name.substring(0, Math.floor(width / (fontSizeTicker * 0.65)) - 1) + '…' : name}
           </text>
-          <text x={x + width / 2} y={y + height / 2 + 8} textAnchor="middle" fill={variacao >= 0 ? '#86efac' : '#fca5a5'} fontSize={Math.min(11, width / 7)} fontFamily="monospace">
-            {sinal}{variacao.toFixed(2)}%
-          </text>
+
+          {showFullDetails && (
+            <text
+              x={x + width / 2} y={y + height / 2 + fontSizeVar + 2}
+              textAnchor="middle" fill="#FFFFFF"
+              fontSize={fontSizeVar} fontWeight="bold" fontFamily="monospace"
+              pointerEvents="none"
+              style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}
+            >
+              {sinal}{variacao.toFixed(2)}%
+            </text>
+          )}
         </>
       )}
     </g>
@@ -128,12 +157,14 @@ export function HeatmapPanel() {
         <div className="flex items-center gap-2">
           {nivel === 'acoes' && sectorDetalhes && (
             <button type="button" onClick={() => { setNivel('sectores'); setSectorActivo(null) }}
-              className="font-mono text-[10px] text-neutral-200 hover:text-white mr-2">‹ Sectores</button>
+              className="font-mono text-[10px] text-neutral-200 hover:text-white mr-2">‹ Voltar</button>
           )}
-          <span className="font-mono text-sm font-bold text-white">
-            {nivel === 'sectores' ? 'MAPA DE CALOR — S&P 500' : `${sectorDetalhes?.nome.toUpperCase() ?? ''} — ACÇÕES`}
-          </span>
-          <span className="font-mono text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: corTema + '22', color: corTema }}>HEAT</span>
+          <div>
+            <span className="text-xs font-bold" style={{ color: corTema }}>HEAT MAP</span>
+            <span className="text-[10px] text-neutral-200 ml-2 uppercase">
+              {nivel === 'sectores' ? 'MAPA DE CALOR DO MERCADO' : `${sectorDetalhes?.nome} — ACÇÕES`}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           {/* Resumo */}
@@ -168,18 +199,29 @@ export function HeatmapPanel() {
         </ResponsiveContainer>
       </div>
 
-      {/* Legenda de cores */}
-      <div className="flex items-center justify-center gap-1 py-2 border-t border-neutral-800 shrink-0">
-        {[
-          { cor: '#065f46', label: '>+3%' }, { cor: '#059669', label: '>+1%' }, { cor: '#10b981', label: '>0%' },
-          { cor: '#dc2626', label: '<0%' }, { cor: '#991b1b', label: '<-1%' }, { cor: '#7f1d1d', label: '<-3%' },
-        ].map((l) => (
-          <div key={l.label} className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: l.cor }} />
-            <span className="font-mono text-[9px] text-neutral-300">{l.label}</span>
-          </div>
-        ))}
-        <span className="font-mono text-[9px] text-neutral-400 ml-3">· Clique num sector para detalhe</span>
+      {/* Legenda de cores ao estilo Bloomberg */}
+      <div className="flex items-center justify-between px-4 py-2 bg-black border-t border-neutral-800 shrink-0 shadow-inner">
+        <div className="flex items-center gap-0">
+          {[
+            { cor: '#FF0000', label: '<-3%' },
+            { cor: '#C00000', label: '' },
+            { cor: '#800000', label: '' },
+            { cor: '#400000', label: '' },
+            { cor: '#004000', label: '0%' },
+            { cor: '#008000', label: '' },
+            { cor: '#00C000', label: '' },
+            { cor: '#00FF00', label: '>+3%' },
+          ].map((l, i) => (
+            <div key={i} className="flex flex-col items-center">
+              <div className="w-6 h-4 border-r border-black" style={{ backgroundColor: l.cor }} />
+              <span className="font-mono text-[8px] text-neutral-400 mt-1 h-3">{l.label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="font-mono text-[9px] text-neutral-500 uppercase flex gap-4">
+          <span>{nivel === 'sectores' ? 'Clica num sector para detalhe ▲' : 'Clica numa acção para abrir gráfico MKT ▲'}</span>
+          <span>SPX 500 COMPONENTES</span>
+        </div>
       </div>
     </div>
   )
