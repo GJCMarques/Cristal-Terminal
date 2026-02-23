@@ -30,7 +30,7 @@ const METRICAS: { id: MetricaMapa; label: string; unidade: string; icone: React.
   { id: 'mercado', label: 'Mercado YTD', unidade: '%', icone: <BarChart2 size={13} className="inline-block" /> },
 ]
 
-// Mapeamento ISO 3166-1 alpha-3 para dados
+// Mapeamento id (numeric iso) para dados
 const DADOS_MAP: Record<string, DadosPais> = Object.fromEntries(
   DADOS_MUNDIAIS.map((d) => [d.iso3, d])
 )
@@ -154,8 +154,8 @@ export function MapaMundoPanel() {
   const handleGeoClick = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (geo: any) => {
-      const iso3 = geo.properties?.['Alpha-3'] ?? geo.id
-      const pais = DADOS_MAP[iso3]
+      const id = geo.id
+      const pais = id ? DADOS_MAP[id] : undefined
       if (pais) setPaisSel(pais)
     },
     []
@@ -209,9 +209,8 @@ export function MapaMundoPanel() {
                 {({ geographies }: { geographies: import('react-simple-maps').Geography[] }) =>
                   geographies.map((geo: import('react-simple-maps').Geography) => {
                     // react-simple-maps v3 usa numeric ISO 3166-1 no geo.id
-                    // Tentamos resolver o alpha-3 a partir do nome ou do properties
-                    const iso3 = geo.properties?.['Alpha-3'] as string | undefined
-                    const pais = iso3 ? DADOS_MAP[iso3] : undefined
+                    const id = geo.id as string | undefined
+                    const pais = id ? DADOS_MAP[id] : undefined
                     const cor = pais
                       ? getCorChoropleth(getValorMetrica(pais, metrica), metrica)
                       : '#1a1a1a'
