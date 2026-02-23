@@ -412,20 +412,38 @@ chart('area', dados, 'Vol Condicional GARCH(1,1)', 'Dia', 'Vol Ann. (%)')`,
 // ── WASM Loader ───────────────────────────────────────────────
 
 let wasmMod: Record<string, (...args: number[]) => number> | null = null
+let wasmCarregando = false
 
 async function carregarWASM(): Promise<boolean> {
   if (wasmMod) return true
+  if (wasmCarregando) return false
+  wasmCarregando = true
   try {
-    const resp = await fetch('/wasm/quant.js')
-    if (!resp.ok) return false
-    const texto = await resp.text()
-    const blob = new Blob([texto], { type: 'application/javascript' })
-    const url = URL.createObjectURL(blob)
-    const mod = await import(/* webpackIgnore: true */ url)
-    const inst = await (mod.default || mod)({ locateFile: (f: string) => '/wasm/' + f })
-    wasmMod = inst
+    // Injectar <script> tag (quant.js é IIFE/CommonJS, não ES module)
+    // O browser resolve o URL correcto para que locateFile encontre quant.wasm
+    await new Promise<void>((resolve, reject) => {
+      // Verificar se já foi injectado
+      if (document.getElementById('wasm-quant-script')) { resolve(); return }
+      const s = document.createElement('script')
+      s.id = 'wasm-quant-script'
+      s.src = '/wasm/quant.js'
+      s.onload = () => resolve()
+      s.onerror = () => reject(new Error('quant.js não encontrado'))
+      document.head.appendChild(s)
+    })
+    // CristalQuant é agora uma variável global (IIFE exportada)
+    const factory = (window as unknown as Record<string, unknown>)['CristalQuant']
+    if (typeof factory !== 'function') return false
+    const inst = await (factory as (opts: object) => Promise<unknown>)({
+      locateFile: (f: string) => '/wasm/' + f,
+    })
+    wasmMod = inst as Record<string, (...args: number[]) => number>
     return true
-  } catch { return false }
+  } catch {
+    return false
+  } finally {
+    wasmCarregando = false
+  }
 }
 
 // ── Contexto JS ────────────────────────────────────────────────
@@ -687,7 +705,7 @@ export function QuantPanel() {
             C++ WASM {wasmOK ? 'carregado' : 'indisponível'}
           </span>
           <span className="text-[9px] text-neutral-700 ml-auto">
-            {lang === 'python' ? 'numpy/scipy' : 'TypeScript'}
+            {lang === 'python' ? 'numpy/scipy' : wasmOK ? 'JS + WASM' : 'JS'}
           </span>
         </div>
 
