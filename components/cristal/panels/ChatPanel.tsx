@@ -106,6 +106,7 @@ export function ChatPanel() {
   const [online, setOnline] = useState<UtilizadorOnline[]>([])
   const [enviando, setEnviando] = useState(false)
   const [mostrarOnline, setMostrarOnline] = useState(false)
+  const [carregando, setCarregando] = useState(true)
 
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -124,12 +125,15 @@ export function ChatPanel() {
 
   // Carregar histórico ao mudar canal
   const carregarHistorico = useCallback(async (c: Canal) => {
+    setCarregando(true)
     try {
       const res = await fetch(`/api/chat/messages?canal=${c}`)
       const data = await res.json()
       setMsgs(data.mensagens ?? [])
     } catch {
       setMsgs([])
+    } finally {
+      setCarregando(false)
     }
   }, [])
 
@@ -271,28 +275,32 @@ export function ChatPanel() {
         </div>
       )}
 
-      {/* ── Lista de mensagens ───────────────────────────────── */}
       <div
         ref={listRef}
         className="flex-1 min-h-0 overflow-y-auto px-3 py-3"
         style={{ scrollbarWidth: 'thin', scrollbarColor: '#333 transparent' }}
       >
-        {msgs.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-32 gap-2 text-neutral-700">
+        {carregando ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-neutral-500">
+            <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: corTema + '44', borderTopColor: corTema }} />
+            <span className="text-xs font-mono animate-pulse" style={{ color: corTema }}>A desencriptar histórico...</span>
+          </div>
+        ) : msgs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-2 text-neutral-700">
             <Hash size={20} className="opacity-30" />
             <span className="text-xs">Sem mensagens em {LABEL_CANAL[canal]}.</span>
-            <span className="text-[10px]">Seja o primeiro a escrever.</span>
+            <span className="text-[10px]">Aguardando transmissão...</span>
           </div>
+        ) : (
+          msgs.map((msg) => (
+            <BolhaMensagem
+              key={msg.id}
+              msg={msg}
+              euSou={msg.userId === meuEmail}
+              corTema={corTema}
+            />
+          ))
         )}
-
-        {msgs.map((msg) => (
-          <BolhaMensagem
-            key={msg.id}
-            msg={msg}
-            euSou={msg.userId === meuEmail}
-            corTema={corTema}
-          />
-        ))}
       </div>
 
       {/* ── Linha de composição ──────────────────────────────── */}
