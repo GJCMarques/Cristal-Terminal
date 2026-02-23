@@ -29,3 +29,6 @@ next-env.d.ts
 
 # python virtual environment
 venv/
+
+# database (local SQLite — não versionar dados)
+/data/cristal.db

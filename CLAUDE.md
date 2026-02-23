@@ -15,7 +15,7 @@ Público-alvo: profissionais de mercado (traders, analistas, quants, gestores).
 | Framework | Next.js 15 App Router |
 | UI | React 19, Tailwind CSS 3, Lucide React |
 | Estado | Zustand 5 (com `subscribeWithSelector` + `devtools`) |
-| Base de Dados | **SQLite local** (`cristal.db`) — sem dependências externas |
+| Base de Dados | **SQLite local** (`data/cristal.db`) — sem dependências externas |
 | Auth | next-auth v5 (Auth.js beta) + bcryptjs + otplib (TOTP/MFA) |
 | Gráficos | Recharts, lightweight-charts |
 | IA | Ollama/Llama 3 (local) via `services/ollama.ts` |
@@ -26,7 +26,7 @@ Público-alvo: profissionais de mercado (traders, analistas, quants, gestores).
 
 ## Base de Dados — SQLite (CRÍTICO)
 
-**Não há dependências externas de BD.** Tudo persiste localmente em `cristal.db`.
+**Não há dependências externas de BD.** Tudo persiste localmente em `data/cristal.db`.
 
 ### Ficheiros chave
 
@@ -104,7 +104,12 @@ cristalterminal/
 ├── auth.config.ts          — Config next-auth edge-compatible (middleware)
 ├── auth.ts                 — Config next-auth completa (Node.js, bcrypt, TOTP)
 ├── middleware.ts            — Protecção de rotas (Edge Runtime)
-└── cristal.db              — Base de dados SQLite (gerada automaticamente)
+├── data/
+│   └── cristal.db          — Base de dados SQLite (gerada automaticamente, não versionada)
+├── scripts/
+│   ├── clearDb.ts          — Apaga cache de notícias da BD
+│   ├── compile.sh          — Compila C++ → WASM (Emscripten)
+│   └── setup_quant.sh      — Instala Emscripten + dependências WASM
 ```
 
 ---
@@ -320,4 +325,4 @@ openssl rand -base64 64
 4. **`next build` via npm**: falha em UNC paths WSL — usar o binário directamente
 5. **TypeScript**: `ignoreBuildErrors: true` em `next.config.mjs` — não deixar erros acumular mesmo assim
 6. **i18n types**: `en.ts` e `es.ts` usam `export const en: any = {}` para evitar conflitos de tipos literais com `pt.ts`
-7. **SQLite file path**: `./cristal.db` relativo ao working directory do processo Node.js
+7. **SQLite file path**: `./data/cristal.db` relativo ao working directory do processo Node.js (raiz do projecto)

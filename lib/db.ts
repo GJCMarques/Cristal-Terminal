@@ -6,7 +6,7 @@ let db: Database | null = null;
 export async function getDb() {
     if (!db) {
         db = await open({
-            filename: './cristal.db',
+            filename: './data/cristal.db',
             driver: sqlite3.Database
         });
 
