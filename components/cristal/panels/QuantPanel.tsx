@@ -18,6 +18,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
 } from 'recharts'
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 
 // TS quant libs
 import { blackScholes, volImplicita, binomialCRR } from '@/lib/quant/black-scholes'
@@ -295,7 +296,7 @@ activos_capm.forEach(a => {
     fmt(res.beta,2).padStart(6) +
     (res.alpha >= 0 ? '+' : '') + fmtPct(res.alpha,1).padStart(8) +
     fmtPct(res.rSquared,1).padStart(8) +
-    fmt(res.sharpe,2).padStart(8) +
+    fmt(sharpe(ra, rf),2).padStart(8) +
     fmt(res.treynor,2).padStart(9) +
     fmt(res.informationRatio,2).padStart(5)
   )
@@ -491,15 +492,15 @@ export function QuantPanel() {
   const { temaActual } = useTerminalStore()
   const corTema = corParaTema(temaActual)
 
-  const [lang, setLang]         = useState<Linguagem>('js')
-  const [codigo, setCodigo]     = useState(EXEMPLOS[0].codigo)
-  const [output, setOutput]     = useState<LinhaOutput[]>([])
-  const [loading, setLoading]   = useState(false)
-  const [wasmOK, setWasmOK]     = useState(false)
-  const [exId, setExId]         = useState(EXEMPLOS[0].id)
-  const [abaEsq, setAbaEsq]     = useState<'ex' | 'ref'>('ex')
+  const [lang, setLang] = useState<Linguagem>('js')
+  const [codigo, setCodigo] = useState(EXEMPLOS[0].codigo)
+  const [output, setOutput] = useState<LinhaOutput[]>([])
+  const [loading, setLoading] = useState(false)
+  const [wasmOK, setWasmOK] = useState(false)
+  const [exId, setExId] = useState(EXEMPLOS[0].id)
+  const [abaEsq, setAbaEsq] = useState<'ex' | 'ref'>('ex')
 
-  const idRef  = useRef(0)
+  const idRef = useRef(0)
   const outRef = useRef<HTMLDivElement>(null)
 
   // Carregar WASM na montagem
@@ -528,7 +529,7 @@ export function QuantPanel() {
         '║  C++: WASM ' + (wasmOK ? '✓ carregado' : '(a carregar…)').padEnd(12) + '                          ║\n' +
         '╚═══════════════════════════════════════════════════════╝',
     })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -613,7 +614,7 @@ export function QuantPanel() {
       ? Object.keys(cd.dados[0]).filter(k => k !== (cd.xlabel || 'x') && k !== 'strike' && k !== 'dia' && k !== 'cenario')
       : []
     const xKey = cd.dados.length > 0
-      ? (Object.keys(cd.dados[0]).find(k => ['x','strike','dia','vol','cenario'].includes(k)) ?? Object.keys(cd.dados[0])[0])
+      ? (Object.keys(cd.dados[0]).find(k => ['x', 'strike', 'dia', 'vol', 'cenario'].includes(k)) ?? Object.keys(cd.dados[0])[0])
       : 'x'
     const CORES = [corTema, '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4']
 
@@ -626,7 +627,7 @@ export function QuantPanel() {
               <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
               <XAxis dataKey={xKey} tick={{ fill: '#6B7280', fontSize: 9, fontFamily: 'IBM Plex Mono' }} />
               <YAxis tick={{ fill: '#6B7280', fontSize: 9, fontFamily: 'IBM Plex Mono' }} />
-              <Tooltip contentStyle={{ background: '#111', border: `1px solid ${corTema}44`, fontFamily: 'IBM Plex Mono', fontSize: 10 }} />
+              <Tooltip contentStyle={{ background: '#111', border: `1px solid ${corTema}44`, fontFamily: 'IBM Plex Mono', fontSize: 10, color: '#FFF' }} itemStyle={{ color: '#FFF' }} />
               {keys.map((k, i) => <Bar key={k} dataKey={k} fill={CORES[i % CORES.length]} />)}
             </BarChart>
           ) : cd.tipo === 'scatter' ? (
@@ -634,7 +635,7 @@ export function QuantPanel() {
               <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
               <XAxis dataKey={xKey} name={cd.xlabel} tick={{ fill: '#6B7280', fontSize: 9, fontFamily: 'IBM Plex Mono' }} />
               <YAxis dataKey={keys[0]} name={cd.ylabel} tick={{ fill: '#6B7280', fontSize: 9, fontFamily: 'IBM Plex Mono' }} />
-              <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ background: '#111', border: `1px solid ${corTema}44`, fontFamily: 'IBM Plex Mono', fontSize: 10 }} />
+              <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ background: '#111', border: `1px solid ${corTema}44`, fontFamily: 'IBM Plex Mono', fontSize: 10, color: '#FFF' }} itemStyle={{ color: '#FFF' }} />
               <Scatter data={cd.dados} fill={corTema} fillOpacity={0.6} />
             </ScatterChart>
           ) : cd.tipo === 'area' ? (
@@ -642,7 +643,7 @@ export function QuantPanel() {
               <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
               <XAxis dataKey={xKey} tick={{ fill: '#6B7280', fontSize: 9, fontFamily: 'IBM Plex Mono' }} />
               <YAxis tick={{ fill: '#6B7280', fontSize: 9, fontFamily: 'IBM Plex Mono' }} />
-              <Tooltip contentStyle={{ background: '#111', border: `1px solid ${corTema}44`, fontFamily: 'IBM Plex Mono', fontSize: 10 }} />
+              <Tooltip contentStyle={{ background: '#111', border: `1px solid ${corTema}44`, fontFamily: 'IBM Plex Mono', fontSize: 10, color: '#FFF' }} itemStyle={{ color: '#FFF' }} />
               {keys.slice(0, 4).map((k, i) => (
                 <Area key={k} type="monotone" dataKey={k} stroke={CORES[i % CORES.length]} fill={CORES[i % CORES.length] + '22'} strokeWidth={1.5} dot={false} />
               ))}
@@ -652,7 +653,7 @@ export function QuantPanel() {
               <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
               <XAxis dataKey={xKey} tick={{ fill: '#6B7280', fontSize: 9, fontFamily: 'IBM Plex Mono' }} />
               <YAxis tick={{ fill: '#6B7280', fontSize: 9, fontFamily: 'IBM Plex Mono' }} />
-              <Tooltip contentStyle={{ background: '#111', border: `1px solid ${corTema}44`, fontFamily: 'IBM Plex Mono', fontSize: 10 }} />
+              <Tooltip contentStyle={{ background: '#111', border: `1px solid ${corTema}44`, fontFamily: 'IBM Plex Mono', fontSize: 10, color: '#FFF' }} itemStyle={{ color: '#FFF' }} />
               <Legend wrapperStyle={{ fontSize: 9, fontFamily: 'IBM Plex Mono' }} />
               {keys.slice(0, 6).map((k, i) => (
                 <Line key={k} type="monotone" dataKey={k} stroke={CORES[i % CORES.length]} strokeWidth={1.5} dot={false} />
@@ -679,208 +680,218 @@ export function QuantPanel() {
 
   return (
     <div className="flex h-full bg-[#050505] font-mono overflow-hidden">
+      <PanelGroup direction="horizontal">
+        {/* ── Sidebar esquerda ───────────────────────────────── */}
+        <Panel defaultSize={25} minSize={15} maxSize={40} className="flex flex-col border-r border-neutral-900 bg-[#0A0A0A]">
 
-      {/* ── Sidebar esquerda ───────────────────────────────── */}
-      <div className="flex flex-col w-64 shrink-0 border-r border-neutral-900">
-
-        {/* Linguagem */}
-        <div className="flex border-b border-neutral-900">
-          {(['js', 'python'] as Linguagem[]).map(l => (
-            <button key={l} onClick={() => setLang(l)}
-              className="flex-1 py-2 text-[10px] font-bold tracking-widest uppercase transition-colors"
-              style={{
-                color: lang === l ? corTema : '#374151',
-                borderBottom: lang === l ? `1px solid ${corTema}` : '1px solid transparent',
-                backgroundColor: lang === l ? corTema + '0A' : 'transparent',
-              }}>
-              {l === 'js' ? <><Terminal size={9} className="inline mr-1" />JS</> : <><Code2 size={9} className="inline mr-1" />Python</>}
-            </button>
-          ))}
-        </div>
-
-        {/* WASM status */}
-        <div className="flex items-center gap-2 px-3 py-1.5 border-b border-neutral-900 bg-[#080808]">
-          <Circle size={6} fill={wasmOK ? '#10B981' : '#374151'} color={wasmOK ? '#10B981' : '#374151'} />
-          <span className="text-[9px]" style={{ color: wasmOK ? '#10B981' : '#374151' }}>
-            C++ WASM {wasmOK ? 'carregado' : 'indisponível'}
-          </span>
-          <span className="text-[9px] text-neutral-400 ml-auto">
-            {lang === 'python' ? 'numpy/scipy' : wasmOK ? 'JS + WASM' : 'JS'}
-          </span>
-        </div>
-
-        {/* Tabs Exemplos / Referência */}
-        <div className="flex border-b border-neutral-900">
-          {[['ex', 'Exemplos'], ['ref', 'Referência']] .map(([k, lbl]) => (
-            <button key={k} onClick={() => setAbaEsq(k as 'ex' | 'ref')}
-              className="flex-1 py-1.5 text-[9px] tracking-widest uppercase transition-colors"
-              style={{ color: abaEsq === k ? corTema : '#374151', borderBottom: abaEsq === k ? `1px solid ${corTema}` : '1px solid transparent' }}>
-              {lbl}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex-1 overflow-y-auto">
-          {abaEsq === 'ex' ? (
-            EXEMPLOS.filter(e => lang === 'js' ? !e.id.startsWith('py-') : e.id.startsWith('py-')).map(ex => (
-              <button key={ex.id} onClick={() => carregarEx(ex)}
-                className="w-full text-left px-3 py-2 border-b border-neutral-900 transition-colors"
+          {/* Linguagem */}
+          <div className="flex border-b border-neutral-900">
+            {(['js', 'python'] as Linguagem[]).map(l => (
+              <button key={l} onClick={() => setLang(l)}
+                className="flex-1 py-2 text-[10px] font-bold tracking-widest uppercase transition-colors"
                 style={{
-                  backgroundColor: exId === ex.id ? corTema + '10' : 'transparent',
-                  borderLeft: exId === ex.id ? `2px solid ${corTema}` : '2px solid transparent',
+                  color: lang === l ? corTema : '#374151',
+                  borderBottom: lang === l ? `1px solid ${corTema}` : '1px solid transparent',
+                  backgroundColor: lang === l ? corTema + '0A' : 'transparent',
                 }}>
-                <div className="flex items-center gap-1.5 mb-0.5" style={{ color: exId === ex.id ? corTema : '#6B7280' }}>
-                  {ex.icone}
-                  <span className="text-[9px] font-bold truncate">{ex.titulo}</span>
-                </div>
-                <p className="text-[8px] text-neutral-300 pl-4 truncate">{ex.desc}</p>
+                {l === 'js' ? <><Terminal size={9} className="inline mr-1" />JS</> : <><Code2 size={9} className="inline mr-1" />Python</>}
               </button>
-            ))
-          ) : (
-            <div className="p-3 space-y-3">
-              {lang === 'js' ? (
-                <>
-                  {[
-                    ['blackScholes(opts)', 'BS europeia + gregas'],
-                    ['volImplicita(mkt,opts)', 'IV Newton-Raphson'],
-                    ['binomialCRR(opts)', 'CRR americanas'],
-                    ['hestonMC(params)', 'Heston Monte Carlo'],
-                    ['sabrVolImplicita(p)', 'SABR approx.'],
-                    ['fitGARCH(rets)', 'GARCH(1,1) MLE'],
-                    ['simularGBM(params)', 'GBM simulação'],
-                    ['opcaoMonteCarlo(opts)', 'MC exóticas'],
-                    ['calcularVaR(params)', 'VaR/CVaR (3 métodos)'],
-                    ['precoBond(p)', 'Bond + duration + DV01'],
-                    ['ytmBond(preco,p)', 'YTM Newton-Raphson'],
-                    ['analiseCenarios(b,c)', 'Yield shock análise'],
-                    ['optimizarMarkowitz(o)', 'Max Sharpe portfolio'],
-                    ['frontEficiente(a,n)', 'Efficient frontier'],
-                    ['capm(ra,rm,rf)', 'CAPM regressão'],
-                    ['fitNelsonSiegel(p)', 'Yield curve fitting'],
-                    ['sharpe(rets)', 'Sharpe ratio'],
-                    ['maxDrawdown(precos)', 'Max drawdown'],
-                  ].map(([fn, d]) => (
-                    <div key={fn} className="mb-1">
-                      <div className="text-[9px]" style={{ color: corTema }}>{fn}</div>
-                      <div className="text-[8px] text-neutral-300 pl-1">{d}</div>
-                    </div>
-                  ))}
-                  <div className="border-t border-neutral-900 pt-2 mt-2">
-                    <p className="text-[8px] text-neutral-300 mb-1 uppercase tracking-widest">Output</p>
-                    {[['tabela({...})', 'Dict alinhado'], ['outputChart({tipo,dados})', 'Gráfico recharts'], ['print(v)', 'Texto']].map(([f,d]) => (
-                      <div key={f} className="mb-1">
-                        <div className="text-[9px]" style={{ color: corTema + 'BB' }}>{f}</div>
-                        <div className="text-[8px] text-neutral-300 pl-1">{d}</div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <>
-                  {[
-                    ['bs(S,K,T,r,sigma)', 'Black-Scholes + gregas'],
-                    ['vol_implicita(mkt,S,K,T,r)', 'Volatilidade implícita'],
-                    ['mc_gbm(S0,mu,sigma,T)', 'Monte Carlo GBM numpy'],
-                    ['mc_opcao(S,K,T,r,sigma)', 'MC opção antithetic'],
-                    ['var_historico(rets)', 'VaR histórico'],
-                    ['markowitz(R_list)', 'Fronteira eficiente MC'],
-                    ['capm(ra,rm,rf)', 'CAPM regressão'],
-                    ['preco_bond(nom,c,ytm,T)', 'Bond pricing'],
-                    ['ytm_bond(preco,...)', 'YTM Newton-Raphson'],
-                    ['garch11(rets)', 'GARCH(1,1) scipy MLE'],
-                    ['superficie_vol(S,K_list,...)', 'Vol surface'],
-                  ].map(([fn, d]) => (
-                    <div key={fn} className="mb-1">
-                      <div className="text-[9px]" style={{ color: corTema }}>{fn}</div>
-                      <div className="text-[8px] text-neutral-300 pl-1">{d}</div>
-                    </div>
-                  ))}
-                  <div className="border-t border-neutral-900 pt-2 mt-2">
-                    <p className="text-[8px] text-neutral-300 mb-1 uppercase tracking-widest">Output</p>
-                    {[['tabela(dict|df)', 'Tabela alinhada'], ["chart('line',dados)", 'Gráfico recharts'], ['print(v)', 'stdout'], ['fmt/pct/bps', 'Formatadores']].map(([f,d]) => (
-                      <div key={f} className="mb-1">
-                        <div className="text-[9px]" style={{ color: corTema + 'BB' }}>{f}</div>
-                        <div className="text-[8px] text-neutral-300 pl-1">{d}</div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+            ))}
+          </div>
 
-      {/* ── Editor + Output ─────────────────────────────────── */}
-      <div className="flex flex-col flex-1 min-w-0">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-900 bg-[#080808]">
-          <div className="flex items-center gap-2">
-            <FlaskConical size={11} style={{ color: corTema }} />
-            <span className="text-[10px] font-bold tracking-widest" style={{ color: corTema }}>QUANT</span>
-            <span className="text-[9px] px-1.5 py-0.5 rounded border font-bold"
-              style={{ color: lang === 'js' ? '#F59E0B' : '#3B82F6', borderColor: lang === 'js' ? '#F59E0B44' : '#3B82F644' }}>
-              {lang === 'js' ? 'JAVASCRIPT' : 'PYTHON'}
+          {/* WASM status */}
+          <div className="flex items-center gap-2 px-3 py-1.5 border-b border-neutral-900 bg-[#080808]">
+            <Circle size={6} fill={wasmOK ? '#10B981' : '#374151'} color={wasmOK ? '#10B981' : '#374151'} />
+            <span className="text-[9px]" style={{ color: wasmOK ? '#10B981' : '#374151' }}>
+              C++ WASM {wasmOK ? 'carregado' : 'indisponível'}
+            </span>
+            <span className="text-[9px] text-neutral-400 ml-auto">
+              {lang === 'python' ? 'numpy/scipy' : wasmOK ? 'JS + WASM' : 'JS'}
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] text-neutral-400">Ctrl+Enter</span>
-            <button onClick={() => setOutput([])} className="flex items-center gap-1 px-2 py-1 text-[9px] text-neutral-300 hover:text-neutral-400 border border-neutral-800 rounded">
-              <RotateCcw size={9} /> Limpar
-            </button>
-            <button onClick={executar} disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1 rounded text-[10px] font-bold tracking-widest disabled:opacity-50"
-              style={{ backgroundColor: corTema, color: '#000' }}>
-              {loading ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} />}
-              {loading ? 'A calcular…' : 'EXECUTAR'}
-            </button>
-          </div>
-        </div>
 
-        {/* Editor (55%) */}
-        <div className="relative overflow-hidden" style={{ height: '55%' }}>
-          <div className="absolute left-0 top-0 bottom-0 w-8 bg-[#080808] border-r border-neutral-900 overflow-hidden pointer-events-none z-10">
-            {codigo.split('\n').map((_, i) => (
-              <div key={i} className="text-right pr-2 text-[9px] leading-5" style={{ color: '#374151' }}>{i + 1}</div>
+          {/* Tabs Exemplos / Referência */}
+          <div className="flex border-b border-neutral-900">
+            {[['ex', 'Exemplos'], ['ref', 'Referência']].map(([k, lbl]) => (
+              <button key={k} onClick={() => setAbaEsq(k as 'ex' | 'ref')}
+                className="flex-1 py-1.5 text-[9px] tracking-widest uppercase transition-colors"
+                style={{ color: abaEsq === k ? corTema : '#374151', borderBottom: abaEsq === k ? `1px solid ${corTema}` : '1px solid transparent' }}>
+                {lbl}
+              </button>
             ))}
           </div>
-          <textarea value={codigo} onChange={e => setCodigo(e.target.value)} onKeyDown={handleKeyDown}
-            spellCheck={false}
-            className="absolute inset-0 pl-10 pr-3 py-1 w-full h-full bg-transparent resize-none outline-none text-[11px] leading-5 text-neutral-200"
-            style={{ caretColor: corTema, fontFamily: 'IBM Plex Mono, monospace', tabSize: 2 }} />
-        </div>
 
-        {/* Output (45%) */}
-        <div className="border-t border-neutral-900 flex flex-col" style={{ height: '45%' }}>
-          <div className="flex items-center gap-2 px-3 py-1 border-b border-neutral-900 bg-[#080808] shrink-0">
-            <ChevronRight size={10} style={{ color: corTema }} />
-            <span className="text-[9px] font-bold tracking-widest" style={{ color: corTema }}>OUTPUT</span>
-            <span className="text-[9px] text-neutral-400">{output.length} linhas</span>
-          </div>
-          <div ref={outRef} className="flex-1 overflow-y-auto p-3 space-y-0.5">
-            {output.map(l => (
-              l.tipo === 'chart' && l.chartData ? (
-                <div key={l.id}>{renderChart(l.chartData)}</div>
-              ) : (
-                <pre key={l.id} className="text-[10px] leading-[1.6] whitespace-pre-wrap break-all"
-                  style={{ color: corLinha(l.tipo), fontFamily: 'IBM Plex Mono, monospace' }}>
-                  {l.tipo === 'info' && <span style={{ color: corTema + '50' }}>{l.ts} </span>}
-                  {l.texto}
-                </pre>
-              )
-            ))}
-            {loading && (
-              <div className="flex items-center gap-2 mt-1">
-                <Loader2 size={10} className="animate-spin" style={{ color: corTema }} />
-                <span className="text-[10px]" style={{ color: corTema + '88' }}>
-                  {lang === 'python' ? 'A executar Python (numpy/scipy)…' : 'A calcular…'}
-                </span>
+          <div className="flex-1 overflow-y-auto">
+            {abaEsq === 'ex' ? (
+              EXEMPLOS.filter(e => lang === 'js' ? !e.id.startsWith('py-') : e.id.startsWith('py-')).map(ex => (
+                <button key={ex.id} onClick={() => carregarEx(ex)}
+                  className="w-full text-left px-3 py-2 border-b border-neutral-900 transition-colors"
+                  style={{
+                    backgroundColor: exId === ex.id ? corTema + '10' : 'transparent',
+                    borderLeft: exId === ex.id ? `2px solid ${corTema}` : '2px solid transparent',
+                  }}>
+                  <div className="flex items-center gap-1.5 mb-0.5" style={{ color: exId === ex.id ? corTema : '#6B7280' }}>
+                    {ex.icone}
+                    <span className="text-[9px] font-bold truncate">{ex.titulo}</span>
+                  </div>
+                  <p className="text-[8px] text-neutral-300 pl-4 truncate">{ex.desc}</p>
+                </button>
+              ))
+            ) : (
+              <div className="p-3 space-y-3">
+                {lang === 'js' ? (
+                  <>
+                    {[
+                      ['blackScholes(opts)', 'BS europeia + gregas'],
+                      ['volImplicita(mkt,opts)', 'IV Newton-Raphson'],
+                      ['binomialCRR(opts)', 'CRR americanas'],
+                      ['hestonMC(params)', 'Heston Monte Carlo'],
+                      ['sabrVolImplicita(p)', 'SABR approx.'],
+                      ['fitGARCH(rets)', 'GARCH(1,1) MLE'],
+                      ['simularGBM(params)', 'GBM simulação'],
+                      ['opcaoMonteCarlo(opts)', 'MC exóticas'],
+                      ['calcularVaR(params)', 'VaR/CVaR (3 métodos)'],
+                      ['precoBond(p)', 'Bond + duration + DV01'],
+                      ['ytmBond(preco,p)', 'YTM Newton-Raphson'],
+                      ['analiseCenarios(b,c)', 'Yield shock análise'],
+                      ['optimizarMarkowitz(o)', 'Max Sharpe portfolio'],
+                      ['frontEficiente(a,n)', 'Efficient frontier'],
+                      ['capm(ra,rm,rf)', 'CAPM regressão'],
+                      ['fitNelsonSiegel(p)', 'Yield curve fitting'],
+                      ['sharpe(rets)', 'Sharpe ratio'],
+                      ['maxDrawdown(precos)', 'Max drawdown'],
+                    ].map(([fn, d]) => (
+                      <div key={fn} className="mb-1">
+                        <div className="text-[9px]" style={{ color: corTema }}>{fn}</div>
+                        <div className="text-[8px] text-neutral-300 pl-1">{d}</div>
+                      </div>
+                    ))}
+                    <div className="border-t border-neutral-900 pt-2 mt-2">
+                      <p className="text-[8px] text-neutral-300 mb-1 uppercase tracking-widest">Output</p>
+                      {[['tabela({...})', 'Dict alinhado'], ['outputChart({tipo,dados})', 'Gráfico recharts'], ['print(v)', 'Texto']].map(([f, d]) => (
+                        <div key={f} className="mb-1">
+                          <div className="text-[9px]" style={{ color: corTema + 'BB' }}>{f}</div>
+                          <div className="text-[8px] text-neutral-300 pl-1">{d}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {[
+                      ['bs(S,K,T,r,sigma)', 'Black-Scholes + gregas'],
+                      ['vol_implicita(mkt,S,K,T,r)', 'Volatilidade implícita'],
+                      ['mc_gbm(S0,mu,sigma,T)', 'Monte Carlo GBM numpy'],
+                      ['mc_opcao(S,K,T,r,sigma)', 'MC opção antithetic'],
+                      ['var_historico(rets)', 'VaR histórico'],
+                      ['markowitz(R_list)', 'Fronteira eficiente MC'],
+                      ['capm(ra,rm,rf)', 'CAPM regressão'],
+                      ['preco_bond(nom,c,ytm,T)', 'Bond pricing'],
+                      ['ytm_bond(preco,...)', 'YTM Newton-Raphson'],
+                      ['garch11(rets)', 'GARCH(1,1) scipy MLE'],
+                      ['superficie_vol(S,K_list,...)', 'Vol surface'],
+                    ].map(([fn, d]) => (
+                      <div key={fn} className="mb-1">
+                        <div className="text-[9px]" style={{ color: corTema }}>{fn}</div>
+                        <div className="text-[8px] text-neutral-300 pl-1">{d}</div>
+                      </div>
+                    ))}
+                    <div className="border-t border-neutral-900 pt-2 mt-2">
+                      <p className="text-[8px] text-neutral-300 mb-1 uppercase tracking-widest">Output</p>
+                      {[['tabela(dict|df)', 'Tabela alinhada'], ["chart('line',dados)", 'Gráfico recharts'], ['print(v)', 'stdout'], ['fmt/pct/bps', 'Formatadores']].map(([f, d]) => (
+                        <div key={f} className="mb-1">
+                          <div className="text-[9px]" style={{ color: corTema + 'BB' }}>{f}</div>
+                          <div className="text-[8px] text-neutral-300 pl-1">{d}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </Panel>
+
+        <PanelResizeHandle className="flex items-center justify-center w-2 cursor-col-resize group relative z-10 transition-colors">
+          <div className="h-full w-px bg-neutral-900 group-hover:bg-neutral-600 group-active:bg-amber-500 transition-colors" />
+        </PanelResizeHandle>
+
+        {/* ── Editor + Output ─────────────────────────────────── */}
+        <Panel defaultSize={75} minSize={30} className="flex flex-col min-w-0 h-full">
+          <PanelGroup direction="vertical">
+            {/* Header Global */}
+            <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-900 bg-[#080808] shrink-0">
+              <div className="flex items-center gap-2">
+                <FlaskConical size={11} style={{ color: corTema }} />
+                <span className="text-[10px] font-bold tracking-widest" style={{ color: corTema }}>QUANT</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded border font-bold"
+                  style={{ color: lang === 'js' ? '#F59E0B' : '#3B82F6', borderColor: lang === 'js' ? '#F59E0B44' : '#3B82F644' }}>
+                  {lang === 'js' ? 'JAVASCRIPT' : 'PYTHON'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] text-neutral-400">Ctrl+Enter</span>
+                <button onClick={() => setOutput([])} className="flex items-center gap-1 px-2 py-1 text-[9px] text-neutral-300 hover:text-neutral-400 border border-neutral-800 rounded">
+                  <RotateCcw size={9} /> Limpar
+                </button>
+                <button onClick={executar} disabled={loading}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded text-[10px] font-bold tracking-widest disabled:opacity-50"
+                  style={{ backgroundColor: corTema, color: '#000' }}>
+                  {loading ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} />}
+                  {loading ? 'A calcular…' : 'EXECUTAR'}
+                </button>
+              </div>
+            </div>
+
+            {/* Editor */}
+            <Panel defaultSize={55} minSize={10} className="relative overflow-hidden bg-[#0A0A0A]">
+              <div className="absolute left-0 top-0 bottom-0 w-8 bg-[#080808] border-r border-neutral-900 overflow-hidden pointer-events-none z-10">
+                {codigo.split('\n').map((_, i) => (
+                  <div key={i} className="text-right pr-2 text-[9px] leading-5" style={{ color: '#374151' }}>{i + 1}</div>
+                ))}
+              </div>
+              <textarea value={codigo} onChange={e => setCodigo(e.target.value)} onKeyDown={handleKeyDown}
+                spellCheck={false}
+                className="absolute inset-0 pl-10 pr-3 py-1 w-full h-full bg-transparent resize-none outline-none text-[11px] leading-5 text-neutral-200"
+                style={{ caretColor: corTema, fontFamily: 'IBM Plex Mono, monospace', tabSize: 2 }} />
+            </Panel>
+
+            <PanelResizeHandle className="flex items-center justify-center h-2 cursor-row-resize group relative z-10 cursor-row-resize transition-colors">
+              <div className="w-full h-px bg-neutral-900 group-hover:bg-neutral-600 group-active:bg-amber-500 transition-colors" />
+            </PanelResizeHandle>
+
+            {/* Output */}
+            <Panel defaultSize={45} minSize={10} className="flex flex-col relative overflow-hidden bg-[#0A0A0A]">
+              <div className="flex items-center gap-2 px-3 py-1 border-b border-neutral-900 bg-[#080808] shrink-0">
+                <ChevronRight size={10} style={{ color: corTema }} />
+                <span className="text-[9px] font-bold tracking-widest" style={{ color: corTema }}>OUTPUT</span>
+                <span className="text-[9px] text-neutral-400">{output.length} linhas</span>
+              </div>
+              <div ref={outRef} className="flex-1 overflow-y-auto p-3 space-y-0.5">
+                {output.map(l => (
+                  l.tipo === 'chart' && l.chartData ? (
+                    <div key={l.id}>{renderChart(l.chartData)}</div>
+                  ) : (
+                    <pre key={l.id} className="text-[10px] leading-[1.6] whitespace-pre-wrap break-all"
+                      style={{ color: corLinha(l.tipo), fontFamily: 'IBM Plex Mono, monospace' }}>
+                      {l.tipo === 'info' && <span style={{ color: corTema + '50' }}>{l.ts} </span>}
+                      {l.texto}
+                    </pre>
+                  )
+                ))}
+                {loading && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <Loader2 size={10} className="animate-spin" style={{ color: corTema }} />
+                    <span className="text-[10px]" style={{ color: corTema + '88' }}>
+                      {lang === 'python' ? 'A executar Python (numpy/scipy)…' : 'A calcular…'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </Panel>
+          </PanelGroup>
+        </Panel>
+      </PanelGroup>
     </div>
   )
 }

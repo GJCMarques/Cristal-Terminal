@@ -193,11 +193,11 @@ export function capm(
   const ra = retActivo.slice(0, n)
   const rm = retMercado.slice(0, n)
 
-  const excessoActivo  = ra.map(r => r - taxaLivreRisco / diasAno)
+  const excessoActivo = ra.map(r => r - taxaLivreRisco / diasAno)
   const excessoMercado = rm.map(r => r - taxaLivreRisco / diasAno)
 
   const betaVal = covariancia(excessoActivo, excessoMercado) / (Math.pow(desvioPadrao(excessoMercado), 2) || 1)
-  const mediaActivo  = media(excessoActivo)
+  const mediaActivo = media(excessoActivo)
   const mediaMercado = media(excessoMercado)
   const alphaVal = (mediaActivo - betaVal * mediaMercado) * diasAno
 
@@ -216,7 +216,7 @@ export function capm(
   // Treynor
   const treynor = betaVal !== 0 ? (media(ra) * diasAno - taxaLivreRisco) / betaVal : 0
 
-  return { alpha: alphaVal, beta: betaVal, retornoEsperado, rSquared, informationRatio, treynor }
+  return { alpha: alphaVal, beta: betaVal, retornoEsperado: retEsperado, rSquared, informationRatio, treynor }
 }
 
 // ── Black-Litterman (simplificado) ────────────────────────────

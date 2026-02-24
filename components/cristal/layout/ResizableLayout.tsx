@@ -9,26 +9,26 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { useTerminalStore, selectWatchlistActiva } from '@/store/terminal.store'
 import { corParaTema } from '@/lib/utils'
 import { PainelContainer } from './PainelContainer'
-import { MarketOverviewPanel }  from '../panels/MarketOverviewPanel'
-import { NewsPanel }            from '../panels/NewsPanel'
-import { YieldCurvePanel }      from '../panels/YieldCurvePanel'
-import { OrderBookPanel }       from '../panels/OrderBookPanel'
-import { WatchlistPanel }       from '../panels/WatchlistPanel'
-import { AnalisePanel }         from '../panels/AnalisePanel'
-import { CriptoPanel }          from '../panels/CriptoPanel'
-import { MacroPanel }           from '../panels/MacroPanel'
-import { HeatmapPanel }         from '../panels/HeatmapPanel'
-import { CalendarioPanel }      from '../panels/CalendarioPanel'
-import { BolhasPanel }          from '../panels/BolhasPanel'
-import { ScreenerPanel }        from '../panels/ScreenerPanel'
-import { CorrelacaoPanel }      from '../panels/CorrelacaoPanel'
-import { PortfolioPanel }       from '../panels/PortfolioPanel'
-import { DeFiPanel }            from '../panels/DeFiPanel'
-import { SentinelaPanel }       from '../panels/SentinelaPanel'
-import { ChatPanel }            from '../panels/ChatPanel'
-import { QuantPanel }           from '../panels/QuantPanel'
-import { QuantumPanel }         from '../panels/QuantumPanel'
-import { HelpView }             from '../HelpView'
+import { MarketOverviewPanel } from '../panels/MarketOverviewPanel'
+import { NewsPanel } from '../panels/NewsPanel'
+import { YieldCurvePanel } from '../panels/YieldCurvePanel'
+import { OrderBookPanel } from '../panels/OrderBookPanel'
+import { WatchlistPanel } from '../panels/WatchlistPanel'
+import { AnalisePanel } from '../panels/AnalisePanel'
+import { CriptoPanel } from '../panels/CriptoPanel'
+import { MacroPanel } from '../panels/MacroPanel'
+import { HeatmapPanel } from '../panels/HeatmapPanel'
+import { CalendarioPanel } from '../panels/CalendarioPanel'
+import { BolhasPanel } from '../panels/BolhasPanel'
+import { ScreenerPanel } from '../panels/ScreenerPanel'
+import { CorrelacaoPanel } from '../panels/CorrelacaoPanel'
+import { PortfolioPanel } from '../panels/PortfolioPanel'
+import { DeFiPanel } from '../panels/DeFiPanel'
+import { SentinelaPanel } from '../panels/SentinelaPanel'
+import { ChatPanel } from '../panels/ChatPanel'
+import { QuantPanel } from '../panels/QuantPanel'
+import { QuantumPanel } from '../panels/QuantumPanel'
+import { HelpView } from '../HelpView'
 
 const Spinner = ({ label }: { label: string }) => (
   <div className="flex items-center justify-center h-full bg-[#0A0A0A] font-mono text-xs text-neutral-300">
@@ -69,33 +69,33 @@ function PainelPrincipal() {
   const { vistaActual } = useTerminalStore()
 
   // Painéis sem controlos de zoom externos (têm zoom nativo ou são text-based)
-  const semZoom = vistaActual === 'candlestick' || vistaActual === 'chat' || vistaActual === 'quant' || vistaActual === 'quantum'
+  const semZoom = vistaActual === 'candlestick'
 
   const painel = (() => {
     switch (vistaActual) {
-      case 'mercado':      return <MarketOverviewPanel />
-      case 'candlestick':  return <CandlestickPanel />
+      case 'mercado': return <MarketOverviewPanel />
+      case 'candlestick': return <CandlestickPanel />
       case 'livro-ordens': return <OrderBookPanel />
-      case 'yield-curve':  return <YieldCurvePanel />
-      case 'noticias':     return <NewsPanel />
-      case 'watchlist':    return <WatchlistPanel />
-      case 'analise':      return <AnalisePanel />
-      case 'cripto':       return <CriptoPanel />
-      case 'macro':        return <MacroPanel />
-      case 'heatmap':      return <HeatmapPanel />
-      case 'calendario':   return <CalendarioPanel />
-      case 'mapa-mundo':   return <MapaMundoPanel />
-      case 'bolhas':       return <BolhasPanel />
-      case 'screener':     return <ScreenerPanel />
-      case 'correlacao':   return <CorrelacaoPanel />
-      case 'portfolio':    return <PortfolioPanel />
-      case 'defi':         return <DeFiPanel />
-      case 'sentinela':    return <SentinelaPanel />
-      case 'chat':         return <ChatPanel />
-      case 'quant':        return <QuantPanel />
-      case 'quantum':      return <QuantumPanel />
-      case 'ajuda':        return <HelpView />
-      default:             return <MarketOverviewPanel />
+      case 'yield-curve': return <YieldCurvePanel />
+      case 'noticias': return <NewsPanel />
+      case 'watchlist': return <WatchlistPanel />
+      case 'analise': return <AnalisePanel />
+      case 'cripto': return <CriptoPanel />
+      case 'macro': return <MacroPanel />
+      case 'heatmap': return <HeatmapPanel />
+      case 'calendario': return <CalendarioPanel />
+      case 'mapa-mundo': return <MapaMundoPanel />
+      case 'bolhas': return <BolhasPanel />
+      case 'screener': return <ScreenerPanel />
+      case 'correlacao': return <CorrelacaoPanel />
+      case 'portfolio': return <PortfolioPanel />
+      case 'defi': return <DeFiPanel />
+      case 'sentinela': return <SentinelaPanel />
+      case 'chat': return <ChatPanel />
+      case 'quant': return <QuantPanel />
+      case 'quantum': return <QuantumPanel />
+      case 'ajuda': return <HelpView />
+      default: return <MarketOverviewPanel />
     }
   })()
 
@@ -116,8 +116,8 @@ function PainelLateral() {
     { ticker: 'EURUSD', v: 1.0823, c: -0.05 },
     { ticker: 'GBPUSD', v: 1.2641, c: +0.03 },
     { ticker: 'USDJPY', v: 149.82, c: -0.12 },
-    { ticker: 'XAU',    v: 2932.5, c: +0.42 },
-    { ticker: 'CO1',    v: 74.20,  c: -1.64 },
+    { ticker: 'XAU', v: 2932.5, c: +0.42 },
+    { ticker: 'CO1', v: 74.20, c: -1.64 },
   ]
 
   return (
