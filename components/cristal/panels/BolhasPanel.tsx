@@ -5,7 +5,7 @@ import { corParaTema } from '@/lib/utils'
 // CRISTAL CAPITAL TERMINAL — Gráfico de Bolhas (EQRV Avançado)
 // ============================================================
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine, Cell, Label, ZAxis
@@ -71,6 +71,13 @@ export function BolhasPanel() {
   const [eixoY, setEixoY] = useState<NumericKey>('pe')
   const [eixoZ, setEixoZ] = useState<NumericKey>('capitalMerc')
   const [sectorFiltro, setSectorFiltro] = useState<string>('Todos')
+  const [showChart, setShowChart] = useState(false)
+
+  useEffect(() => {
+    // Delay rendering the chart items to let the main UI paint first immediately
+    const t = setTimeout(() => setShowChart(true), 50)
+    return () => clearTimeout(t)
+  }, [])
 
   const metricX = OPCOES.find((o) => o.id === eixoX)!
   const metricY = OPCOES.find((o) => o.id === eixoY)!
@@ -177,7 +184,7 @@ export function BolhasPanel() {
       </div>
 
       {/* ── Área Gráfica Com Quadrantes ────────────────────────── */}
-      <div className="flex-1 min-h-0 relative p-4 bg-[#0A0C10]">
+      <div className={`flex-1 min-h-0 relative p-4 bg-[#0A0C10] transition-opacity duration-700 ease-out ${showChart ? 'opacity-100' : 'opacity-0'}`}>
 
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
@@ -215,10 +222,12 @@ export function BolhasPanel() {
             <ReferenceLine y={mediaY} stroke="#6B7280" strokeDasharray="3 3" strokeOpacity={0.6} />
 
             <Scatter
-              data={dadosFormatados}
+              data={showChart ? dadosFormatados : []}
+              isAnimationActive={true}
+              animationDuration={800}
               onClick={(d: AccaoScreener) => { definirTickerActivo(d.ticker); definirVista('candlestick') }}
             >
-              {dadosFormatados.map((d) => {
+              {showChart && dadosFormatados.map((d) => {
                 const cor = COR_SECTOR[d.sector] || '#3B82F6'
                 return (
                   <Cell
@@ -226,8 +235,8 @@ export function BolhasPanel() {
                     fill={cor}
                     stroke={cor}
                     strokeWidth={2}
-                    fillOpacity={0.35}
-                    style={{ cursor: 'pointer', transition: 'all 0.2s', filter: 'brightness(1.5)' }}
+                    fillOpacity={0.6}
+                    style={{ cursor: 'pointer' }}
                   />
                 )
               })}
