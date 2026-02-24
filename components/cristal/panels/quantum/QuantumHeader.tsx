@@ -94,6 +94,9 @@ export function QuantumHeader() {
     const corTema = corParaTema(temaActual)
 
     useEffect(() => {
+        const toggleEngine = () => setEngineLigado(p => !p)
+        window.addEventListener('toggle-quantum-engine', toggleEngine)
+
         // Mudar pseudo-estado caso desejemos, mas online por base
         setEngineLigado(true)
         const actualizar = () => {
@@ -112,6 +115,7 @@ export function QuantumHeader() {
 
         return () => {
             clearInterval(id)
+            window.removeEventListener('toggle-quantum-engine', toggleEngine)
             window.removeEventListener('quantum-tab-change', onDemo)
         }
     }, [])
@@ -156,12 +160,30 @@ export function QuantumHeader() {
 
                 {/* Estado IA & Engine */}
                 <div className="flex items-center gap-3 px-3 border-l border-neutral-800 h-full shrink-0">
-                    <div className="flex items-center gap-1.5">
-                        <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${engineLigado ? 'bg-[#10B981]' : 'bg-[#EF4444]'}`} />
+                    <button
+                        type="button"
+                        onClick={() => window.dispatchEvent(new CustomEvent('toggle-quantum-engine'))}
+                        className="flex items-center gap-2 px-2 py-1 rounded hover:bg-neutral-800 transition-colors"
+                        title="Toggle Quantum Engine"
+                    >
+                        <div
+                            className="flex items-center gap-1 px-1.5 py-0.5 rounded font-mono text-[9px] font-bold transition-all"
+                            style={{
+                                backgroundColor: engineLigado ? '#10B981' : '#EF4444',
+                                color: engineLigado ? '#000' : '#fff',
+                                boxShadow: engineLigado ? '0 0 8px #10B98188' : '0 0 8px #EF444488',
+                            }}
+                        >
+                            <div
+                                className={`w-1.5 h-1.5 rounded-full ${engineLigado ? 'animate-pulse' : ''}`}
+                                style={{ backgroundColor: engineLigado ? '#000' : '#fff' }}
+                            />
+                            {engineLigado ? 'ON' : 'OFF'}
+                        </div>
                         <span className="font-mono text-[9px] text-neutral-200">
                             {engineLigado ? 'ENGINE RUNNING' : 'ENGINE OFFLINE'}
                         </span>
-                    </div>
+                    </button>
                     <div className="w-px h-4 bg-neutral-800" />
                     <div className="flex items-center gap-1.5">
                         <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: iaDisponivel === true ? '#10B981' : iaDisponivel === false ? '#EF4444' : '#6B7280' }} />
