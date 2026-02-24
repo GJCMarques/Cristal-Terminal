@@ -56,8 +56,39 @@ export const redis = {
     const db = await getDb()
     await db.run('DELETE FROM kv WHERE key = ?', key)
     await db.run('DELETE FROM lists WHERE key = ?', key)
+    await db.run('DELETE FROM zsets WHERE key = ?', key)
     return 1
   },
   ltrim: async () => { },
   expire: async () => { },
+
+  // Sorted sets (usados pela Presença no Chat)
+  zadd: async (key: string, obj: { score: number, member: string }) => {
+    const db = await getDb()
+    await db.run(
+      'INSERT INTO zsets (key, member, score) VALUES (?, ?, ?) ON CONFLICT(key, member) DO UPDATE SET score=excluded.score',
+      key, obj.member, obj.score
+    )
+  },
+  zrange: async (key: string, min: string | number, max: string | number, opts?: any) => {
+    const db = await getDb()
+    let query = 'SELECT member FROM zsets WHERE key = ?'
+    const params: any[] = [key]
+
+    if (opts?.byScore) {
+      if (min !== '-inf') {
+        query += ' AND score >= ?'
+        params.push(min)
+      }
+      if (max !== '+inf') {
+        query += ' AND score <= ?'
+        params.push(max)
+      }
+    }
+
+    query += ' ORDER BY score ASC'
+    const rows = await db.all(query, ...params)
+    return rows.map(r => r.member)
+  }
 }
+

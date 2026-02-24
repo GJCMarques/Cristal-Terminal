@@ -4,13 +4,13 @@ import { open, Database } from 'sqlite'
 let db: Database | null = null;
 
 export async function getDb() {
-    if (!db) {
-        db = await open({
-            filename: './data/cristal.db',
-            driver: sqlite3.Database
-        });
+  if (!db) {
+    db = await open({
+      filename: './data/cristal.db',
+      driver: sqlite3.Database
+    });
 
-        await db.exec(`
+    await db.exec(`
       CREATE TABLE IF NOT EXISTS users (
         email TEXT PRIMARY KEY,
         passwordHash TEXT NOT NULL,
@@ -31,7 +31,14 @@ export async function getDb() {
         value TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS zsets (
+        key TEXT NOT NULL,
+        member TEXT NOT NULL,
+        score REAL NOT NULL,
+        PRIMARY KEY (key, member)
+      );
     `);
-    }
-    return db;
+  }
+  return db;
 }
