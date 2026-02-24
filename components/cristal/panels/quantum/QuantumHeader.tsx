@@ -88,17 +88,23 @@ export function QuantumHeader() {
     // Local state to feedback selected tab, just visual
     const [activeDemo, setActiveDemo] = useState<DemoId | null>('bell')
 
-    // Local fake state for the Quantum Engine health
-    const [engineLigado, setEngineLigado] = useState<boolean>(true)
+    // null = a carregar do DB, true = ligado, false = desligado
+    const [engineLigado, setEngineLigado] = useState<boolean | null>(null)
 
     const corTema = corParaTema(temaActual)
 
+    // Carregar estado do engine da BD no mount
     useEffect(() => {
-        const toggleEngine = () => setEngineLigado(p => !p)
+        fetch('/api/quantum/engine')
+            .then(r => r.json())
+            .then(({ ligado }) => setEngineLigado(ligado))
+            .catch(() => {})
+    }, [])
+
+    useEffect(() => {
+        const toggleEngine = () => setEngineLigado(p => p === null ? false : !p)
         window.addEventListener('toggle-quantum-engine', toggleEngine)
 
-        // Mudar pseudo-estado caso desejemos, mas online por base
-        setEngineLigado(true)
         const actualizar = () => {
             const agora = new Date()
             setHora(agora.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }))
@@ -141,8 +147,8 @@ export function QuantumHeader() {
                     </svg>
                     <span className="font-mono text-[11px] font-bold" style={{ color: corTema }}>CRISTAL CAPITAL</span>
                     <span className="font-mono text-[9px] text-neutral-500">—</span>
-                    <Atom size={14} style={{ color: corTema, filter: `drop-shadow(0 0 5px ${corTema})`, marginLeft: '2px' }} />
-                    <span className="font-mono text-[11px] font-bold" style={{ color: corTema, textShadow: `0 0 5px ${corTema}` }}>QUANTUM ENGINE</span>
+                    <Atom size={14} style={{ color: corTema, marginLeft: '2px' }} />
+                    <span className="font-mono text-[11px] font-bold" style={{ color: corTema }}>QUANTUM ENGINE</span>
                 </div>
 
                 {/* Paleta de comandos hint */}
@@ -163,25 +169,26 @@ export function QuantumHeader() {
                     <button
                         type="button"
                         onClick={() => window.dispatchEvent(new CustomEvent('toggle-quantum-engine'))}
-                        className="flex items-center gap-2 px-2 py-1 rounded hover:bg-neutral-800 transition-colors"
+                        disabled={engineLigado === null}
+                        className="flex items-center gap-2 px-2 py-1 rounded hover:bg-neutral-800 transition-colors disabled:cursor-default"
                         title="Toggle Quantum Engine"
                     >
                         <div
                             className="flex items-center gap-1 px-1.5 py-0.5 rounded font-mono text-[9px] font-bold transition-all"
                             style={{
-                                backgroundColor: engineLigado ? '#10B981' : '#EF4444',
-                                color: engineLigado ? '#000' : '#fff',
-                                boxShadow: engineLigado ? '0 0 8px #10B98188' : '0 0 8px #EF444488',
+                                backgroundColor: engineLigado === null ? '#2a2a2a' : engineLigado ? '#10B981' : '#EF4444',
+                                color: engineLigado === null ? '#555' : engineLigado ? '#000' : '#fff',
+                                boxShadow: 'none',
                             }}
                         >
                             <div
-                                className={`w-1.5 h-1.5 rounded-full ${engineLigado ? 'animate-pulse' : ''}`}
-                                style={{ backgroundColor: engineLigado ? '#000' : '#fff' }}
+                                className={`w-1.5 h-1.5 rounded-full ${engineLigado === true ? 'animate-pulse' : ''}`}
+                                style={{ backgroundColor: engineLigado === null ? '#555' : engineLigado ? '#000' : '#fff' }}
                             />
-                            {engineLigado ? 'ON' : 'OFF'}
+                            {engineLigado === null ? '…' : engineLigado ? 'ON' : 'OFF'}
                         </div>
                         <span className="font-mono text-[9px] text-neutral-200">
-                            {engineLigado ? 'ENGINE RUNNING' : 'ENGINE OFFLINE'}
+                            {engineLigado === null ? 'LOADING...' : engineLigado ? 'ENGINE RUNNING' : 'ENGINE OFFLINE'}
                         </span>
                     </button>
                     <div className="w-px h-4 bg-neutral-800" />
@@ -256,7 +263,7 @@ export function QuantumHeader() {
                 {/* Botão GIGANTE de Volta ao Cristal */}
                 <button
                     onClick={() => definirVista('mercado')}
-                    className="relative flex items-center gap-2 px-4 h-full border-r border-neutral-800 bg-[#0A0A0A] transition-colors font-mono text-[11px] font-black tracking-widest shrink-0 group"
+                    className="relative flex items-center gap-2 px-4 h-full border-r border-neutral-800 bg-black transition-colors font-mono text-[11px] font-black tracking-widest shrink-0 group"
                     style={{ color: '#d4d4d4' }}
                 >
                     <span className="text-sm font-bold -mt-0.5 group-hover:-translate-x-1 transition-transform">←</span>

@@ -5,7 +5,7 @@
 // QAE · QAOA · Grover · Bell State · Quantum VaR · VQE
 // ============================================================
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { corParaTema } from '@/lib/utils'
 import { useTerminalStore } from '@/store/terminal.store'
 import { Atom, Zap, TrendingUp, Shield, BarChart2, Play, Loader2, ChevronRight, Layers } from 'lucide-react'
@@ -16,7 +16,7 @@ import {
 } from '@/lib/quantum/algorithms'
 
 import { RenderBell, RenderGrover, RenderQAE, RenderQAOA, RenderVQE, RenderVaR } from './quantum/QuantumAlgorithms'
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
+import { Panel, PanelGroup, PanelResizeHandle, type ImperativePanelHandle } from 'react-resizable-panels'
 import { QuantumCommandPalette } from './quantum/QuantumCommandPalette'
 
 // ── Tipos ─────────────────────────────────────────────────────
@@ -65,28 +65,59 @@ export function QuantumPanel() {
   })
 
   const [sidebarAberta, setSidebarAberta] = useState(true)
-  const [engineLigado, setEngineLigado] = useState(true)
+  // null = a carregar do DB, true = ligado, false = desligado
+  const [engineLigado, setEngineLigado] = useState<boolean | null>(null)
+  const [mostrarModalEngine, setMostrarModalEngine] = useState(false)
+  const sidebarRef = useRef<ImperativePanelHandle>(null)
+  const isDragging = useRef(false)
 
-  // Sincronizar demo através da navegação do Header e toggle da sidebar
-  useState(() => {
-    if (typeof window !== 'undefined') {
-      const handleNav = (e: any) => {
-        if (e.detail) {
-          setDemoActiva(e.detail)
-          setResultado(null) // limpar ao mudar de separador
-        }
-      }
-      const handleSidebar = () => setSidebarAberta(prev => !prev)
+  // Carregar estado do engine da BD no mount
+  useEffect(() => {
+    fetch('/api/quantum/engine')
+      .then(r => r.json())
+      .then(({ ligado }) => setEngineLigado(ligado))
+      .catch(() => setEngineLigado(true))
+  }, [])
 
-      window.addEventListener('quantum-tab-change', handleNav)
-      window.addEventListener('toggle-quantum-sidebar', handleSidebar)
+  // Guardar na BD sempre que muda (null ignorado — é o estado de carregamento)
+  useEffect(() => {
+    if (engineLigado === null) return
+    fetch('/api/quantum/engine', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ligado: engineLigado }),
+    }).catch(() => {})
+  }, [engineLigado])
 
-      return () => {
-        window.removeEventListener('quantum-tab-change', handleNav)
-        window.removeEventListener('toggle-quantum-sidebar', handleSidebar)
+  // Sincronizar demo, sidebar e estado do engine com eventos do Header
+  useEffect(() => {
+    const handleNav = (e: any) => {
+      if (e.detail) {
+        setDemoActiva(e.detail)
+        setResultado(null)
       }
     }
-  })
+    const handleSidebar = () => {
+      const panel = sidebarRef.current
+      if (!panel) return
+      if (panel.isCollapsed()) {
+        panel.expand()
+      } else {
+        panel.collapse()
+      }
+    }
+    const handleEngine = () => setEngineLigado(prev => prev === null ? false : !prev)
+
+    window.addEventListener('quantum-tab-change', handleNav)
+    window.addEventListener('toggle-quantum-sidebar', handleSidebar)
+    window.addEventListener('toggle-quantum-engine', handleEngine)
+
+    return () => {
+      window.removeEventListener('quantum-tab-change', handleNav)
+      window.removeEventListener('toggle-quantum-sidebar', handleSidebar)
+      window.removeEventListener('toggle-quantum-engine', handleEngine)
+    }
+  }, [])
 
   const executar = useCallback(async (id: DemoId) => {
     setLoading(true)
@@ -154,19 +185,98 @@ export function QuantumPanel() {
   return (
     <>
       <QuantumCommandPalette />
-      <PanelGroup direction="horizontal" className="flex h-full bg-[#050505] text-[#ccc] font-mono overflow-hidden">
+
+      {/* ── Modal: Engine Offline ─────────────────────────────── */}
+      {mostrarModalEngine && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(6px)' }}
+          onClick={() => setMostrarModalEngine(false)}
+        >
+          <div
+            className="flex flex-col font-mono select-none overflow-hidden"
+            style={{ width: 420, backgroundColor: '#0D0D0D', border: '1px solid #EF444440', borderRadius: 8, boxShadow: '0 0 60px #EF444422, 0 25px 50px rgba(0,0,0,0.8)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* ─ Header do modal ─ */}
+            <div className="flex items-center gap-3 px-5 py-3 border-b" style={{ borderColor: '#1c1c1c' }}>
+              <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: '#EF4444', boxShadow: '0 0 6px #EF4444' }} />
+              <span className="text-[10px] font-bold tracking-[0.25em] text-[#EF4444]">ENGINE OFFLINE</span>
+              <span className="text-[9px] text-neutral-600 tracking-widest">— QUANTUM STATEVECTOR</span>
+              <div className="flex-1" />
+              <button
+                onClick={() => setMostrarModalEngine(false)}
+                className="text-neutral-600 hover:text-neutral-300 transition-colors text-[16px] leading-none px-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* ─ Body do modal ─ */}
+            <div className="space-y-3" style={{ padding: '1rem 0.8rem' }}>
+              <p className="text-[11px] font-bold text-neutral-200">
+                Motor quântico desligado
+              </p>
+              <p className="text-[10px] text-neutral-500" style={{ lineHeight: '1.7' }}>
+                O Quantum Statevector Engine está offline. Não é possível executar computações quânticas enquanto o motor estiver inactivo.
+              </p>
+              <p className="text-[10px] text-neutral-600">
+                Usa o botão <span className="text-neutral-400 font-bold">ON/OFF</span> no header para ligar o motor.
+              </p>
+            </div>
+
+            {/* ─ Footer do modal ─ */}
+            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t" style={{ borderColor: '#1c1c1c', backgroundColor: '#090909' }}>
+              <button
+                onClick={() => setMostrarModalEngine(false)}
+                className="px-4 py-1.5 rounded text-[10px] font-bold tracking-widest border border-neutral-800 text-neutral-500 hover:border-neutral-600 hover:text-neutral-300 transition-all"
+              >
+                FECHAR
+              </button>
+              <button
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('toggle-quantum-engine'))
+                  setMostrarModalEngine(false)
+                }}
+                className="px-4 py-1.5 rounded text-[10px] font-bold tracking-widest transition-all hover:opacity-85"
+                style={{ backgroundColor: '#10B981', color: '#000', boxShadow: '0 0 12px #10B98155' }}
+              >
+                LIGAR ENGINE
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <PanelGroup direction="horizontal" id="quantum-panel-group" className="h-full bg-[#050505] text-[#ccc] font-mono overflow-hidden">
         {/* ── Sidebar Quântico ────────────────────────────────── */}
-        {sidebarAberta && (
-          <>
-            <Panel defaultSize={20} minSize={15} maxSize={40} className="flex flex-col shrink-0 border-r border-[#151515] bg-[#0A0A0A]">
-              <div className="px-4 py-4 border-b border-[#151515] bg-[#050505]">
-                <div className="flex items-center gap-2 mb-1">
-                  <Atom size={14} style={{ color: corTema, filter: `drop-shadow(0 0 5px ${corTema})` }} />
-                  <span className="text-[11px] font-bold tracking-widest text-white" style={{ textShadow: `0 0 8px ${corTema}` }}>
+        <>
+            <Panel
+              ref={sidebarRef}
+              id="quantum-sidebar"
+              order={1}
+              collapsible
+              defaultSize={20}
+              minSize={15}
+              maxSize={40}
+              onCollapse={() => {
+                if (isDragging.current) {
+                  // drag tentou colapsar — impedir, re-expandir imediatamente
+                  requestAnimationFrame(() => sidebarRef.current?.expand())
+                } else {
+                  setSidebarAberta(false)
+                }
+              }}
+              onExpand={() => setSidebarAberta(true)}
+              className={`flex flex-col bg-[#0A0A0A] overflow-hidden ${sidebarAberta ? 'border-r border-[#151515]' : ''}`}
+            >
+              <div className="flex flex-col justify-center px-4 border-b border-[#151515] bg-[#050505] shrink-0" style={{ height: '52px' }}>
+                <div className="flex items-center gap-2">
+                  <Atom size={14} style={{ color: corTema }} />
+                  <span className="text-[11px] font-bold tracking-widest text-white">
                     QUANTUM STATEVECTOR
                   </span>
                 </div>
-                <p className="text-[8px] text-neutral-500 uppercase">Motor Rigoroso Álgebra Linear Complexa</p>
+                <p className="text-[8px] text-neutral-600 uppercase mt-0.5">Motor Rigoroso Álgebra Linear Complexa</p>
               </div>
 
               <div className="p-4 bg-[#0A0A0A]">
@@ -230,8 +340,8 @@ export function QuantumPanel() {
 
               <div className="border-t border-[#151515] p-4 bg-[#080808]">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${engineLigado ? 'bg-[#10B981]' : 'bg-[#EF4444]'}`} />
-                  <p className="text-[8px] text-[#888] tracking-widest">{engineLigado ? 'STATEVECTOR ENGINE ONLINE' : 'STATEVECTOR ENGINE OFFLINE'}</p>
+                  <div className={`w-1.5 h-1.5 rounded-full ${engineLigado === null ? 'bg-[#555]' : engineLigado ? 'bg-[#10B981] animate-pulse' : 'bg-[#EF4444]'}`} />
+                  <p className="text-[8px] text-[#888] tracking-widest">{engineLigado === null ? 'LOADING...' : engineLigado ? 'STATEVECTOR ENGINE ONLINE' : 'STATEVECTOR ENGINE OFFLINE'}</p>
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between text-[8px] font-mono text-[#555]"><span>Hilbert Space</span> <span className="text-[#888]">2^N (Complex)</span></div>
@@ -240,18 +350,22 @@ export function QuantumPanel() {
               </div>
             </Panel>
 
-            <PanelResizeHandle className="w-1.5 transition-colors bg-[#111] hover:bg-[#333] active:bg-[#555] cursor-col-resize shrink-0 flex items-center justify-center">
-              <div className="w-0.5 h-8 bg-[#444] rounded-full" />
-            </PanelResizeHandle>
+            {sidebarAberta && (
+              <PanelResizeHandle
+                onDragging={(d) => { isDragging.current = d }}
+                className="w-1.5 transition-colors bg-[#111] hover:bg-[#333] active:bg-[#555] cursor-col-resize shrink-0 flex items-center justify-center"
+              >
+                <div className="w-0.5 h-8 bg-[#444] rounded-full" />
+              </PanelResizeHandle>
+            )}
           </>
-        )}
 
         {/* ── Main Workspace ──────────────────────────────────── */}
-        <Panel className="flex flex-col flex-1 min-w-0 bg-[#0A0A0A]">
-          <div className="flex items-center justify-between px-6 py-3 border-b border-[#151515] bg-[#050505] shrink-0">
+        <Panel id="quantum-main" order={2} className="flex flex-col min-w-0 bg-[#0A0A0A]">
+          <div className="flex items-center justify-between pl-4 pr-4 border-b border-[#151515] bg-[#050505] shrink-0" style={{ height: '52px' }}>
             <div className="flex items-center gap-3">
               <ChevronRight size={12} style={{ color: corTema }} />
-              <h1 className="text-[12px] font-bold tracking-widest text-[#DDD]" style={{ textShadow: `0 0 15px ${corTema}55` }}>
+              <h1 className="text-[12px] font-bold tracking-widest text-[#DDD]">
                 {DEMOS.find(d => d.id === demoActiva)?.titulo.toUpperCase()}
               </h1>
               <span className="text-[10px] text-[#666] italic bg-[#111] px-2 py-0.5 rounded">
@@ -267,11 +381,20 @@ export function QuantumPanel() {
                 LIMPAR
               </button>
               <button
-                onClick={() => executar(demoActiva)}
-                disabled={loading}
-                className="flex items-center gap-2 px-4 py-2 rounded text-[10px] font-bold tracking-widest transition-all disabled:opacity-50 hover:opacity-80 disabled:cursor-wait whitespace-nowrap"
-                style={{ backgroundColor: corTema, color: '#000', boxShadow: `0 0 15px ${corTema}88` }}>
-                {loading ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} fill="#000" />}
+                onClick={() => {
+                  if (engineLigado === null) return
+                  engineLigado ? executar(demoActiva) : setMostrarModalEngine(true)
+                }}
+                disabled={loading || engineLigado === null}
+                className="flex items-center gap-2 py-2 rounded text-[10px] font-bold tracking-widest transition-all disabled:opacity-50 hover:opacity-80 disabled:cursor-wait whitespace-nowrap"
+                style={{
+                  paddingLeft: '1rem',
+                  paddingRight: '1rem',
+                  backgroundColor: engineLigado === true ? corTema : '#3f3f3f',
+                  color: engineLigado === true ? '#000' : '#888',
+                  boxShadow: 'none',
+                }}>
+                {loading ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} fill={engineLigado === true ? '#000' : '#888'} />}
                 {loading ? 'SIMULATING...' : 'COMPUTE'}
               </button>
             </div>
