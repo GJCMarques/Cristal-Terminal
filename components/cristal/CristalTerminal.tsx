@@ -122,29 +122,40 @@ export function CristalTerminal() {
       const alvo = e.target as HTMLElement
       const emInput = alvo.tagName === 'TEXTAREA' || alvo.tagName === 'INPUT'
 
-      // Fechar overlays com Escape (ordem de prioridade)
-      if (e.key === 'Escape') {
-        if (tradeTicket.aberto) { fecharTradeTicket(); e.preventDefault(); return }
-        if (commandPaletteAberto) { fecharCommandPalette(); e.preventDefault(); return }
-        fecharContextMenu()
-        return
-      }
-
-      // Ctrl+K → paleta de comandos (qualquer contexto)
-      if (e.key === 'k' && e.ctrlKey) {
-        e.preventDefault()
-        alternarCommandPalette()
-        return
-      }
-
       // Modo Quantum isolado: bloquear a grande maioria dos atalhos que levantam pop-ups
       if (vistaActual === 'quantum') {
         if (e.key === 'Escape') return
         if (e.key === 'z' && e.ctrlKey && !e.shiftKey) {
           e.preventDefault()
           voltarVista()
+          return
         }
-        return // ignora os combos de F1-F12, trade ticket e ctrl+K no mundo quântico
+        if (e.key === 'k' && e.ctrlKey) {
+          e.preventDefault()
+          window.dispatchEvent(new CustomEvent('toggle-quantum-palette'))
+          return
+        }
+        if (e.key === 'b' && e.ctrlKey) {
+          e.preventDefault()
+          window.dispatchEvent(new CustomEvent('toggle-quantum-sidebar'))
+          return
+        }
+        return // ignora os combo de F1-F12, trade ticket, main command palette e painel lateral principal
+      }
+
+      // Ctrl+K → paleta de comandos principal (qualquer contexto)
+      if (e.key === 'k' && e.ctrlKey) {
+        e.preventDefault()
+        alternarCommandPalette()
+        return
+      }
+
+      // Fechar overlays com Escape (ordem de prioridade) na main application
+      if (e.key === 'Escape') {
+        if (tradeTicket.aberto) { fecharTradeTicket(); e.preventDefault(); return }
+        if (commandPaletteAberto) { fecharCommandPalette(); e.preventDefault(); return }
+        fecharContextMenu()
+        return
       }
 
       // Ctrl+Z → voltar à vista anterior

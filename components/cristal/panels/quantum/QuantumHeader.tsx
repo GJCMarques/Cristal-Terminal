@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import {
-    Globe, TrendingUp, Shield, Zap, Keyboard, LayoutGrid, Bell, Check, Atom, BarChart2, Layers
+    Globe, TrendingUp, Shield, Zap, Keyboard, LayoutGrid, Bell, Check, Atom, BarChart2, Layers, Network
 } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 import { corParaTema, CORES_TEMA } from '@/lib/utils'
@@ -27,17 +27,18 @@ interface GrupoTabs {
 
 const GRUPOS_TABS: GrupoTabs[] = [
     {
-        grupo: 'MAIN',
-        cor: '#F59E0B',
-        tabs: [
-            { vista: 'mercado', label: 'CRISTAL', tecla: 'ESC', icone: <Globe size={10} /> },
-        ],
-    },
-    {
         grupo: 'MATEMÁTICA PURA',
         cor: '#3B82F6',
         tabs: [
             { demo: 'bell', label: 'EPR', tecla: '', icone: <Atom size={10} /> },
+        ],
+    },
+    {
+        grupo: 'MACHINE LEARNING',
+        cor: '#EAB308',
+        tabs: [
+            { demo: 'q-gan' as any, label: 'Q-GAN', tecla: '', icone: <Network size={10} /> },
+            { demo: 'tensor' as any, label: 'TENSOR', tecla: '', icone: <LayoutGrid size={10} /> },
         ],
     },
     {
@@ -77,6 +78,7 @@ export function QuantumHeader() {
         temaActual,
         definirTema,
         alternarPainelLateral,
+        iaDisponivel,
     } = useTerminalStore()
 
     const [hora, setHora] = useState('')
@@ -86,9 +88,14 @@ export function QuantumHeader() {
     // Local state to feedback selected tab, just visual
     const [activeDemo, setActiveDemo] = useState<DemoId | null>('bell')
 
+    // Local fake state for the Quantum Engine health
+    const [engineLigado, setEngineLigado] = useState<boolean>(true)
+
     const corTema = corParaTema(temaActual)
 
     useEffect(() => {
+        // Mudar pseudo-estado caso desejemos, mas online por base
+        setEngineLigado(true)
         const actualizar = () => {
             const agora = new Date()
             setHora(agora.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }))
@@ -125,28 +132,43 @@ export function QuantumHeader() {
 
                 {/* Logo */}
                 <div className="flex items-center gap-2 px-3 border-r border-neutral-800 h-full shrink-0" style={{ borderRightColor: corTema + '55' }}>
-                    <Atom size={14} style={{ color: corTema, filter: `drop-shadow(0 0 5px ${corTema})` }} />
+                    <svg width="16" height="16" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M32 4 L60 32 L32 60 L4 32 Z" stroke="#D7B56D" strokeWidth="6" strokeLinejoin="miter" />
+                    </svg>
+                    <span className="font-mono text-[11px] font-bold" style={{ color: corTema }}>CRISTAL CAPITAL</span>
+                    <span className="font-mono text-[9px] text-neutral-500">—</span>
+                    <Atom size={14} style={{ color: corTema, filter: `drop-shadow(0 0 5px ${corTema})`, marginLeft: '2px' }} />
                     <span className="font-mono text-[11px] font-bold" style={{ color: corTema, textShadow: `0 0 5px ${corTema}` }}>QUANTUM ENGINE</span>
-                    <span className="font-mono text-[9px] text-neutral-400">STATEVECTOR 2.0</span>
                 </div>
 
                 {/* Paleta de comandos hint */}
-                <div className="flex items-center gap-1.5 px-3 border-r border-neutral-800 h-full font-mono text-[10px] text-neutral-600 shrink-0">
+                <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('toggle-quantum-palette'))}
+                    className="flex items-center gap-1.5 px-3 border-r border-neutral-800 h-full font-mono text-[10px] text-neutral-300 hover:text-neutral-400 transition-colors shrink-0"
+                    title="Ctrl+K (Quantum)"
+                >
                     <Keyboard size={11} />
-                    <span>ISOLATED ENVIRONMENT</span>
-                </div>
+                    <span>Ctrl+K</span>
+                </button>
 
                 <div className="flex-1" />
 
-                {/* Estado IA - Mocking specific text for Quantum */}
-                <div className="flex items-center gap-1.5 px-3 border-l border-neutral-800 h-full shrink-0">
-                    <div
-                        className="w-1.5 h-1.5 rounded-full animate-pulse"
-                        style={{ backgroundColor: '#10B981' }}
-                    />
-                    <span className="font-mono text-[9px] text-neutral-200">
-                        ENGINE ONLINE
-                    </span>
+                {/* Estado IA & Engine */}
+                <div className="flex items-center gap-3 px-3 border-l border-neutral-800 h-full shrink-0">
+                    <div className="flex items-center gap-1.5">
+                        <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${engineLigado ? 'bg-[#10B981]' : 'bg-[#EF4444]'}`} />
+                        <span className="font-mono text-[9px] text-neutral-200">
+                            {engineLigado ? 'ENGINE RUNNING' : 'ENGINE OFFLINE'}
+                        </span>
+                    </div>
+                    <div className="w-px h-4 bg-neutral-800" />
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: iaDisponivel === true ? '#10B981' : iaDisponivel === false ? '#EF4444' : '#6B7280' }} />
+                        <span className="font-mono text-[9px] text-neutral-200">
+                            {iaDisponivel === true ? 'LLAMA 3 ONLINE' : iaDisponivel === false ? 'IA OFFLINE' : '…'}
+                        </span>
+                    </div>
                 </div>
 
                 {/* Selector de tema */}
@@ -187,7 +209,7 @@ export function QuantumHeader() {
                 {/* Toggle painel lateral */}
                 <button
                     type="button"
-                    onClick={alternarPainelLateral}
+                    onClick={() => window.dispatchEvent(new CustomEvent('toggle-quantum-sidebar'))}
                     className="flex items-center justify-center px-3 h-full border-l border-neutral-800 text-neutral-300 hover:text-white transition-colors shrink-0"
                     title="Ctrl+B — Alternar painel lateral"
                 >
@@ -209,8 +231,22 @@ export function QuantumHeader() {
 
             {/* ── Linha inferior: tabs agrupados ─────────────────── */}
             <nav className="flex items-stretch h-7 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                {/* Botão GIGANTE de Volta ao Cristal */}
+                <button
+                    onClick={() => definirVista('mercado')}
+                    className="relative flex items-center gap-2 px-4 h-full border-r border-neutral-800 bg-[#0A0A0A] transition-colors font-mono text-[11px] font-black tracking-widest shrink-0 group"
+                    style={{ color: '#d4d4d4' }}
+                >
+                    <span className="text-sm font-bold -mt-0.5 group-hover:-translate-x-1 transition-transform">←</span>
+                    <span className="tracking-widest relative z-10">VOLTAR - CRISTAL</span>
+                    <div
+                        className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{ background: '#64748B' }}
+                    />
+                </button>
+
                 {GRUPOS_TABS.map((grupo, gi) => (
-                    <div key={grupo.grupo} className="flex items-stretch shrink-0">
+                    <div key={grupo.grupo} className="flex items-stretch shrink-0 bg-black">
                         {/* Separador de grupo */}
                         {gi > 0 && (
                             <div className="w-px bg-neutral-800 my-1" />
@@ -222,11 +258,11 @@ export function QuantumHeader() {
                         </div>
 
                         {/* Tabs do grupo */}
-                        {grupo.tabs.map((tab) => {
+                        {grupo.tabs.map((tab, idx) => {
                             const activo = activeDemo === tab.demo
                             return (
                                 <button
-                                    key={tab.demo || tab.vista}
+                                    key={tab.demo || tab.vista || `tab-${idx}`}
                                     type="button"
                                     onClick={() => handleTabClick(tab)}
                                     className="relative flex items-center gap-1 px-2.5 font-mono text-[10px] transition-all shrink-0 whitespace-nowrap border-r border-neutral-900 group"

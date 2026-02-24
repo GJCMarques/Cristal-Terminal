@@ -16,6 +16,8 @@ import {
 } from '@/lib/quantum/algorithms'
 
 import { RenderBell, RenderGrover, RenderQAE, RenderQAOA, RenderVQE, RenderVaR } from './quantum/QuantumAlgorithms'
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
+import { QuantumCommandPalette } from './quantum/QuantumCommandPalette'
 
 // ── Tipos ─────────────────────────────────────────────────────
 
@@ -62,7 +64,10 @@ export function QuantumPanel() {
     vqeN: 6
   })
 
-  // Sincronizar demo através da navegação do Header
+  const [sidebarAberta, setSidebarAberta] = useState(true)
+  const [engineLigado, setEngineLigado] = useState(true)
+
+  // Sincronizar demo através da navegação do Header e toggle da sidebar
   useState(() => {
     if (typeof window !== 'undefined') {
       const handleNav = (e: any) => {
@@ -71,8 +76,15 @@ export function QuantumPanel() {
           setResultado(null) // limpar ao mudar de separador
         }
       }
+      const handleSidebar = () => setSidebarAberta(prev => !prev)
+
       window.addEventListener('quantum-tab-change', handleNav)
-      return () => window.removeEventListener('quantum-tab-change', handleNav)
+      window.addEventListener('toggle-quantum-sidebar', handleSidebar)
+
+      return () => {
+        window.removeEventListener('quantum-tab-change', handleNav)
+        window.removeEventListener('toggle-quantum-sidebar', handleSidebar)
+      }
     }
   })
 
@@ -140,140 +152,151 @@ export function QuantumPanel() {
   }
 
   return (
-    <div className="flex h-full bg-[#050505] text-[#ccc] font-mono overflow-hidden">
-      {/* ── Sidebar Quântico ────────────────────────────────── */}
-      <div className="flex flex-col w-[260px] shrink-0 border-r border-[#151515] bg-[#00000055]">
-        <div className="px-4 py-4 border-b border-[#151515] bg-[#080808]">
-          <div className="flex items-center gap-2 mb-1">
-            <Atom size={14} style={{ color: corTema, filter: `drop-shadow(0 0 5px ${corTema})` }} />
-            <span className="text-[11px] font-bold tracking-widest text-white" style={{ textShadow: `0 0 8px ${corTema}` }}>
-              QUANTUM STATEVECTOR
-            </span>
+    <>
+      <QuantumCommandPalette />
+      <PanelGroup direction="horizontal" className="flex h-full bg-[#050505] text-[#ccc] font-mono overflow-hidden">
+        {/* ── Sidebar Quântico ────────────────────────────────── */}
+        {sidebarAberta && (
+          <>
+            <Panel defaultSize={20} minSize={15} maxSize={40} className="flex flex-col shrink-0 border-r border-[#151515] bg-[#0A0A0A]">
+              <div className="px-4 py-4 border-b border-[#151515] bg-[#050505]">
+                <div className="flex items-center gap-2 mb-1">
+                  <Atom size={14} style={{ color: corTema, filter: `drop-shadow(0 0 5px ${corTema})` }} />
+                  <span className="text-[11px] font-bold tracking-widest text-white" style={{ textShadow: `0 0 8px ${corTema}` }}>
+                    QUANTUM STATEVECTOR
+                  </span>
+                </div>
+                <p className="text-[8px] text-neutral-500 uppercase">Motor Rigoroso Álgebra Linear Complexa</p>
+              </div>
+
+              <div className="p-4 bg-[#0A0A0A]">
+                <p className="text-[9px] font-bold text-neutral-500 mb-3 tracking-widest">PARAMETERS</p>
+                {demoActiva === 'qae-opcao' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[9px] text-[#888] flex justify-between"><span>Spot Price (S)</span><span>${cfg.qaeS}</span></label>
+                      <input type="range" min="100" max="250" value={cfg.qaeS} onChange={e => setCfg({ ...cfg, qaeS: Number(e.target.value) })} className="w-full accent-[#00e5ff]" />
+                    </div>
+                    <div>
+                      <label className="text-[9px] text-[#888] flex justify-between"><span>Strike Price (K)</span><span>${cfg.qaeK}</span></label>
+                      <input type="range" min="100" max="250" value={cfg.qaeK} onChange={e => setCfg({ ...cfg, qaeK: Number(e.target.value) })} className="w-full" />
+                    </div>
+                  </div>
+                )}
+                {demoActiva === 'qaoa' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[9px] text-[#888] flex justify-between"><span>Ativos (N)</span><span>{cfg.qaoaN}</span></label>
+                      <input type="range" min="2" max="6" value={cfg.qaoaN} onChange={e => setCfg({ ...cfg, qaoaN: Number(e.target.value) })} className="w-full" />
+                    </div>
+                  </div>
+                )}
+                {demoActiva === 'quantum-var' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[9px] text-[#888] flex justify-between"><span>Volatilidade An.</span><span>{(cfg.varSigma * 100).toFixed(0)}%</span></label>
+                      <input type="range" min="0.05" max="0.5" step="0.01" value={cfg.varSigma} onChange={e => setCfg({ ...cfg, varSigma: Number(e.target.value) })} className="w-full" />
+                    </div>
+                    <div>
+                      <label className="text-[9px] text-[#888] flex justify-between"><span>Horizonte (Dias)</span><span>{cfg.varHorizon}</span></label>
+                      <input type="range" min="1" max="30" value={cfg.varHorizon} onChange={e => setCfg({ ...cfg, varHorizon: Number(e.target.value) })} className="w-full" />
+                    </div>
+                  </div>
+                )}
+                {demoActiva === 'vqe-liquidez' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[9px] text-[#888] flex justify-between"><span>Hardware Qubits</span><span>{cfg.vqeN}</span></label>
+                      <input type="range" min="2" max="7" value={cfg.vqeN} onChange={e => setCfg({ ...cfg, vqeN: Number(e.target.value) })} className="w-full" />
+                    </div>
+                  </div>
+                )}
+                {demoActiva === 'grover' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[9px] text-[#888] flex justify-between"><span>Target State (Int)</span><span>{cfg.groverTarget}</span></label>
+                      <input type="number" min="0" max="127" value={cfg.groverTarget} onChange={e => setCfg({ ...cfg, groverTarget: Number(e.target.value) })} className="w-full bg-[#111] border border-[#222] text-[#ccc] px-2 py-1 text-[10px] rounded" />
+                    </div>
+                  </div>
+                )}
+                {(demoActiva === 'bell') && (
+                  <p className="text-[9px] text-[#666] italic">Sem parâmetros clássicos ajustáveis no emaranhamento puro.</p>
+                )}
+              </div>
+
+              <div className="flex-1 overflow-y-auto">
+                {/* Navigational stuff optionally would go here, now empty */}
+              </div>
+
+              <div className="border-t border-[#151515] p-4 bg-[#080808]">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${engineLigado ? 'bg-[#10B981]' : 'bg-[#EF4444]'}`} />
+                  <p className="text-[8px] text-[#888] tracking-widest">{engineLigado ? 'STATEVECTOR ENGINE ONLINE' : 'STATEVECTOR ENGINE OFFLINE'}</p>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[8px] font-mono text-[#555]"><span>Hilbert Space</span> <span className="text-[#888]">2^N (Complex)</span></div>
+                  <div className="flex justify-between text-[8px] font-mono text-[#555]"><span>Unitaries</span> <span className="text-[#888]">O(2^N) Strict</span></div>
+                </div>
+              </div>
+            </Panel>
+
+            <PanelResizeHandle className="w-1.5 transition-colors bg-[#111] hover:bg-[#333] active:bg-[#555] cursor-col-resize shrink-0 flex items-center justify-center">
+              <div className="w-0.5 h-8 bg-[#444] rounded-full" />
+            </PanelResizeHandle>
+          </>
+        )}
+
+        {/* ── Main Workspace ──────────────────────────────────── */}
+        <Panel className="flex flex-col flex-1 min-w-0 bg-[#0A0A0A]">
+          <div className="flex items-center justify-between px-6 py-3 border-b border-[#151515] bg-[#050505] shrink-0">
+            <div className="flex items-center gap-3">
+              <ChevronRight size={12} style={{ color: corTema }} />
+              <h1 className="text-[12px] font-bold tracking-widest text-[#DDD]" style={{ textShadow: `0 0 15px ${corTema}55` }}>
+                {DEMOS.find(d => d.id === demoActiva)?.titulo.toUpperCase()}
+              </h1>
+              <span className="text-[10px] text-[#666] italic bg-[#111] px-2 py-0.5 rounded">
+                {DEMOS.find(d => d.id === demoActiva)?.sub}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setResultado(null)}
+                disabled={loading}
+                className="px-4 py-2 rounded text-[10px] font-bold tracking-widest transition-all disabled:opacity-50 hover:bg-[#222]"
+                style={{ color: '#888' }}>
+                LIMPAR
+              </button>
+              <button
+                onClick={() => executar(demoActiva)}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2 rounded text-[10px] font-bold tracking-widest transition-all disabled:opacity-50 hover:opacity-80 disabled:cursor-wait whitespace-nowrap"
+                style={{ backgroundColor: corTema, color: '#000', boxShadow: `0 0 15px ${corTema}88` }}>
+                {loading ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} fill="#000" />}
+                {loading ? 'SIMULATING...' : 'COMPUTE'}
+              </button>
+            </div>
           </div>
-          <p className="text-[8px] text-neutral-500 uppercase">Motor Rigoroso Álgebra Linear Complexa</p>
-        </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {/* Navegação foi movida para as tabs do QuantumHeader superior. */}
-        </div>
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar relative">
 
-        <div className="border-t border-[#151515] p-4 bg-[#050505]">
-          <p className="text-[9px] font-bold text-neutral-500 mb-3 tracking-widest">PARAMETERS</p>
-          {demoActiva === 'qae-opcao' && (
-            <div className="space-y-3">
-              <div>
-                <label className="text-[9px] text-[#888] flex justify-between"><span>Spot Price (S)</span><span>${cfg.qaeS}</span></label>
-                <input type="range" min="100" max="250" value={cfg.qaeS} onChange={e => setCfg({ ...cfg, qaeS: Number(e.target.value) })} className="w-full accent-[#00e5ff]" />
+            {loading ? (
+              <div className="flex flex-col items-center justify-center h-full gap-4">
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute w-[80px] h-[80px] rounded-full border-t-2 border-b-2 animate-spin" style={{ borderColor: corTema }} />
+                  <div className="absolute w-[60px] h-[60px] rounded-full border-r-2 border-l-2 animate-spin animation-delay-500" style={{ borderColor: corTema, animationDirection: 'reverse' }} />
+                  <Atom size={24} style={{ color: corTema, filter: `drop-shadow(0 0 10px ${corTema})` }} />
+                </div>
+                <p className="text-[11px] tracking-widest mt-4" style={{ color: corTema, textShadow: `0 0 10px ${corTema}` }}>
+                  CALCULATING 2^N DIMENSIONAL STATE VECTOR...
+                </p>
+                <p className="text-[9px] text-neutral-500 italic max-w-sm text-center">
+                  Evolution of quantum amplitudes through linear combinations of complex probabilities.
+                </p>
               </div>
-              <div>
-                <label className="text-[9px] text-[#888] flex justify-between"><span>Strike Price (K)</span><span>${cfg.qaeK}</span></label>
-                <input type="range" min="100" max="250" value={cfg.qaeK} onChange={e => setCfg({ ...cfg, qaeK: Number(e.target.value) })} className="w-full" />
-              </div>
-            </div>
-          )}
-          {demoActiva === 'qaoa' && (
-            <div className="space-y-3">
-              <div>
-                <label className="text-[9px] text-[#888] flex justify-between"><span>Ativos (N)</span><span>{cfg.qaoaN}</span></label>
-                <input type="range" min="2" max="6" value={cfg.qaoaN} onChange={e => setCfg({ ...cfg, qaoaN: Number(e.target.value) })} className="w-full" />
-              </div>
-            </div>
-          )}
-          {demoActiva === 'quantum-var' && (
-            <div className="space-y-3">
-              <div>
-                <label className="text-[9px] text-[#888] flex justify-between"><span>Volatilidade An.</span><span>{(cfg.varSigma * 100).toFixed(0)}%</span></label>
-                <input type="range" min="0.05" max="0.5" step="0.01" value={cfg.varSigma} onChange={e => setCfg({ ...cfg, varSigma: Number(e.target.value) })} className="w-full" />
-              </div>
-              <div>
-                <label className="text-[9px] text-[#888] flex justify-between"><span>Horizonte (Dias)</span><span>{cfg.varHorizon}</span></label>
-                <input type="range" min="1" max="30" value={cfg.varHorizon} onChange={e => setCfg({ ...cfg, varHorizon: Number(e.target.value) })} className="w-full" />
-              </div>
-            </div>
-          )}
-          {demoActiva === 'vqe-liquidez' && (
-            <div className="space-y-3">
-              <div>
-                <label className="text-[9px] text-[#888] flex justify-between"><span>Hardware Qubits</span><span>{cfg.vqeN}</span></label>
-                <input type="range" min="2" max="7" value={cfg.vqeN} onChange={e => setCfg({ ...cfg, vqeN: Number(e.target.value) })} className="w-full" />
-              </div>
-            </div>
-          )}
-          {demoActiva === 'grover' && (
-            <div className="space-y-3">
-              <div>
-                <label className="text-[9px] text-[#888] flex justify-between"><span>Target State (Int)</span><span>{cfg.groverTarget}</span></label>
-                <input type="number" min="0" max="127" value={cfg.groverTarget} onChange={e => setCfg({ ...cfg, groverTarget: Number(e.target.value) })} className="w-full bg-[#111] border border-[#222] text-[#ccc] px-2 py-1 text-[10px] rounded" />
-              </div>
-            </div>
-          )}
-          {(demoActiva === 'bell') && (
-            <p className="text-[9px] text-[#666] italic">Sem parâmetros clássicos ajustáveis no emaranhamento puro.</p>
-          )}
-        </div>
-
-        <div className="border-t border-[#151515] p-4 bg-[#080808]">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <p className="text-[8px] text-[#888] tracking-widest">STATEVECTOR ENGINE ONLINE</p>
+            ) : renderResultado()}
           </div>
-          <div className="space-y-1">
-            <div className="flex justify-between text-[8px] font-mono text-[#555]"><span>Hilbert Space</span> <span className="text-[#888]">2^N (Complex)</span></div>
-            <div className="flex justify-between text-[8px] font-mono text-[#555]"><span>Unitaries</span> <span className="text-[#888]">O(2^N) Strict</span></div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Main Workspace ──────────────────────────────────── */}
-      <div className="flex flex-col flex-1 min-w-0 bg-[#0A0A0A]">
-        <div className="flex items-center justify-between px-6 py-3 border-b border-[#151515] bg-[#050505] shrink-0">
-          <div className="flex items-center gap-3">
-            <ChevronRight size={12} style={{ color: corTema }} />
-            <h1 className="text-[12px] font-bold tracking-widest text-[#DDD]" style={{ textShadow: `0 0 15px ${corTema}55` }}>
-              {DEMOS.find(d => d.id === demoActiva)?.titulo.toUpperCase()}
-            </h1>
-            <span className="text-[10px] text-[#666] italic bg-[#111] px-2 py-0.5 rounded">
-              {DEMOS.find(d => d.id === demoActiva)?.sub}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setResultado(null)}
-              disabled={loading}
-              className="px-4 py-2 rounded text-[10px] font-bold tracking-widest transition-all disabled:opacity-50 hover:bg-[#222]"
-              style={{ color: '#888' }}>
-              LIMPAR
-            </button>
-            <button
-              onClick={() => executar(demoActiva)}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 rounded text-[10px] font-bold tracking-widest transition-all disabled:opacity-50 hover:opacity-80 disabled:cursor-wait whitespace-nowrap"
-              style={{ backgroundColor: corTema, color: '#000', boxShadow: `0 0 15px ${corTema}88` }}>
-              {loading ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} fill="#000" />}
-              {loading ? 'SIMULATING...' : 'COMPUTE'}
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar relative">
-
-          {loading ? (
-            <div className="flex flex-col items-center justify-center h-full gap-4">
-              <div className="relative flex items-center justify-center">
-                <div className="absolute w-[80px] h-[80px] rounded-full border-t-2 border-b-2 animate-spin" style={{ borderColor: corTema }} />
-                <div className="absolute w-[60px] h-[60px] rounded-full border-r-2 border-l-2 animate-spin animation-delay-500" style={{ borderColor: corTema, animationDirection: 'reverse' }} />
-                <Atom size={24} style={{ color: corTema, filter: `drop-shadow(0 0 10px ${corTema})` }} />
-              </div>
-              <p className="text-[11px] tracking-widest mt-4" style={{ color: corTema, textShadow: `0 0 10px ${corTema}` }}>
-                CALCULATING 2^N DIMENSIONAL STATE VECTOR...
-              </p>
-              <p className="text-[9px] text-neutral-500 italic max-w-sm text-center">
-                Evolution of quantum amplitudes through linear combinations of complex probabilities.
-              </p>
-            </div>
-          ) : renderResultado()}
-        </div>
-      </div>
-    </div>
+        </Panel>
+      </PanelGroup>
+    </>
   )
 }
