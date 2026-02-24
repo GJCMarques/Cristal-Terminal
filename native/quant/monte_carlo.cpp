@@ -4,7 +4,7 @@
 // ============================================================
 
 #include <cmath>
-#include <vector>4
+#include <vector>
 #include <algorithm>
 #include <numeric>
 #include <random>
