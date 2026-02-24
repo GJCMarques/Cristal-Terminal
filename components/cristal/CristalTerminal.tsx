@@ -14,6 +14,9 @@ import { StatusBar } from './StatusBar'
 import { ContextMenu } from './ContextMenu'
 import { CommandPalette } from './CommandPalette'
 import { TradeTicket } from './TradeTicket'
+import { QuantumPanel } from './panels/QuantumPanel'
+import { QuantumHeader } from './panels/quantum/QuantumHeader'
+import { QuantumStatusBar } from './panels/quantum/QuantumStatusBar'
 import { Toaster, toast } from 'sonner'
 import type { VistaTerminal } from '@/types/terminal'
 import type { ClasseAtivo } from '@/types/market'
@@ -54,7 +57,28 @@ const CTRL_ATALHOS: Record<string, VistaTerminal> = {
 
 export function CristalTerminal() {
   const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+
+  // Efeito para sincronizar URL com Vista na montagem e vice-versa sem pestanejar
+  useEffect(() => {
+    // Leitura inicial: Se o URL tiver path limpo (ex: /quantum), forçar a vista
+    const pathname = window.location.pathname.replace('/', '')
+    if (pathname && pathname !== useTerminalStore.getState().vistaActual) {
+      useTerminalStore.getState().definirVista(pathname as VistaTerminal)
+    }
+
+    setMounted(true)
+
+    // Escutar por evento de recuo no browser (back/forward arrasta estado no URL)
+    const handlePopState = () => {
+      const vista = window.location.pathname.replace('/', '')
+      if (vista && vista !== useTerminalStore.getState().vistaActual) {
+        useTerminalStore.getState().definirVista((vista || 'mercado') as VistaTerminal)
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   const {
     definirVista,
@@ -72,9 +96,17 @@ export function CristalTerminal() {
     classeActivaAtivo,
     commandPaletteAberto,
     tradeTicket,
+    vistaActual,
   } = useTerminalStore()
 
   const terminalRef = useRef<HTMLDivElement>(null)
+
+  // ── Sincronizar mudança de Estado com URL ─────────────────
+  useEffect(() => {
+    if (mounted && vistaActual) {
+      window.history.replaceState(null, '', `/${vistaActual === 'mercado' ? '' : vistaActual}`)
+    }
+  }, [mounted, vistaActual])
 
   // ── Verificar disponibilidade do Ollama ao iniciar ──────
   useEffect(() => {
@@ -103,6 +135,16 @@ export function CristalTerminal() {
         e.preventDefault()
         alternarCommandPalette()
         return
+      }
+
+      // Modo Quantum isolado: bloquear a grande maioria dos atalhos que levantam pop-ups
+      if (vistaActual === 'quantum') {
+        if (e.key === 'Escape') return
+        if (e.key === 'z' && e.ctrlKey && !e.shiftKey) {
+          e.preventDefault()
+          voltarVista()
+        }
+        return // ignora os combos de F1-F12, trade ticket e ctrl+K no mundo quântico
       }
 
       // Ctrl+Z → voltar à vista anterior
@@ -153,6 +195,7 @@ export function CristalTerminal() {
       fecharContextMenu,
       fecharCommandPalette,
       fecharTradeTicket,
+      vistaActual,
     ],
   )
 
@@ -250,40 +293,43 @@ export function CristalTerminal() {
       }
       onContextMenu={handleContextMenu}
     >
-      {/* ── Cabeçalho com tabs ──────────────────────────── */}
-      <TerminalHeader />
-
-      {/* ── Linha de comando Bloomberg-style ────────────── */}
-      <CommandLine />
-
       {/* ── Renderizar apenas no cliente para evitar erros de Hidratação ────────────── */}
       {mounted ? (
-        <>
-          {/* ── Área de trabalho redimensionável ────────────── */}
-          <ResizableLayout />
+        vistaActual === 'quantum' ? (
+          // ISOLATED QUANTUM ENVIRONMENT
+          <div className="flex flex-col h-full w-full bg-[#050505]">
+            <QuantumHeader />
+            <div className="flex-1 overflow-hidden">
+              <QuantumPanel />
+            </div>
+            <QuantumStatusBar />
+          </div>
+        ) : (
+          // STANDARD TERMINAL ENVIRONMENT
+          <>
+            <TerminalHeader />
+            <CommandLine />
 
-          {/* ── Barra de estado inferior ─────────────────────── */}
-          <StatusBar />
+            <ResizableLayout />
 
-          {/* ── Context Menu (botão direito) ─────────────────── */}
-          <ContextMenu />
+            <StatusBar />
 
-          {/* ── Paleta de Comandos (Ctrl+K) ──────────────────── */}
-          <CommandPalette />
+            <ContextMenu />
 
-          {/* ── Trade Ticket (Ordem Rápida) ──────────────────── */}
-          <TradeTicket />
+            <CommandPalette />
 
-          {/* ── Sistema de Alertas Toast ─────────────────────── */}
-          <Toaster
-            position="bottom-right"
-            theme="dark"
-            offset={40}
-            toastOptions={{
-              className: "font-mono border-neutral-800 bg-[#0A0A0A] text-white"
-            }}
-          />
-        </>
+            <TradeTicket />
+
+            <Toaster
+              position="bottom-right"
+              theme="dark"
+              offset={40}
+              toastOptions={{
+                className: "font-mono border-neutral-800 bg-[#0A0A0A] text-white"
+              }}
+            />
+          </>
+        )
       ) : (
         <div className="flex-1 bg-black" />
       )}
