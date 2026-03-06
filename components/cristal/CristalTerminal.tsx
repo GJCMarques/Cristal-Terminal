@@ -18,6 +18,7 @@ import { QuantumPanel } from './panels/QuantumPanel'
 import { QuantumHeader } from './panels/quantum/QuantumHeader'
 import { QuantumStatusBar } from './panels/quantum/QuantumStatusBar'
 import { Toaster, toast } from 'sonner'
+import { Newspaper, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react'
 import type { VistaTerminal } from '@/types/terminal'
 import type { ClasseAtivo } from '@/types/market'
 
@@ -261,21 +262,24 @@ export function CristalTerminal() {
       if (fila.length > 0) {
         const alert = fila.shift()
 
-        let icon = '🗞️'
+        let icon: React.ReactNode = <Newspaper size={16} color="#737373" />
         let corBorda = '#262626'
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const pontuacaoStr = alert.pontuacaoSentimento !== undefined && alert.pontuacaoSentimento !== null
+        const pontuacaoStr = alert.pontuacaoSentimento !== undefined && alert.pontuacaoSentimento !== null && alert.pontuacaoSentimento !== 0
           ? (alert.pontuacaoSentimento > 0 ? '+' : '') + (alert.pontuacaoSentimento * 100).toFixed(0)
-          : '0'
+          : ''
 
-        if (alert.sentimento === 'positivo') { icon = '🟢'; corBorda = '#10B98140' }
-        else if (alert.sentimento === 'negativo') { icon = '🔴'; corBorda = '#EF444440' }
-        if (alert.urgente) { icon = '⚠️'; corBorda = '#F59E0B40' }
+        if (alert.sentimento === 'positivo') { icon = <TrendingUp size={16} color="#10B981" />; corBorda = '#10B98140' }
+        else if (alert.sentimento === 'negativo') { icon = <TrendingDown size={16} color="#EF4444" />; corBorda = '#EF444440' }
+        if (alert.urgente) { icon = <AlertTriangle size={16} color="#F59E0B" />; corBorda = '#F59E0B40' }
+
+        const badgeCategoria = alert.categoria ? alert.categoria.toUpperCase() + ' · ' : ''
+        const textSentimento = pontuacaoStr ? `Sentimento: ${pontuacaoStr}` : ''
 
         toast(alert.titulo, {
           icon: icon,
-          description: `${alert.fonte} · ${alert.categoria ? alert.categoria.toUpperCase() + ' · ' : ''}Sentimento: ${pontuacaoStr}`,
+          description: `${alert.fonte} · ${badgeCategoria}${textSentimento}`,
           style: {
             backgroundColor: '#0a0a0a',
             color: '#e5e5e5',

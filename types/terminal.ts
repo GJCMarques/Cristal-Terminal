@@ -62,6 +62,7 @@ export interface ComandoParseado {
   funcao?: string
   vista?: VistaTerminal
   erro?: string
+  intent?: 'ai_agent'
 }
 
 // ── Posição de Portfolio ──────────────────────────────────────
@@ -138,6 +139,12 @@ export interface EstadoTerminal {
   mensagensIA: MensagemIA[]
   iaACarregar: boolean
   iaDisponivel: boolean | null
+
+  // Agente IA Quant Autónomo
+  agenteACarregar: boolean
+  agenteStatus: string
+  agenteResultado: { codigo: string; stdout: string; stderr: string; mensagem: string } | null
+  fecharAgenteResultado: () => void
 
   // Tema
   temaActual: 'amber' | 'green' | 'blue' | 'purple' | 'red' | 'cyan' | 'rose' | 'slate'

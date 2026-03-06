@@ -14,19 +14,19 @@ import type { ClasseAtivo, MensagemIA } from '@/types/market'
 
 const WATCHLIST_INICIAL: WatchlistItem[][] = [
   [
-    { ticker: 'AAPL',   nome: 'Apple Inc.',          adicionadoEm: new Date().toISOString() },
-    { ticker: 'MSFT',   nome: 'Microsoft Corp.',     adicionadoEm: new Date().toISOString() },
-    { ticker: 'NVDA',   nome: 'NVIDIA Corp.',        adicionadoEm: new Date().toISOString() },
-    { ticker: 'EURUSD', nome: 'Euro / Dólar EUA',    adicionadoEm: new Date().toISOString() },
-    { ticker: 'XAU',    nome: 'Ouro Spot',           adicionadoEm: new Date().toISOString() },
-    { ticker: 'PSI20',  nome: 'PSI 20 (Portugal)',   adicionadoEm: new Date().toISOString() },
+    { ticker: 'AAPL', nome: 'Apple Inc.', adicionadoEm: new Date().toISOString() },
+    { ticker: 'MSFT', nome: 'Microsoft Corp.', adicionadoEm: new Date().toISOString() },
+    { ticker: 'NVDA', nome: 'NVIDIA Corp.', adicionadoEm: new Date().toISOString() },
+    { ticker: 'EURUSD', nome: 'Euro / Dólar EUA', adicionadoEm: new Date().toISOString() },
+    { ticker: 'XAU', nome: 'Ouro Spot', adicionadoEm: new Date().toISOString() },
+    { ticker: 'PSI20', nome: 'PSI 20 (Portugal)', adicionadoEm: new Date().toISOString() },
   ],
   [
-    { ticker: 'BTC',    nome: 'Bitcoin',             adicionadoEm: new Date().toISOString() },
-    { ticker: 'ETH',    nome: 'Ethereum',            adicionadoEm: new Date().toISOString() },
-    { ticker: 'CO1',    nome: 'Petróleo Brent',      adicionadoEm: new Date().toISOString() },
-    { ticker: 'SPX',    nome: 'S&P 500',             adicionadoEm: new Date().toISOString() },
-    { ticker: 'UST10',  nome: 'US Treasury 10A',     adicionadoEm: new Date().toISOString() },
+    { ticker: 'BTC', nome: 'Bitcoin', adicionadoEm: new Date().toISOString() },
+    { ticker: 'ETH', nome: 'Ethereum', adicionadoEm: new Date().toISOString() },
+    { ticker: 'CO1', nome: 'Petróleo Brent', adicionadoEm: new Date().toISOString() },
+    { ticker: 'SPX', nome: 'S&P 500', adicionadoEm: new Date().toISOString() },
+    { ticker: 'UST10', nome: 'US Treasury 10A', adicionadoEm: new Date().toISOString() },
   ],
 ]
 
@@ -100,6 +100,11 @@ export const useTerminalStore = create<EstadoTerminal>()(
       iaACarregar: false,
       iaDisponivel: null,
 
+      agenteACarregar: false,
+      agenteStatus: '',
+      agenteResultado: null,
+      fecharAgenteResultado: () => set({ agenteResultado: null }),
+
       temaActual: 'amber',
       locale: (typeof window !== 'undefined'
         ? (localStorage.getItem('cristal-locale') as 'pt' | 'en' | 'es') ?? 'pt'
@@ -165,6 +170,59 @@ export const useTerminalStore = create<EstadoTerminal>()(
           inputComando: '',
           indiceHistorico: -1,
           erro: null,
+        }
+
+        if (parsed.intent === 'ai_agent') {
+          set(updates as EstadoTerminal)
+          // Disparar o fluxo assíncrono do Agente
+          const runAgentAsync = async () => {
+            set({ agenteACarregar: true, agenteStatus: 'A analisar intenção com IA...' })
+            try {
+              const res = await fetch('/api/ai/agent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: trimmed })
+              })
+              if (!res.ok) throw new Error(await res.text())
+              const data = await res.json()
+
+              if (data.erro) throw new Error(data.erro)
+
+              set({ agenteStatus: 'A executar script Quant C++/Python em background...' })
+
+              // Executar Python gerado
+              const quantRes = await fetch('/api/quant/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ codigo: data.script_python })
+              })
+              const quantData = await quantRes.ok ? await quantRes.json() : { erro: 'Falha ao aceder ao motor Quant' }
+
+              if (data.acao_ui?.abrir_ticket) {
+                get().abrirTradeTicket(
+                  data.acao_ui.ativo || 'MARKET',
+                  'Ordem Autónoma IA',
+                  0,
+                  data.acao_ui.lado === 'venda' ? 'venda' : 'compra'
+                )
+              }
+
+              set({
+                agenteResultado: {
+                  codigo: data.script_python,
+                  stdout: quantData.stdout || '',
+                  stderr: quantData.stderr || quantData.erro || '',
+                  mensagem: data.mensagem_utilizador || 'Execução concluída.'
+                }
+              })
+            } catch (e: any) {
+              set({ erro: `Falha no Agente: ${e.message}` })
+            } finally {
+              set({ agenteACarregar: false, agenteStatus: '' })
+            }
+          }
+          runAgentAsync()
+          return
         }
 
         if (parsed.ticker) {
@@ -246,7 +304,7 @@ export const useTerminalStore = create<EstadoTerminal>()(
 
       criarWatchlist: (nome: string) =>
         set((s) => ({
-          watchlists:    [...s.watchlists, []],
+          watchlists: [...s.watchlists, []],
           nomesWatchlist: [...s.nomesWatchlist, nome || `Lista ${s.watchlists.length + 1}`],
           watchlistActiva: s.watchlists.length,
         })),
@@ -255,8 +313,8 @@ export const useTerminalStore = create<EstadoTerminal>()(
         set((s) => {
           if (s.watchlists.length <= 1) return {}
           const novasListas = s.watchlists.filter((_, i) => i !== indice)
-          const novosNomes  = s.nomesWatchlist.filter((_, i) => i !== indice)
-          const novoActivo  = Math.min(s.watchlistActiva, novasListas.length - 1)
+          const novosNomes = s.nomesWatchlist.filter((_, i) => i !== indice)
+          const novoActivo = Math.min(s.watchlistActiva, novasListas.length - 1)
           return { watchlists: novasListas, nomesWatchlist: novosNomes, watchlistActiva: novoActivo }
         }),
 

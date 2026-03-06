@@ -8,7 +8,7 @@ import { corParaTema } from '@/lib/utils'
 // Suporta: histórico (↑/↓), autocomplete, validação, F-keys.
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { X } from 'lucide-react'
+import { X, Bot, Code2, Loader2, Check } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 import { obterSugestoes, type SugestaoComando } from '@/lib/command-parser'
 import type { VistaTerminal } from '@/types/terminal'
@@ -33,6 +33,10 @@ export function CommandLine() {
     limparErro,
     definirVista,
     temaActual,
+    agenteACarregar,
+    agenteStatus,
+    agenteResultado,
+    fecharAgenteResultado
   } = useTerminalStore()
 
   const inputRef = useRef<HTMLInputElement>(null)
@@ -267,6 +271,62 @@ export function CommandLine() {
             <span className="font-mono text-[10px] text-neutral-300">
               ↑↓ navegar  ·  TAB completar  ·  ENTER executar  ·  ESC fechar
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* ── Overlay do Agente IA ───────────────────────── */}
+      {(agenteACarregar || (agenteResultado && !sugestoesVisiveis)) && (
+        <div className="absolute left-0 bottom-[calc(100%+1px)] w-full max-w-3xl bg-[#0f0f0f] border-t border-r border-l border-neutral-800 shadow-[0_-20px_50px_rgba(0,0,0,0.8)] z-[60] origin-bottom animate-in slide-in-from-bottom-2 fade-in">
+          <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-900 bg-[#0a0a0a]">
+            <div className="flex items-center gap-2">
+              <Bot size={14} style={{ color: corTema }} />
+              <span className="font-mono text-[10px] font-bold tracking-widest text-white">AGENTE QUANT AUTÓNOMO</span>
+            </div>
+            {agenteResultado && !agenteACarregar && (
+              <button onClick={fecharAgenteResultado} className="text-neutral-500 hover:text-white transition-colors">
+                <X size={12} />
+              </button>
+            )}
+          </div>
+          <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+            {agenteACarregar ? (
+              <div className="flex items-center gap-3 py-4">
+                <Loader2 size={16} className="animate-spin" style={{ color: corTema }} />
+                <span className="font-mono text-xs text-neutral-300">{agenteStatus}</span>
+              </div>
+            ) : agenteResultado ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-[#10B981]">
+                  <Check size={14} />
+                  <span className="font-mono text-xs font-bold leading-relaxed">{agenteResultado.mensagem}</span>
+                </div>
+
+                {agenteResultado.codigo && (
+                  <div className="bg-[#050505] p-3 rounded border border-neutral-900 font-mono text-[9px] text-neutral-400 overflow-x-auto">
+                    <div className="flex items-center gap-1.5 mb-2 text-neutral-500">
+                      <Code2 size={10} /> <span>Script Python Gerado</span>
+                    </div>
+                    <pre>{agenteResultado.codigo}</pre>
+                  </div>
+                )}
+
+                {agenteResultado.stdout && (
+                  <div className="bg-[#050505] p-3 rounded border border-neutral-900 font-mono text-[9px] text-neutral-300 overflow-x-auto whitespace-pre-wrap">
+                    <div className="flex items-center gap-1.5 mb-2 text-neutral-500">
+                      <span style={{ color: corTema, fontWeight: 'bold' }}>›_</span> <span>Output Quant</span>
+                    </div>
+                    <pre>{agenteResultado.stdout}</pre>
+                  </div>
+                )}
+
+                {agenteResultado.stderr && (
+                  <div className="bg-[#1a0505] p-3 rounded border border-red-900/30 font-mono text-[9px] text-red-400 overflow-x-auto whitespace-pre-wrap">
+                    <pre>{agenteResultado.stderr}</pre>
+                  </div>
+                )}
+              </div>
+            ) : null}
           </div>
         </div>
       )}

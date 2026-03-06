@@ -76,6 +76,15 @@ export async function GET(req: NextRequest) {
   const limite = Math.min(Number(searchParams.get('limite') ?? 50), 100)
   const apiKey = process.env.NEWSAPI_KEY
 
+  // ── Verificar Toggle IA Global ──────────────────────────
+  let db;
+  let newsAIToggle = true;
+  try {
+    db = await getDb()
+    const toggleRow = await db.get("SELECT value FROM kv WHERE key = 'feature_news_ai'")
+    newsAIToggle = toggleRow?.value !== '0' && toggleRow?.value !== 'false'
+  } catch { /* ignorar, assume true */ }
+
   // ── Helper: Processamento em Background com Ollama ──────
   const OLLAMA_URL = process.env.OLLAMA_BASE_URL ?? "http://localhost:11434"
   const MODELO = process.env.OLLAMA_MODEL ?? "llama3"
@@ -85,6 +94,13 @@ export async function GET(req: NextRequest) {
     try {
       const db = await getDb()
       for (const n of noticiasParaAnalisar) {
+        // Verificar no início de CADA iteração se o utilizador desligou o motor
+        const toggleRow = await db.get("SELECT value FROM kv WHERE key = 'feature_news_ai'")
+        if (toggleRow && (toggleRow.value === '0' || toggleRow.value === 'false')) {
+          console.log("Processamento AI abortado - Toggle desligado no CMS.")
+          return // Sai da função assíncrona instantaneamente
+        }
+
         try {
           const prompt = `${PROMPT_NOTICIAS} \nNotícia: "${n.titulo}" - Resumo: "${n.resumo}"`
 
@@ -168,15 +184,9 @@ export async function GET(req: NextRequest) {
         }))
 
         // Otimização: Procurar análise na Base de Dados SQLite
-        let db;
-        try { db = await getDb() } catch { /* ignore */ }
-
         const noticiasParaIA: NoticiaAPI[] = []
 
         if (db) {
-          const toggleRow = await db.get("SELECT value FROM kv WHERE key = 'feature_news_ai'")
-          const newsAIToggle = toggleRow?.value !== '0' && toggleRow?.value !== 'false'
-
           for (const n of noticias) {
             const key = `news_ai:${n.url}`
             const row = await db.get('SELECT value FROM kv WHERE key = ?', key)
@@ -195,7 +205,15 @@ export async function GET(req: NextRequest) {
             }
           }
         } else {
-          noticiasParaIA.push(...noticias)
+          if (newsAIToggle) noticiasParaIA.push(...noticias)
+        }
+
+        // Se o toggle estiver desligado, forçar sentimentos a neutros mesmo que na DB existam
+        if (!newsAIToggle) {
+          noticias.forEach((n) => {
+            n.sentimento = 'neutro'
+            n.pontuacaoSentimento = 0
+          })
         }
 
         // Enviar os que faltam para ser analisados no background
@@ -240,6 +258,13 @@ export async function GET(req: NextRequest) {
   const filtradas = filtrarNoticias(NOTICIAS_EXPANDIDAS, search, categoria)
   const inicio = (pagina - 1) * limite
   const pagina_ = filtradas.slice(inicio, inicio + limite)
+
+  if (!newsAIToggle) {
+    pagina_.forEach((n) => {
+      n.sentimento = 'neutro'
+      n.pontuacaoSentimento = 0
+    })
+  }
 
   return NextResponse.json({
     noticias: pagina_,
