@@ -210,7 +210,10 @@ export const useTerminalStore = create<EstadoTerminal>()(
 
                 // Mudar tema de cor
                 if (data.acao_ui.mudar_tema) {
-                  set({ temaActual: data.acao_ui.mudar_tema as any })
+                  const temasValidos = ['amber', 'green', 'blue', 'purple', 'red', 'cyan', 'rose', 'slate']
+                  if (temasValidos.includes(data.acao_ui.mudar_tema)) {
+                    set({ temaActual: data.acao_ui.mudar_tema as any })
+                  }
                 }
 
                 // Abrir Trade Ticket

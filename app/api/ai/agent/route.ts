@@ -14,7 +14,7 @@ Deves OBRIGATORIAMENTE responder em formato JSON estrito, sem markdown, contendo
   "acao_ui": {
     "abrir_ticket": false, "ativo": "TICKER", "quantidade": 100, "lado": "compra",
     "mudar_vista": "mercado", 
-    "mudar_tema": "escreve 'amber', 'emerald', 'cyan' ou 'fuchsia' se o utilizador pediu para mudar a cor do terminal",
+    "mudar_tema": null,
     "pesquisar_noticias": "escreve um termo de pesquisa se o utilizador pediu para ler notícias sobre um tema (ex: 'tesla')"
   },
   "mensagem_utilizador": "Uma resposta curta estilo Bond dizendo 'A redirecionar para Notícias da Tesla, chefe.' ou 'Simulação gerada.'"
@@ -50,6 +50,8 @@ REGRAS CRÍTICAS:
 2. Se o utilizador falar em 'Alocações' ou 'Book', deves usar 'livro-ordens' (NUNCA portfolio).
 3. Se o utilizador pedir algo vago, usa 'ajuda'.
 4. Não incluas texto explicativo no valor JSON, apenas a string da chave técnica.
+
+INSTRUÇÕES DE TEMA: No campo 'mudar_tema', usa apenas: 'amber', 'green', 'blue', 'purple', 'red', 'cyan', 'rose', 'slate'. Se não for pedido, deixa como null.
 
 DICA CRUCIAL: Se o utilizador apenas pediu para navegar, abrir painéis (ex: admin, mercado) ou mudar cor, NAO CRIAS UM TICKET. Ou seja, metes "abrir_ticket": false, e apagas "ativo", "quantidade" e "lado".
 
