@@ -202,19 +202,32 @@ export const useTerminalStore = create<EstadoTerminal>()(
                 get().abrirTradeTicket(
                   data.acao_ui.ativo || 'MARKET',
                   'Ordem Autónoma IA',
-                  0,
+                  data.acao_ui.quantidade || 0,
                   data.acao_ui.lado === 'venda' ? 'venda' : 'compra'
                 )
               }
+
+              const novaMensagem = data.mensagem_utilizador || 'Execução concluída.'
 
               set({
                 agenteResultado: {
                   codigo: data.script_python,
                   stdout: quantData.stdout || '',
                   stderr: quantData.stderr || quantData.erro || '',
-                  mensagem: data.mensagem_utilizador || 'Execução concluída.'
+                  mensagem: novaMensagem
                 }
               })
+
+              // Auto-fechar a janela se for apenas uma ação de UI ou se não gerou script complexo
+              if (data.acao_ui?.abrir_ticket || !data.script_python) {
+                setTimeout(() => {
+                  const state = get()
+                  // Só fecha se a mensagem atual ainda for a mesma (para evitar fechar um prompt novo acionado pelo user entretanto)
+                  if (state.agenteResultado && state.agenteResultado.mensagem === novaMensagem) {
+                    state.fecharAgenteResultado()
+                  }
+                }, 4000)
+              }
             } catch (e: any) {
               set({ erro: `Falha no Agente: ${e.message}` })
             } finally {

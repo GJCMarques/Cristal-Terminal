@@ -277,51 +277,66 @@ export function CommandLine() {
 
       {/* ── Overlay do Agente IA ───────────────────────── */}
       {(agenteACarregar || (agenteResultado && !sugestoesVisiveis)) && (
-        <div className="absolute left-0 bottom-[calc(100%+1px)] w-full max-w-3xl bg-[#0f0f0f] border-t border-r border-l border-neutral-800 shadow-[0_-20px_50px_rgba(0,0,0,0.8)] z-[60] origin-bottom animate-in slide-in-from-bottom-2 fade-in">
-          <div className="flex items-center justify-between px-3 py-2 border-b border-neutral-900 bg-[#0a0a0a]">
-            <div className="flex items-center gap-2">
-              <Bot size={14} style={{ color: corTema }} />
-              <span className="font-mono text-[10px] font-bold tracking-widest text-white">AGENTE QUANT AUTÓNOMO</span>
+        <div
+          className="absolute left-0 bottom-[calc(100%+8px)] w-full max-w-2xl bg-[#050505] border border-neutral-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] z-[100] origin-bottom animate-in slide-in-from-bottom-2 fade-in rounded-t-lg overflow-hidden backdrop-blur-md"
+          style={{ borderTop: `2px solid ${corTema}` }}
+        >
+          {/* Header do Overlay */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-900 bg-[#0a0a0a]">
+            <div className="flex items-center gap-3">
+              <Bot size={16} style={{ color: corTema }} />
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-[11px] font-bold tracking-widest text-white">AGENTE QUANT AUTÓNOMO</span>
+                {agenteACarregar && (
+                  <span className="flex items-center gap-1.5 opacity-80">
+                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></span>
+                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></span>
+                  </span>
+                )}
+              </div>
             </div>
             {agenteResultado && !agenteACarregar && (
-              <button onClick={fecharAgenteResultado} className="text-neutral-500 hover:text-white transition-colors">
-                <X size={12} />
+              <button onClick={fecharAgenteResultado} className="text-neutral-500 hover:text-white transition-colors bg-neutral-900 hover:bg-neutral-800 p-1 rounded">
+                <X size={14} />
               </button>
             )}
           </div>
-          <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+
+          {/* Corpo do Overlay */}
+          <div className="p-5 space-y-5 max-h-[60vh] overflow-y-auto">
             {agenteACarregar ? (
-              <div className="flex items-center gap-3 py-4">
-                <Loader2 size={16} className="animate-spin" style={{ color: corTema }} />
-                <span className="font-mono text-xs text-neutral-300">{agenteStatus}</span>
+              <div className="flex flex-col items-center justify-center py-8 gap-4 opacity-70">
+                <Loader2 size={24} className="animate-spin" style={{ color: corTema }} />
+                <span className="font-mono text-xs text-neutral-400 uppercase tracking-widest">{agenteStatus}</span>
               </div>
             ) : agenteResultado ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-[#10B981]">
-                  <Check size={14} />
+              <div className="space-y-4">
+                <div className="flex items-start gap-3 text-[#10B981] bg-[#10B981]/10 p-3 rounded border border-[#10B981]/20">
+                  <Check size={16} className="mt-0.5 shrink-0" />
                   <span className="font-mono text-xs font-bold leading-relaxed">{agenteResultado.mensagem}</span>
                 </div>
 
                 {agenteResultado.codigo && (
-                  <div className="bg-[#050505] p-3 rounded border border-neutral-900 font-mono text-[9px] text-neutral-400 overflow-x-auto">
-                    <div className="flex items-center gap-1.5 mb-2 text-neutral-500">
-                      <Code2 size={10} /> <span>Script Python Gerado</span>
+                  <div className="bg-[#000000] p-4 rounded border border-neutral-800 font-mono text-[10px] text-neutral-400 overflow-x-auto shadow-inner">
+                    <div className="flex items-center gap-2 mb-3 text-neutral-500 border-b border-neutral-900 pb-2">
+                      <Code2 size={12} /> <span className="uppercase tracking-widest text-[9px]">Script Python Gerado</span>
                     </div>
-                    <pre>{agenteResultado.codigo}</pre>
+                    <pre className="leading-relaxed">{agenteResultado.codigo}</pre>
                   </div>
                 )}
 
                 {agenteResultado.stdout && (
-                  <div className="bg-[#050505] p-3 rounded border border-neutral-900 font-mono text-[9px] text-neutral-300 overflow-x-auto whitespace-pre-wrap">
-                    <div className="flex items-center gap-1.5 mb-2 text-neutral-500">
-                      <span style={{ color: corTema, fontWeight: 'bold' }}>›_</span> <span>Output Quant</span>
+                  <div className="bg-[#000000] p-4 rounded border border-neutral-800 font-mono text-[10px] text-neutral-300 overflow-x-auto whitespace-pre-wrap shadow-inner relative">
+                    <div className="flex items-center gap-2 mb-3 text-neutral-500 border-b border-neutral-900 pb-2">
+                      <span style={{ color: corTema, fontWeight: 'bold' }}>›_</span> <span className="uppercase tracking-widest text-[9px]">Output Quantitativo</span>
                     </div>
-                    <pre>{agenteResultado.stdout}</pre>
+                    <pre className="leading-relaxed">{agenteResultado.stdout}</pre>
                   </div>
                 )}
 
                 {agenteResultado.stderr && (
-                  <div className="bg-[#1a0505] p-3 rounded border border-red-900/30 font-mono text-[9px] text-red-400 overflow-x-auto whitespace-pre-wrap">
+                  <div className="bg-[#1a0505] p-4 rounded border border-red-900/40 font-mono text-[10px] text-red-500 overflow-x-auto whitespace-pre-wrap">
                     <pre>{agenteResultado.stderr}</pre>
                   </div>
                 )}

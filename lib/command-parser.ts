@@ -229,8 +229,16 @@ export function parsearComando(raw: string): ComandoParseado {
     }
   }
 
-  // 3. Ticker simples (sem classe) + função opcional
+  // 3. Intenção IA (Linguagem Natural) se tiver mais de 2 palavras
   const partes = maiusculo.split(/\s+/)
+  if (partes.length >= 3) {
+    return {
+      raw,
+      intent: 'ai_agent'
+    }
+  }
+
+  // 4. Ticker simples (sem classe) + função opcional
   const possibleTicker = partes[0]
   const possibleFn = partes[1]
 
@@ -245,14 +253,6 @@ export function parsearComando(raw: string): ComandoParseado {
       classeAtivo: conhecido?.classe ?? 'Equity',
       funcao: possibleFn,
       vista,
-    }
-  }
-
-  // 4. Intenção IA (Linguagem Natural) se tiver mais de 3 palavras
-  if (maiusculo.split(/\s+/).length >= 3) {
-    return {
-      raw,
-      intent: 'ai_agent'
     }
   }
 
