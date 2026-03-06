@@ -28,6 +28,7 @@ import { SentinelaPanel } from '../panels/SentinelaPanel'
 import { ChatPanel } from '../panels/ChatPanel'
 import { QuantPanel } from '../panels/QuantPanel'
 import { QuantumPanel } from '../panels/QuantumPanel'
+import { AdminPanel } from '../panels/AdminPanel'
 import { HelpView } from '../HelpView'
 
 const Spinner = ({ label }: { label: string }) => (
@@ -73,6 +74,7 @@ function PainelPrincipal() {
 
   const painel = (() => {
     switch (vistaActual) {
+      case 'admin': return <AdminPanel />
       case 'mercado': return <MarketOverviewPanel />
       case 'candlestick': return <CandlestickPanel />
       case 'livro-ordens': return <OrderBookPanel />

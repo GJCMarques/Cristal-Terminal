@@ -29,6 +29,7 @@ export type VistaTerminal =
   | 'sentinela'      // Sentinel IA de Alertas (ALERT)
   | 'quant'          // Ambiente Quant — Python + C++ WASM (QUANT)
   | 'quantum'        // Finança Quântica — QAE · QAOA · Grover (QUANTUM)
+  | 'admin'          // CMS Mega Panel (ADMIN)
 
 // ── Context menu ──────────────────────────────────────────────
 

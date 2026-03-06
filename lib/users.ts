@@ -5,7 +5,7 @@
 import { getDb } from './db'
 import bcrypt from 'bcryptjs'
 
-export type Role = 'ADMIN' | 'ANALYST' | 'TRADER' | 'VIEWER'
+export type Role = 'ADMIN' | 'ANALYST' | 'TRADER' | 'VIEWER' | 'MARIANA'
 
 export interface Utilizador {
   email: string
@@ -87,6 +87,7 @@ const DEMO_USERS: { email: string; password: string; nome: string; role: Role }[
   { email: 'analyst@cristal.pt', password: 'Analyst123!', nome: 'Ana Ferreira', role: 'ANALYST' },
   { email: 'trader@cristal.pt', password: 'Trader123!', nome: 'Tiago Mendes', role: 'TRADER' },
   { email: 'viewer@cristal.pt', password: 'Viewer123!', nome: 'Vítor Costa', role: 'VIEWER' },
+  { email: 'mariana@cristal.pt', password: 'Mariana123!', nome: 'Mariana', role: 'MARIANA' },
 ]
 
 export async function seedUtilizadoresDemo(): Promise<{ criados: number }> {

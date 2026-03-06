@@ -212,7 +212,12 @@ export function CristalTerminal() {
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    const toggleAdmin = () => useTerminalStore.getState().definirVista('admin')
+    window.addEventListener('abrir-terminal-admin', toggleAdmin)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('abrir-terminal-admin', toggleAdmin)
+    }
   }, [handleKeyDown])
 
   // ── Alertas Vivos (Notícias Reais com Alto Impacto) ────────

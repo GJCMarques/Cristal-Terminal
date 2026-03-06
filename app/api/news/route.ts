@@ -174,6 +174,9 @@ export async function GET(req: NextRequest) {
         const noticiasParaIA: NoticiaAPI[] = []
 
         if (db) {
+          const toggleRow = await db.get("SELECT value FROM kv WHERE key = 'feature_news_ai'")
+          const newsAIToggle = toggleRow?.value !== '0' && toggleRow?.value !== 'false'
+
           for (const n of noticias) {
             const key = `news_ai:${n.url}`
             const row = await db.get('SELECT value FROM kv WHERE key = ?', key)
@@ -185,10 +188,10 @@ export async function GET(req: NextRequest) {
                 n.categoria = aiData.categoria ?? n.categoria
                 n.tickers = aiData.tickers ?? n.tickers
               } catch {
-                noticiasParaIA.push(n)
+                if (newsAIToggle) noticiasParaIA.push(n)
               }
             } else {
-              noticiasParaIA.push(n)
+              if (newsAIToggle) noticiasParaIA.push(n)
             }
           }
         } else {
@@ -196,7 +199,9 @@ export async function GET(req: NextRequest) {
         }
 
         // Enviar os que faltam para ser analisados no background
-        processarComIA(noticiasParaIA)
+        if (noticiasParaIA.length > 0) {
+          processarComIA(noticiasParaIA)
+        }
 
         let resultadosFinais = noticias
 

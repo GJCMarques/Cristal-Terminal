@@ -6,14 +6,15 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { LogOut, ShieldCheck, User, ChevronDown } from 'lucide-react'
+import { LogOut, ShieldCheck, ChevronDown, Settings } from 'lucide-react'
 import type { Role } from '@/lib/users'
 
 const COR_ROLE: Record<string, string> = {
-  ADMIN:   '#F59E0B',
+  ADMIN: '#F59E0B',
   ANALYST: '#3B82F6',
-  TRADER:  '#10B981',
-  VIEWER:  '#6B7280',
+  TRADER: '#10B981',
+  VIEWER: '#6B7280',
+  MARIANA: '#EC4899', // Pink
 }
 
 function iniciais(nome?: string | null): string {
@@ -49,10 +50,10 @@ export function UserButton() {
 
   if (!session?.user) return null
 
-  const role  = (session.user as { role?: Role }).role ?? 'VIEWER'
-  const nome  = session.user.name ?? session.user.email ?? 'Utilizador'
+  const role = (session.user as { role?: Role }).role ?? 'VIEWER'
+  const nome = session.user.name ?? session.user.email ?? 'Utilizador'
   const email = session.user.email ?? ''
-  const cor   = COR_ROLE[role] ?? '#6B7280'
+  const cor = COR_ROLE[role] ?? '#6B7280'
 
   return (
     <div ref={ref} className="relative border-l border-neutral-800 h-full shrink-0">
@@ -93,6 +94,20 @@ export function UserButton() {
 
           {/* Acções */}
           <div className="py-1">
+            {role === 'MARIANA' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setAberto(false)
+                  // Precisa ser importado do Zustand ou enviamos um evento custom
+                  window.dispatchEvent(new CustomEvent('abrir-terminal-admin'))
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 font-mono text-[11px] text-pink-400 hover:bg-neutral-800 transition-colors"
+              >
+                <Settings size={12} />
+                Terminal
+              </button>
+            )}
             <a
               href="/setup-mfa"
               className="flex items-center gap-2.5 px-3 py-2 font-mono text-[11px] text-neutral-300 hover:bg-neutral-800 transition-colors"

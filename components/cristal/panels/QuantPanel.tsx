@@ -497,8 +497,23 @@ export function QuantPanel() {
   const [output, setOutput] = useState<LinhaOutput[]>([])
   const [loading, setLoading] = useState(false)
   const [wasmOK, setWasmOK] = useState(false)
+  const [quantEnabled, setQuantEnabled] = useState(true)
   const [exId, setExId] = useState(EXEMPLOS[0].id)
   const [abaEsq, setAbaEsq] = useState<'ex' | 'ref'>('ex')
+
+  // Carregar configurações do CMS
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.feature_quant === false) {
+          setQuantEnabled(false)
+        } else {
+          setQuantEnabled(true)
+        }
+      })
+      .catch(() => { })
+  }, [])
 
   const idRef = useRef(0)
   const outRef = useRef<HTMLDivElement>(null)
@@ -587,12 +602,16 @@ export function QuantPanel() {
   }, [codigo, addLinha])
 
   const executar = useCallback(async () => {
+    if (!quantEnabled) {
+      addLinha({ tipo: 'stderr', texto: '[ACESSO NEGADO] O Engine Operacional Quant (C++/Python/JS) foi desativado pelo Administrador.' })
+      return
+    }
     if (loading || !codigo.trim()) return
     setLoading(true)
     if (lang === 'js') await executarJS()
     else await executarPython()
     setLoading(false)
-  }, [loading, codigo, lang, executarJS, executarPython])
+  }, [loading, codigo, lang, executarJS, executarPython, quantEnabled, addLinha])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); executar() }
@@ -834,11 +853,11 @@ export function QuantPanel() {
                 <button onClick={() => setOutput([])} className="flex items-center gap-1 px-2 py-1 text-[9px] text-neutral-300 hover:text-neutral-400 border border-neutral-800 rounded">
                   <RotateCcw size={9} /> Limpar
                 </button>
-                <button onClick={executar} disabled={loading}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded text-[10px] font-bold tracking-widest disabled:opacity-50"
-                  style={{ backgroundColor: corTema, color: '#000' }}>
+                <button onClick={executar} disabled={loading || !quantEnabled}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded text-[10px] font-bold tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: quantEnabled ? corTema : '#374151', color: quantEnabled ? '#000' : '#9CA3AF' }}>
                   {loading ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} />}
-                  {loading ? 'A calcular…' : 'EXECUTAR'}
+                  {loading ? 'A calcular…' : quantEnabled ? 'EXECUTAR' : 'DESACTIVADO'}
                 </button>
               </div>
             </div>

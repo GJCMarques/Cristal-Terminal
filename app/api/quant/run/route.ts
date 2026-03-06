@@ -4,6 +4,7 @@
 // ============================================================
 
 import { auth } from '@/auth'
+import { getDb } from '@/lib/db'
 import { spawn } from 'child_process'
 import { readFileSync } from 'fs'
 import { join } from 'path'
@@ -57,6 +58,18 @@ export async function POST(req: Request) {
   const session = await auth()
   if (!session) {
     return Response.json({ erro: 'Não autenticado' }, { status: 401 })
+  }
+
+  try {
+    const db = await getDb()
+    const toggleRow = await db.get("SELECT value FROM kv WHERE key = 'feature_quant'")
+    if (toggleRow && (toggleRow.value === '0' || toggleRow.value === 'false')) {
+      return Response.json({
+        erro: 'Engine Quant desativado pelo Administrador (CMS). Ligar no Terminal de Gestão.'
+      }, { status: 403 })
+    }
+  } catch (e) {
+    // Ignora se não conseguir ler DB e falha aberto
   }
 
   let body: { codigo?: string; timeout?: number }
