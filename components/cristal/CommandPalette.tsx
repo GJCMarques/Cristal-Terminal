@@ -27,43 +27,43 @@ interface OpcaoPaleta {
 }
 
 const VISTAS_RAPIDAS: { id: VistaTerminal; label: string; icone: React.ReactNode; atalho: string }[] = [
-  { id: 'mercado',      label: 'Monitor de Mercado',     icone: <Globe      size={13} />, atalho: 'F2'     },
-  { id: 'noticias',     label: 'Monitor de Notícias',    icone: <Newspaper  size={13} />, atalho: 'F3'     },
-  { id: 'watchlist',    label: 'Lista de Observação',    icone: <Star       size={13} />, atalho: 'F4'     },
-  { id: 'yield-curve',  label: 'Curva de Rendimento',    icone: <TrendingDown size={13}/>, atalho: 'F5'    },
-  { id: 'livro-ordens', label: 'Livro de Ordens',        icone: <BookOpen   size={13} />, atalho: 'F6'     },
-  { id: 'cripto',       label: 'Mercado Crypto',         icone: <Bitcoin    size={13} />, atalho: 'F7'     },
-  { id: 'macro',        label: 'Monitor Macroeconómico', icone: <Building2  size={13} />, atalho: 'F8'     },
-  { id: 'heatmap',      label: 'Heatmap S&P 500',        icone: <Flame      size={13} />, atalho: 'F9'     },
-  { id: 'calendario',   label: 'Calendário Económico',   icone: <Calendar   size={13} />, atalho: 'F10'    },
-  { id: 'mapa-mundo',   label: 'Mapa Mundial Económico', icone: <Map        size={13} />, atalho: 'MAP'    },
-  { id: 'bolhas',       label: 'Gráfico de Bolhas',      icone: <Circle     size={13} />, atalho: 'BUBBLE' },
-  { id: 'screener',     label: 'Screener de Acções',     icone: <Search     size={13} />, atalho: 'SCR'    },
-  { id: 'correlacao',   label: 'Matriz de Correlação',   icone: <Link2      size={13} />, atalho: 'CORR'   },
-  { id: 'portfolio',    label: 'Portfolio & P&L',         icone: <Wallet     size={13} />, atalho: 'PORT'   },
-  { id: 'defi',         label: 'DeFi / On-Chain',        icone: <Network    size={13} />, atalho: 'DEFI'   },
-  { id: 'sentinela',    label: 'Sentinela — Alertas',    icone: <Bell           size={13} />, atalho: 'ALERT'  },
-  { id: 'analise',      label: 'Análise IA — Llama 3',   icone: <Zap            size={13} />, atalho: 'IA'     },
-  { id: 'chat',         label: 'Chat Institucional',      icone: <MessageSquare  size={13} />, atalho: 'MSG'    },
-  { id: 'quant',        label: 'Ambiente Quant',          icone: <FlaskConical   size={13} />, atalho: 'QUANT'   },
-  { id: 'quantum',      label: 'Finança Quântica',        icone: <Atom           size={13} />, atalho: 'QUANTUM' },
-  { id: 'ajuda',        label: 'Centro de Ajuda',         icone: <HelpCircle     size={13} />, atalho: 'F1'      },
+  { id: 'mercado', label: 'Monitor de Mercado', icone: <Globe size={13} />, atalho: 'F2' },
+  { id: 'noticias', label: 'Monitor de Notícias', icone: <Newspaper size={13} />, atalho: 'F3' },
+  { id: 'watchlist', label: 'Lista de Observação', icone: <Star size={13} />, atalho: 'F4' },
+  { id: 'yield-curve', label: 'Curva de Rendimento', icone: <TrendingDown size={13} />, atalho: 'F5' },
+  { id: 'livro-ordens', label: 'Livro de Ordens', icone: <BookOpen size={13} />, atalho: 'F6' },
+  { id: 'cripto', label: 'Mercado Crypto', icone: <Bitcoin size={13} />, atalho: 'F7' },
+  { id: 'macro', label: 'Monitor Macroeconómico', icone: <Building2 size={13} />, atalho: 'F8' },
+  { id: 'heatmap', label: 'Heatmap S&P 500', icone: <Flame size={13} />, atalho: 'F9' },
+  { id: 'calendario', label: 'Calendário Económico', icone: <Calendar size={13} />, atalho: 'F10' },
+  { id: 'mapa-mundo', label: 'Mapa Mundial Económico', icone: <Map size={13} />, atalho: 'MAP' },
+  { id: 'bolhas', label: 'Gráfico de Bolhas', icone: <Circle size={13} />, atalho: 'BUBBLE' },
+  { id: 'screener', label: 'Screener de Acções', icone: <Search size={13} />, atalho: 'SCR' },
+  { id: 'correlacao', label: 'Matriz de Correlação', icone: <Link2 size={13} />, atalho: 'CORR' },
+  { id: 'portfolio', label: 'Portfolio & P&L', icone: <Wallet size={13} />, atalho: 'PORT' },
+  { id: 'defi', label: 'DeFi / On-Chain', icone: <Network size={13} />, atalho: 'DEFI' },
+  { id: 'sentinela', label: 'Sentinela — Alertas', icone: <Bell size={13} />, atalho: 'ALERT' },
+  { id: 'analise', label: 'Análise IA — Agente Bond', icone: <Zap size={13} />, atalho: 'IA' },
+  { id: 'chat', label: 'Chat Institucional', icone: <MessageSquare size={13} />, atalho: 'MSG' },
+  { id: 'quant', label: 'Ambiente Quant', icone: <FlaskConical size={13} />, atalho: 'QUANT' },
+  { id: 'quantum', label: 'Finança Quântica', icone: <Atom size={13} />, atalho: 'QUANTUM' },
+  { id: 'ajuda', label: 'Centro de Ajuda', icone: <HelpCircle size={13} />, atalho: 'F1' },
 ]
 
 // Tickers com ícone Lucide neutro (sem emojis de bandeira/cor)
 const TICKERS_DESTAQUE: { ticker: string; nome: string; icone: React.ReactNode }[] = [
-  { ticker: 'AAPL',   nome: 'Apple Inc.',       icone: <BarChart2   size={13} /> },
-  { ticker: 'NVDA',   nome: 'NVIDIA Corp.',      icone: <BarChart2   size={13} /> },
-  { ticker: 'MSFT',   nome: 'Microsoft Corp.',   icone: <BarChart2   size={13} /> },
-  { ticker: 'TSLA',   nome: 'Tesla Inc.',        icone: <TrendingUp  size={13} /> },
-  { ticker: 'EURUSD', nome: 'Euro / Dólar',      icone: <TrendingDown size={13}/> },
-  { ticker: 'BTC',    nome: 'Bitcoin',           icone: <Bitcoin     size={13} /> },
-  { ticker: 'ETH',    nome: 'Ethereum',          icone: <Network     size={13} /> },
-  { ticker: 'XAU',    nome: 'Ouro Spot',         icone: <Circle      size={13} /> },
-  { ticker: 'SPX',    nome: 'S&P 500',           icone: <BarChart2   size={13} /> },
-  { ticker: 'DAX',    nome: 'DAX 40',            icone: <BarChart2   size={13} /> },
-  { ticker: 'PSI20',  nome: 'PSI 20 Portugal',   icone: <BarChart2   size={13} /> },
-  { ticker: 'CO1',    nome: 'Petróleo Brent',     icone: <TrendingDown size={13}/> },
+  { ticker: 'AAPL', nome: 'Apple Inc.', icone: <BarChart2 size={13} /> },
+  { ticker: 'NVDA', nome: 'NVIDIA Corp.', icone: <BarChart2 size={13} /> },
+  { ticker: 'MSFT', nome: 'Microsoft Corp.', icone: <BarChart2 size={13} /> },
+  { ticker: 'TSLA', nome: 'Tesla Inc.', icone: <TrendingUp size={13} /> },
+  { ticker: 'EURUSD', nome: 'Euro / Dólar', icone: <TrendingDown size={13} /> },
+  { ticker: 'BTC', nome: 'Bitcoin', icone: <Bitcoin size={13} /> },
+  { ticker: 'ETH', nome: 'Ethereum', icone: <Network size={13} /> },
+  { ticker: 'XAU', nome: 'Ouro Spot', icone: <Circle size={13} /> },
+  { ticker: 'SPX', nome: 'S&P 500', icone: <BarChart2 size={13} /> },
+  { ticker: 'DAX', nome: 'DAX 40', icone: <BarChart2 size={13} /> },
+  { ticker: 'PSI20', nome: 'PSI 20 Portugal', icone: <BarChart2 size={13} /> },
+  { ticker: 'CO1', nome: 'Petróleo Brent', icone: <TrendingDown size={13} /> },
 ]
 
 export function CommandPalette() {
@@ -80,8 +80,8 @@ export function CommandPalette() {
   const [query, setQuery] = useState('')
   const [indice, setIndice] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
-  const listRef  = useRef<HTMLDivElement>(null)
-  const corTema  = corParaTema(temaActual)
+  const listRef = useRef<HTMLDivElement>(null)
+  const corTema = corParaTema(temaActual)
 
   useEffect(() => {
     if (commandPaletteAberto) {
@@ -153,10 +153,10 @@ export function CommandPalette() {
         label: s.texto,
         descricao: s.descricao,
         icone: s.categoria === 'ticker'
-          ? <BarChart2  size={13} />
+          ? <BarChart2 size={13} />
           : s.categoria === 'funcao'
-          ? <Settings   size={13} />
-          : <ChevronRight size={13} />,
+            ? <Settings size={13} />
+            : <ChevronRight size={13} />,
         categoria: s.categoria === 'ticker' ? 'INSTRUMENTOS' : 'COMANDOS',
         accao: () => { executarComando(s.texto); fecharCommandPalette() },
       })

@@ -187,7 +187,7 @@ export function TerminalHeader() {
             style={{ backgroundColor: iaDisponivel === true ? '#10B981' : iaDisponivel === false ? '#EF4444' : '#6B7280' }}
           />
           <span className="font-mono text-[9px] text-neutral-200">
-            {iaDisponivel === true ? 'LLAMA 3 ONLINE' : iaDisponivel === false ? 'IA OFFLINE' : '…'}
+            {iaDisponivel === true ? 'BOND ONLINE' : iaDisponivel === false ? 'IA OFFLINE' : '…'}
           </span>
         </div>
 

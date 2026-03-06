@@ -190,21 +190,38 @@ export const useTerminalStore = create<EstadoTerminal>()(
 
               set({ agenteStatus: 'A executar script Quant C++/Python em background...' })
 
-              // Executar Python gerado
-              const quantRes = await fetch('/api/quant/run', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ codigo: data.script_python })
-              })
-              const quantData = await quantRes.ok ? await quantRes.json() : { erro: 'Falha ao aceder ao motor Quant' }
+              // Executar Python gerado (apenas se houver código)
+              let quantData: { stdout?: string, stderr?: string, erro?: string } = {}
+              if (data.script_python && data.script_python.trim().length > 0) {
+                const quantRes = await fetch('/api/quant/run', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ codigo: data.script_python })
+                })
+                quantData = await quantRes.ok ? await quantRes.json() : { erro: 'Falha ao aceder ao motor Quant' }
+              }
 
-              if (data.acao_ui?.abrir_ticket) {
-                get().abrirTradeTicket(
-                  data.acao_ui.ativo || 'MARKET',
-                  'Ordem Autónoma IA',
-                  data.acao_ui.quantidade || 0,
-                  data.acao_ui.lado === 'venda' ? 'venda' : 'compra'
-                )
+              // Executar ações de UI avançadas pedidas pela IA
+              if (data.acao_ui) {
+                // Navegação de vista
+                if (data.acao_ui.mudar_vista) {
+                  get().definirVista(data.acao_ui.mudar_vista as any)
+                }
+
+                // Mudar tema de cor
+                if (data.acao_ui.mudar_tema) {
+                  set({ temaActual: data.acao_ui.mudar_tema as any })
+                }
+
+                // Abrir Trade Ticket
+                if (data.acao_ui.abrir_ticket) {
+                  get().abrirTradeTicket(
+                    data.acao_ui.ativo || 'MARKET',
+                    'Ordem Autónoma IA',
+                    data.acao_ui.quantidade || 0,
+                    data.acao_ui.lado === 'venda' ? 'venda' : 'compra'
+                  )
+                }
               }
 
               const novaMensagem = data.mensagem_utilizador || 'Execução concluída.'
@@ -218,11 +235,11 @@ export const useTerminalStore = create<EstadoTerminal>()(
                 }
               })
 
-              // Auto-fechar a janela se for apenas uma ação de UI ou se não gerou script complexo
-              if (data.acao_ui?.abrir_ticket || !data.script_python) {
+              // Auto-fechar a janela se for apenas uma ação de UI de navegação/ticket ou se não houver output/script
+              const apenasNavegacao = data.acao_ui && (data.acao_ui.mudar_vista || data.acao_ui.mudar_tema || data.acao_ui.abrir_ticket)
+              if (apenasNavegacao || !data.script_python) {
                 setTimeout(() => {
                   const state = get()
-                  // Só fecha se a mensagem atual ainda for a mesma (para evitar fechar um prompt novo acionado pelo user entretanto)
                   if (state.agenteResultado && state.agenteResultado.mensagem === novaMensagem) {
                     state.fecharAgenteResultado()
                   }

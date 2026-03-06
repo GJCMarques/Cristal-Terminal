@@ -8,7 +8,7 @@ import { corParaTema } from '@/lib/utils'
 // Suporta: histórico (↑/↓), autocomplete, validação, F-keys.
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { X, Bot, Code2, Loader2, Check } from 'lucide-react'
+import { X, Bot, Code2, Loader2, Check, Maximize2, Minimize2 } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 import { obterSugestoes, type SugestaoComando } from '@/lib/command-parser'
 import type { VistaTerminal } from '@/types/terminal'
@@ -40,12 +40,55 @@ export function CommandLine() {
   } = useTerminalStore()
 
   const inputRef = useRef<HTMLInputElement>(null)
+  const overlayRef = useRef<HTMLDivElement>(null)
+  const isArrastando = useRef(false)
+  const dragStartY = useRef(0)
+  const dragStartHeight = useRef(0)
+
   const [sugestoes, setSugestoes] = useState<SugestaoComando[]>([])
   const [indiceSugestao, setIndiceSugestao] = useState(-1)
   const [sugestoesVisiveis, setSugestoesVisiveis] = useState(false)
+  const [isMaximo, setIsMaximo] = useState(false)
+  const [altOverlay, setAltOverlay] = useState(400) // Altura default px
+  const [isDraggingState, setIsDraggingState] = useState(false) // State para re-render CSS
 
   // Cor primária do tema
   const corTema = corParaTema(temaActual)
+
+  const onDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isArrastando.current = true
+    setIsDraggingState(true)
+    dragStartY.current = e.clientY
+    dragStartHeight.current = altOverlay
+    document.body.style.cursor = 'ns-resize'
+  }, [altOverlay])
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isArrastando.current) return
+      // Delta: rato sobe -> e.clientY diminui -> delta aumenta
+      const delta = dragStartY.current - e.clientY
+      const newHeight = dragStartHeight.current + delta
+
+      if (newHeight > 200 && newHeight < window.innerHeight * 0.85) {
+        setAltOverlay(newHeight)
+      }
+    }
+    const onMouseUp = () => {
+      if (isArrastando.current) {
+        isArrastando.current = false
+        setIsDraggingState(false)
+        document.body.style.cursor = ''
+      }
+    }
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', onMouseUp)
+    }
+  }, [])
 
   // ── Actualizar sugestões ao digitar ──────────────────────
   useEffect(() => {
@@ -278,15 +321,30 @@ export function CommandLine() {
       {/* ── Overlay do Agente IA ───────────────────────── */}
       {(agenteACarregar || (agenteResultado && !sugestoesVisiveis)) && (
         <div
-          className="absolute left-0 bottom-[calc(100%+8px)] w-full max-w-2xl bg-[#050505] border border-neutral-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] z-[100] origin-bottom animate-in slide-in-from-bottom-2 fade-in rounded-t-lg overflow-hidden backdrop-blur-md"
-          style={{ borderTop: `2px solid ${corTema}` }}
+          className={`absolute left-0 bottom-[calc(100%+8px)] w-full duration-300 ${isMaximo ? 'max-w-[95%] xl:max-w-7xl h-[80vh]' : 'max-w-2xl'
+            } bg-[#050505] border border-neutral-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] z-[100] origin-bottom animate-in slide-in-from-bottom-2 fade-in rounded-t-lg overflow-hidden backdrop-blur-md flex flex-col`}
+          style={{
+            borderTop: `2px solid ${corTema}`,
+            height: isMaximo ? '80vh' : `${altOverlay}px`,
+            maxHeight: '85vh',
+            transitionProperty: isDraggingState ? 'max-width, background, transform' : 'max-width, background, transform, height'
+          }}
         >
+          {/* DRAG HANDLE INVISÍVEL */}
+          {!isMaximo && (
+            <div
+              onMouseDown={onDragStart}
+              className="absolute -top-2 left-0 w-full h-4 cursor-ns-resize z-50 hover:bg-white/10 transition-colors rounded-t"
+              title="Arraste para redimensionar"
+            />
+          )}
+
           {/* Header do Overlay */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-900 bg-[#0a0a0a]">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-900 bg-[#0a0a0a] shrink-0 mt-1">
             <div className="flex items-center gap-3">
               <Bot size={16} style={{ color: corTema }} />
               <div className="flex items-center gap-3">
-                <span className="font-mono text-[11px] font-bold tracking-widest text-white">AGENTE QUANT AUTÓNOMO</span>
+                <span className="font-mono text-[11px] font-bold tracking-widest text-white">AGENTE BOND</span>
                 {agenteACarregar && (
                   <span className="flex items-center gap-1.5 opacity-80">
                     <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></span>
@@ -296,15 +354,29 @@ export function CommandLine() {
                 )}
               </div>
             </div>
-            {agenteResultado && !agenteACarregar && (
-              <button onClick={fecharAgenteResultado} className="text-neutral-500 hover:text-white transition-colors bg-neutral-900 hover:bg-neutral-800 p-1 rounded">
-                <X size={14} />
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsMaximo(!isMaximo)}
+                className="text-neutral-500 hover:text-white transition-colors p-1.5"
+                title={isMaximo ? "Restaurar Abaixo" : "Maximizar Painel"}
+              >
+                {isMaximo ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
               </button>
-            )}
+              {agenteResultado && !agenteACarregar && (
+                <button
+                  onClick={() => { setIsMaximo(false); fecharAgenteResultado(); }}
+                  className="text-neutral-500 hover:text-white transition-colors p-1.5"
+                  title="Fechar"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Corpo do Overlay */}
-          <div className="p-5 space-y-5 max-h-[60vh] overflow-y-auto">
+          <div className="p-5 space-y-5 flex-1 min-h-0 overflow-y-auto">
             {agenteACarregar ? (
               <div className="flex flex-col items-center justify-center py-8 gap-4 opacity-70">
                 <Loader2 size={24} className="animate-spin" style={{ color: corTema }} />

@@ -98,7 +98,7 @@ export function QuantumHeader() {
         fetch('/api/quantum/engine')
             .then(r => r.json())
             .then(({ ligado }) => setEngineLigado(ligado))
-            .catch(() => {})
+            .catch(() => { })
     }, [])
 
     useEffect(() => {
@@ -195,7 +195,7 @@ export function QuantumHeader() {
                     <div className="flex items-center gap-1.5">
                         <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: iaDisponivel === true ? '#10B981' : iaDisponivel === false ? '#EF4444' : '#6B7280' }} />
                         <span className="font-mono text-[9px] text-neutral-200">
-                            {iaDisponivel === true ? 'LLAMA 3 ONLINE' : iaDisponivel === false ? 'IA OFFLINE' : '…'}
+                            {iaDisponivel === true ? 'BOND ONLINE' : iaDisponivel === false ? 'IA OFFLINE' : '…'}
                         </span>
                     </div>
                 </div>

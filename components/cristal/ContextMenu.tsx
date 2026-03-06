@@ -59,7 +59,7 @@ export function ContextMenu() {
   if (!contextMenu.visivel) return null
 
   const ticker = contextMenu.ticker ?? tickerActivo
-  const nome   = contextMenu.nomeActivo ?? ticker
+  const nome = contextMenu.nomeActivo ?? ticker
 
   const itens: ItemMenu[] = []
 
@@ -68,7 +68,7 @@ export function ContextMenu() {
     itens.push({
       label: `◆ ${ticker} — ${nome ?? ''}`,
       icone: <span className="w-3 h-3 rounded-full" style={{ backgroundColor: corTema }} />,
-      accao: () => {},
+      accao: () => { },
       cor: corTema,
     })
     itens.push({
@@ -82,7 +82,7 @@ export function ContextMenu() {
       accao: () => { definirTickerActivo(ticker); definirVista('livro-ordens'); fecharContextMenu() },
     })
     itens.push({
-      label: 'Análise IA (Llama 3)',
+      label: 'Análise IA (Bond)',
       icone: <Zap size={12} />,
       accao: () => { definirTickerActivo(ticker); definirVista('analise'); fecharContextMenu() },
     })
@@ -100,7 +100,7 @@ export function ContextMenu() {
     itens.push({
       label: 'Copiar Ticker',
       icone: <Copy size={12} />,
-      accao: () => { navigator.clipboard.writeText(ticker).catch(() => {}); fecharContextMenu() },
+      accao: () => { navigator.clipboard.writeText(ticker).catch(() => { }); fecharContextMenu() },
       separador: true,
     })
   }

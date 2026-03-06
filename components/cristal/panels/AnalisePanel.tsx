@@ -2,7 +2,7 @@
 import { corParaTema } from '@/lib/utils'
 
 // ============================================================
-// CRISTAL CAPITAL TERMINAL — Análise IA Llama 3 (DES)
+// CRISTAL CAPITAL TERMINAL — Análise IA Bond (DES)
 // ============================================================
 
 import { useState, useRef, useEffect, useCallback } from 'react'
@@ -195,7 +195,7 @@ export function AnalisePanel() {
           >
             <span className="animate-pulse">●</span>
             <span>
-              {iaDisponivel === true ? 'Llama 3' : iaDisponivel === false ? 'IA Offline' : 'A verificar…'}
+              {iaDisponivel === true ? 'Agente Bond' : iaDisponivel === false ? 'IA Offline' : 'A verificar…'}
             </span>
           </div>
           <span
@@ -213,7 +213,7 @@ export function AnalisePanel() {
         {mensagensIA.length === 0 && (
           <div className="space-y-4">
             <div className="font-mono text-xs text-neutral-300 text-center py-4">
-              Análise IA por Llama 3 — Faça uma pergunta sobre {ticker}
+              Análise IA por Agente Bond — Faça uma pergunta sobre {ticker}
             </div>
             <div className="grid grid-cols-1 gap-2">
               {perguntasSugeridas.map((p) => (
