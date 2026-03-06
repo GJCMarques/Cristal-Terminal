@@ -215,43 +215,89 @@ export function CristalTerminal() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
-  // ── Alertas Vivos (Simulador de Fake News/Eventos Reais em Toast) ──
+  // ── Alertas Vivos (Notícias Reais com Alto Impacto) ────────
   useEffect(() => {
     if (!mounted) return
-    const randomInterval = () => Math.floor(Math.random() * 15000) + 15000 // 15s to 30s
     let timeoutId: NodeJS.Timeout
+    let loopPendente: NodeJS.Timeout
 
-    const fireAlert = () => {
-      const eventos = [
-        { msg: 'EURUSD caiu para baixo da marca de 1.0800!', tipo: 'error', icon: '🔴' },
-        { msg: 'Preço Alvo NVDIA atingido: Acima de $145.00', tipo: 'success', icon: '🟢' },
-        { msg: 'Reserva Federal Americana mantem Taxa de Juro base.', tipo: 'info', icon: '🏛️' },
-        { msg: 'Volume atípico detetado em transações OTC de Bitcoin.', tipo: 'warning', icon: '🟠' },
-        { msg: 'Gold (XAU) sobe 0.5% em menos de meia hora.', tipo: 'success', icon: '🟡' },
-        { msg: 'Notícia de Breaking News sobre Apple afeta NASDAQ 100.', tipo: 'error', icon: '🔴' }
-      ]
-      const alert = eventos[Math.floor(Math.random() * eventos.length)]!
+    const alertadas = new Set<string>()
+    let fila: any[] = []
 
-      toast(alert.msg, {
-        icon: alert.icon,
-        style: {
-          backgroundColor: '#0a0a0a',
-          color: '#e5e5e5',
-          border: '1px solid #262626',
-          fontFamily: "'IBM Plex Mono', 'Courier New', monospace",
-          fontSize: '12px'
-        },
-        duration: 8000
-      })
+    const fetchNoticias = async () => {
+      try {
+        const res = await fetch('/api/news?limite=50')
+        if (!res.ok) return
+        const data = await res.json()
+        const noticias = data.noticias || []
 
-      // Agenda o próximo recursivamente com delay variável
-      timeoutId = setTimeout(fireAlert, randomInterval())
+        let novas = 0
+        for (const n of noticias.reverse()) {
+          if (!alertadas.has(n.id)) {
+            const pontuacao = n.pontuacaoSentimento || 0
+            if (pontuacao >= 0.8 || pontuacao <= -0.8 || n.urgente) {
+              fila.push(n)
+            }
+            alertadas.add(n.id)
+            novas++
+          }
+        }
+
+        // Anti-spam inicial: se foi a primeira vez (todas são "novas")
+        // não mostramos dezenas de notificações. Apenas as 2 últimas.
+        if (novas > 20 && fila.length > 2) {
+          fila = fila.slice(fila.length - 2)
+        }
+
+      } catch (e) { /* ignorar silenciosamente em background */ }
     }
 
-    // Arranca
-    timeoutId = setTimeout(fireAlert, 5000)
+    const processFila = () => {
+      if (fila.length > 0) {
+        const alert = fila.shift()
 
-    return () => clearTimeout(timeoutId)
+        let icon = '🗞️'
+        let corBorda = '#262626'
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const pontuacaoStr = alert.pontuacaoSentimento !== undefined && alert.pontuacaoSentimento !== null
+          ? (alert.pontuacaoSentimento > 0 ? '+' : '') + (alert.pontuacaoSentimento * 100).toFixed(0)
+          : '0'
+
+        if (alert.sentimento === 'positivo') { icon = '🟢'; corBorda = '#10B98140' }
+        else if (alert.sentimento === 'negativo') { icon = '🔴'; corBorda = '#EF444440' }
+        if (alert.urgente) { icon = '⚠️'; corBorda = '#F59E0B40' }
+
+        toast(alert.titulo, {
+          icon: icon,
+          description: `${alert.fonte} · ${alert.categoria ? alert.categoria.toUpperCase() + ' · ' : ''}Sentimento: ${pontuacaoStr}`,
+          style: {
+            backgroundColor: '#0a0a0a',
+            color: '#e5e5e5',
+            border: `1px solid ${corBorda}`,
+            fontFamily: "'IBM Plex Mono', 'Courier New', monospace",
+            fontSize: '12px'
+          },
+          duration: 8000
+        })
+      }
+
+      const baseDelay = fila.length > 3 ? 4000 : Math.floor(Math.random() * 10000) + 10000
+      loopPendente = setTimeout(processFila, baseDelay)
+    }
+
+    // Arranque
+    fetchNoticias().then(() => {
+      processFila()
+    })
+
+    // Fetch a cada 60s
+    timeoutId = setInterval(fetchNoticias, 60000)
+
+    return () => {
+      clearTimeout(loopPendente)
+      clearInterval(timeoutId)
+    }
   }, [mounted])
 
   // ── Context menu global (botão direito) ─────────────────
