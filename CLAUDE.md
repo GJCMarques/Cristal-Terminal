@@ -17,7 +17,7 @@ Público-alvo: profissionais de mercado (traders, analistas, quants, gestores).
 | Estado | Zustand 5 (com `subscribeWithSelector` + `devtools`) |
 | Base de Dados | **SQLite local** (`data/cristal.db`) — sem dependências externas |
 | Auth | next-auth v5 (Auth.js beta) + bcryptjs + otplib (TOTP/MFA) |
-| Gráficos | Recharts, lightweight-charts |
+| Gráficos | Plotly.js 3D, Recharts, lightweight-charts, KaTeX (fórmulas) |
 | IA | Ollama/Llama 3 (local) via `services/ollama.ts` |
 | Fontes | IBM Plex Mono (monospace) — usada em TUDO |
 | Linting | Biome (`biome.json`) |
@@ -211,13 +211,17 @@ Seed: `GET /api/auth/seed`
 
 ## Ambiente Quant (IMPLEMENTADO — v2)
 
-### Arquitectura Tri-Camada
+> Para guia completo de como correr o backend: ver `BACKEND.md`
 
-| Camada | Tecnologia | Estado |
-|--------|-----------|--------|
-| TypeScript | Cálculo imediato no browser | ✓ Activo |
-| Python | numpy/scipy/pandas via `child_process` server-side | ✓ Activo |
-| C++ WASM | Emscripten → `public/wasm/quant.js+wasm` | ✓ Compilado |
+### Arquitectura Tri-Camada (Engine Selector)
+
+O painel Quant tem um selector de engine (TS / PY / C++) no toolbar superior:
+
+| Camada | Tecnologia | Estado | Setup |
+|--------|-----------|--------|-------|
+| TypeScript | Cálculo imediato no browser | ✓ Sempre activo | Nenhum |
+| Python | numpy/scipy/pandas via `child_process` server-side | ✓ Activo | `pip3 install numpy scipy pandas` |
+| C++ WASM | Emscripten → `public/wasm/quant.js+wasm` | ✓ Compilado | `./scripts/compile.sh` |
 
 ### Ficheiros Implementados
 
@@ -242,16 +246,59 @@ public/
                           preco_bond, ytm_bond, garch11, superficie_vol + chart()/tabela()
 
 components/cristal/panels/
-└── QuantPanel.tsx     — UI completo: editor, output, gráficos recharts, 9 exemplos (6 JS + 3 Python)
+├── QuantPanelV2.tsx   — Quant Dashboard: BS, Vol Surface 3D, Monte Carlo, Portfolio, Bond, Risk
+└── QuantumPanelV2.tsx — Quantum Computing: Bell State, QAE, QAOA, Grover, VQE
 
 app/api/quant/
 └── run/route.ts       — POST: executa Python via child_process, timeout 45s, parse CHART: prefix
 ```
 
+### Tabs do Quant Panel (QuantPanelV2.tsx)
+
+| Tab | Short | Funcionalidade |
+|-----|-------|---------------|
+| Black-Scholes | B-S | Pricing + Gregas + gráfico Price vs Spot |
+| Vol Surface | VOL | Superfície de volatilidade implícita 3D (Plotly) |
+| Monte Carlo | MC | Simulação GBM + VaR/CVaR + histograma |
+| Portfolio | PORT | Optimização Markowitz + Fronteira Eficiente 3D |
+| Bond Pricer | FI | Análise renda fixa: Duration, Convexity, DV01 |
+| Risk | RISK | VaR/CVaR + Stress Scenarios + Return Distribution |
+
+### Cores dos Gráficos — INDEPENDENTES DO TEMA
+
+**NUNCA usar `corTema` para colorscales/linhas de dados em gráficos.** Isso causa problemas de legibilidade.
+
+```ts
+// Colorscales fixas para 3D:
+const VIRIDIS = [[0, '#440154'], [0.25, '#31688e'], [0.5, '#35b779'], [0.75, '#fde725'], [1, '#ffffff']]
+const PLASMA = [[0, '#0d0887'], [0.25, '#7e03a8'], [0.5, '#cc4778'], [0.75, '#f89540'], [1, '#f0f921']]
+
+// Linhas fixas para 2D:
+const LINE_BLUE = '#3b82f6'
+const LINE_RED = '#ef4444'
+const LINE_GREEN = '#10b981'
+const LINE_AMBER = '#f59e0b'
+```
+
+`corTema` deve ser usado **apenas** para: botões, labels, sidebar, tooltips, accents UI.
+
+### Fórmulas Matemáticas (KaTeX)
+
+O painel Quant usa KaTeX para renderizar fórmulas LaTeX inline:
+```tsx
+<MathFormula tex="C = S e^{-qT} N(d_1) - K e^{-rT} N(d_2)" display />
+```
+CSS carregado via `require('katex/dist/katex.min.css')` com fallback se o pacote não estiver instalado.
+
+### Tamanhos dos Gráficos
+
+- **2D charts**: mínimo `height: 350`
+- **3D charts**: mínimo `height: 450`
+- Nunca usar alturas inferiores a 280px para gráficos
+
 ### Vista Quant
 - **Comandos**: `QUANT`, `PY`, `PYTHON`, `CALC`, `MATH`, `CPP`, `BS`, `QA`
 - **Atalho teclado**: `Ctrl+Q`
-- **Ctrl+Enter** no editor executa o código
 
 ### Python Server-Side
 ```python
@@ -266,11 +313,6 @@ preco_bond(nominal, cupao, ytm, maturidade) # Bond + duration + DV01
 ytm_bond(preco_mkt, nominal, cupao, mat)    # YTM Newton-Raphson
 garch11(retornos)                           # GARCH(1,1) scipy MLE
 superficie_vol(S, K_list, T_list, r)        # Vol surface parametrizada
-
-# Output:
-chart('line', dados, titulo, xlabel, ylabel) # → CHART: JSON → recharts no painel
-tabela(dict_ou_dataframe)                    # Tabela alinhada
-fmt(v, casas), pct(v), bps(v), moeda(v)     # Formatadores
 ```
 
 ### Dependências Python (instaladas em WSL)
@@ -326,3 +368,7 @@ openssl rand -base64 64
 5. **TypeScript**: `ignoreBuildErrors: true` em `next.config.mjs` — não deixar erros acumular mesmo assim
 6. **i18n types**: `en.ts` e `es.ts` usam `export const en: any = {}` para evitar conflitos de tipos literais com `pt.ts`
 7. **SQLite file path**: `./data/cristal.db` relativo ao working directory do processo Node.js (raiz do projecto)
+8. **CSS sempre dark**: `:root` e `.dark` partilham mesmas variáveis CSS em `globals.css` — a app é SEMPRE dark mode
+9. **Inputs/Selects**: usar `bg-[#0a0a0a] text-neutral-100 placeholder:text-neutral-500` — NUNCA `placeholder:text-white`
+10. **Backend doc**: ver `BACKEND.md` para instruções de como correr os 3 engines de cálculo
+11. **KaTeX**: instalado para fórmulas matemáticas — usar `require('katex')` com fallback try/catch

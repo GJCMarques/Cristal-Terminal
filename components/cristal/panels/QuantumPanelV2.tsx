@@ -92,20 +92,29 @@ function InputField({ label, value, onChange, type = 'number', min, max, step, o
   )
 }
 
+// ── Fixed chart colors — theme-independent ────────────────────
+const CHART_BLUE = '#3b82f6'
+const CHART_RED = '#ef4444'
+const CHART_GREEN = '#10b981'
+const CHART_CYAN = '#06b6d4'
+const CHART_AMBER = '#f59e0b'
+const VIRIDIS: [number, string][] = [[0, '#440154'], [0.25, '#31688e'], [0.5, '#35b779'], [0.75, '#fde725'], [1, '#ffffff']]
+const PLASMA: [number, string][] = [[0, '#0d0887'], [0.25, '#7e03a8'], [0.5, '#cc4778'], [0.75, '#f89540'], [1, '#f0f921']]
+
 const PLOTLY_LAYOUT_BASE = {
-  paper_bgcolor: '#050505',
-  plot_bgcolor: '#050505',
-  font: { family: 'IBM Plex Mono, monospace', color: '#888', size: 9 },
-  margin: { l: 40, r: 20, t: 30, b: 30 },
-  xaxis: { gridcolor: '#1a1a1a', zerolinecolor: '#333', tickfont: { size: 8 } },
-  yaxis: { gridcolor: '#1a1a1a', zerolinecolor: '#333', tickfont: { size: 8 } },
+  paper_bgcolor: '#080808',
+  plot_bgcolor: '#080808',
+  font: { family: 'IBM Plex Mono, monospace', color: '#999', size: 9 },
+  margin: { l: 50, r: 30, t: 40, b: 40 },
+  xaxis: { gridcolor: '#1f1f1f', zerolinecolor: '#333', tickfont: { size: 8, color: '#888' } },
+  yaxis: { gridcolor: '#1f1f1f', zerolinecolor: '#333', tickfont: { size: 8, color: '#888' } },
 }
 
 const PLOTLY_3D_SCENE = {
-  xaxis: { gridcolor: '#1a1a1a', zerolinecolor: '#333', color: '#666', tickfont: { size: 8 } },
-  yaxis: { gridcolor: '#1a1a1a', zerolinecolor: '#333', color: '#666', tickfont: { size: 8 } },
-  zaxis: { gridcolor: '#1a1a1a', zerolinecolor: '#333', color: '#666', tickfont: { size: 8 } },
-  bgcolor: '#050505',
+  xaxis: { gridcolor: '#1f1f1f', zerolinecolor: '#333', color: '#888', tickfont: { size: 8, color: '#888' } },
+  yaxis: { gridcolor: '#1f1f1f', zerolinecolor: '#333', color: '#888', tickfont: { size: 8, color: '#888' } },
+  zaxis: { gridcolor: '#1f1f1f', zerolinecolor: '#333', color: '#888', tickfont: { size: 8, color: '#888' } },
+  bgcolor: '#080808',
 }
 
 // ── Main Component ──────────────────────────────────────────────
@@ -370,16 +379,16 @@ export function QuantumPanelV2() {
                   x: sampleData.map(d => d.state),
                   y: sampleData.map(d => d.count),
                   type: 'bar',
-                  marker: { color: corTema, opacity: 0.8, line: { color: corTema, width: 1 } },
+                  marker: { color: CHART_CYAN, opacity: 0.8, line: { color: CHART_CYAN, width: 1 } },
                 }]}
                 layout={{
                   ...PLOTLY_LAYOUT_BASE,
-                  height: 220,
+                  height: 320,
                   title: { text: 'Shot Counts', font: { size: 10, color: '#666' } },
                   bargap: 0.3,
                 } as any}
                 config={{ displayModeBar: false }}
-                style={{ width: '100%', height: 220 }}
+                style={{ width: '100%', height: 320 }}
               />
             )}
           </div>
@@ -394,17 +403,17 @@ export function QuantumPanelV2() {
                   x: labels,
                   y: labels,
                   type: 'surface',
-                  colorscale: [[0, '#000'], [0.5, corTema + '88'], [1, corTema]],
+                  colorscale: VIRIDIS,
                   showscale: false,
                 }]}
                 layout={{
                   ...PLOTLY_LAYOUT_BASE,
-                  height: 220,
+                  height: 320,
                   scene: { ...PLOTLY_3D_SCENE, camera: { eye: { x: 1.5, y: 1.5, z: 1.2 } } },
                   margin: { l: 0, r: 0, t: 10, b: 0 },
                 } as any}
                 config={{ displayModeBar: false }}
-                style={{ width: '100%', height: 220 }}
+                style={{ width: '100%', height: 320 }}
               />
             )}
           </div>
@@ -453,8 +462,8 @@ export function QuantumPanelV2() {
                         {
                           type: 'scatter3d', mode: 'lines+markers',
                           x: [0, b.x], y: [0, b.y], z: [0, b.z],
-                          line: { color: corTema, width: 4 },
-                          marker: { size: [2, 6], color: corTema },
+                          line: { color: CHART_CYAN, width: 4 },
+                          marker: { size: [2, 6], color: CHART_CYAN },
                           showlegend: false,
                         },
                         // Axes
@@ -464,7 +473,7 @@ export function QuantumPanelV2() {
                       ]}
                       layout={{
                         ...PLOTLY_LAYOUT_BASE,
-                        height: 250,
+                        height: 350,
                         scene: {
                           ...PLOTLY_3D_SCENE,
                           xaxis: { ...PLOTLY_3D_SCENE.xaxis, range: [-1.3, 1.3], title: 'X' },
@@ -476,7 +485,7 @@ export function QuantumPanelV2() {
                         margin: { l: 0, r: 0, t: 10, b: 0 },
                       } as any}
                       config={{ displayModeBar: false }}
-                      style={{ width: '100%', height: 250 }}
+                      style={{ width: '100%', height: 350 }}
                     />
                   )}
                 </div>
@@ -530,14 +539,14 @@ export function QuantumPanelV2() {
                   marker: {
                     size: 3,
                     color: payoffs.map((p: any) => p.payoff),
-                    colorscale: [[0, '#111'], [0.5, corTema + '88'], [1, corTema]],
+                    colorscale: VIRIDIS,
                     opacity: 0.7,
                   },
                   showlegend: false,
                 }]}
                 layout={{
                   ...PLOTLY_LAYOUT_BASE,
-                  height: 280,
+                  height: 380,
                   scene: {
                     ...PLOTLY_3D_SCENE,
                     xaxis: { ...PLOTLY_3D_SCENE.xaxis, title: 'S(T)' },
@@ -548,7 +557,7 @@ export function QuantumPanelV2() {
                   margin: { l: 0, r: 0, t: 10, b: 0 },
                 } as any}
                 config={{ displayModeBar: false }}
-                style={{ width: '100%', height: 280 }}
+                style={{ width: '100%', height: 380 }}
               />
             )}
           </div>
@@ -563,7 +572,7 @@ export function QuantumPanelV2() {
                     x: payoffs.map((p: any) => p.ST),
                     y: payoffs.map((p: any) => p.payoff),
                     type: 'scatter', mode: 'lines',
-                    line: { color: corTema, width: 2 },
+                    line: { color: CHART_BLUE, width: 2 },
                     name: 'Payoff',
                   },
                   {
@@ -575,12 +584,12 @@ export function QuantumPanelV2() {
                 ]}
                 layout={{
                   ...PLOTLY_LAYOUT_BASE,
-                  height: 280,
+                  height: 380,
                   showlegend: true,
                   legend: { font: { size: 8, color: '#666' }, bgcolor: 'transparent' },
                 } as any}
                 config={{ displayModeBar: false }}
-                style={{ width: '100%', height: 280 }}
+                style={{ width: '100%', height: 380 }}
               />
             )}
           </div>
@@ -631,13 +640,13 @@ export function QuantumPanelV2() {
                 data={[{
                   z: r.landscape,
                   type: 'surface',
-                  colorscale: [[0, '#000'], [0.3, corTema + '44'], [0.7, corTema + 'AA'], [1, corTema]],
+                  colorscale: VIRIDIS,
                   showscale: false,
                   contours: { z: { show: true, usecolormap: true, project: { z: true } } },
                 }]}
                 layout={{
                   ...PLOTLY_LAYOUT_BASE,
-                  height: 300,
+                  height: 400,
                   scene: {
                     ...PLOTLY_3D_SCENE,
                     xaxis: { ...PLOTLY_3D_SCENE.xaxis, title: 'gamma' },
@@ -648,7 +657,7 @@ export function QuantumPanelV2() {
                   margin: { l: 0, r: 0, t: 10, b: 0 },
                 } as any}
                 config={{ displayModeBar: false }}
-                style={{ width: '100%', height: 300 }}
+                style={{ width: '100%', height: 400 }}
               />
             )}
           </div>
@@ -662,16 +671,16 @@ export function QuantumPanelV2() {
                   data={[{
                     y: r.convergence,
                     type: 'scatter', mode: 'lines',
-                    line: { color: corTema, width: 2 },
+                    line: { color: CHART_GREEN, width: 2 },
                   }]}
                   layout={{
                     ...PLOTLY_LAYOUT_BASE,
-                    height: 140,
+                    height: 280,
                     xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Step', font: { size: 8 } } },
                     yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Energy', font: { size: 8 } } },
                   } as any}
                   config={{ displayModeBar: false }}
-                  style={{ width: '100%', height: 140 }}
+                  style={{ width: '100%', height: 280 }}
                 />
               )}
             </div>
@@ -686,15 +695,15 @@ export function QuantumPanelV2() {
                       x: r.optimal_weights.map((_: any, i: number) => `Asset ${i + 1}`),
                       y: r.optimal_weights,
                       type: 'bar',
-                      marker: { color: corTema, opacity: 0.8 },
+                      marker: { color: CHART_BLUE, opacity: 0.8 },
                     }]}
                     layout={{
                       ...PLOTLY_LAYOUT_BASE,
-                      height: 120,
+                      height: 280,
                       bargap: 0.3,
                     } as any}
                     config={{ displayModeBar: false }}
-                    style={{ width: '100%', height: 120 }}
+                    style={{ width: '100%', height: 280 }}
                   />
                 )}
               </div>
@@ -714,19 +723,19 @@ export function QuantumPanelV2() {
                   type: 'bar',
                   marker: {
                     color: r.distribution.map((d: any) => d.sharpe),
-                    colorscale: [[0, '#ef4444'], [0.5, '#666'], [1, corTema]],
+                    colorscale: PLASMA,
                     showscale: true,
                     colorbar: { title: { text: 'Sharpe', font: { size: 8 } }, tickfont: { size: 8 }, len: 0.5 },
                   },
                 }]}
                 layout={{
                   ...PLOTLY_LAYOUT_BASE,
-                  height: 160,
+                  height: 320,
                   xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Quantum State', font: { size: 8 } }, tickangle: -45 },
                   yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Probability', font: { size: 8 } } },
                 } as any}
                 config={{ displayModeBar: false }}
-                style={{ width: '100%', height: 160 }}
+                style={{ width: '100%', height: 320 }}
               />
             )}
           </div>
@@ -761,13 +770,13 @@ export function QuantumPanelV2() {
                 y: r.distribution.map((d: any) => d.probability),
                 type: 'bar',
                 marker: {
-                  color: r.distribution.map((d: any) => d.is_target ? '#ef4444' : corTema + '66'),
-                  line: { color: r.distribution.map((d: any) => d.is_target ? '#ef4444' : corTema), width: 1 },
+                  color: r.distribution.map((d: any) => d.is_target ? '#ef4444' : CHART_BLUE + '66'),
+                  line: { color: r.distribution.map((d: any) => d.is_target ? '#ef4444' : CHART_BLUE), width: 1 },
                 },
               }]}
               layout={{
                 ...PLOTLY_LAYOUT_BASE,
-                height: 250,
+                height: 350,
                 xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Basis State', font: { size: 8 } }, tickangle: -45 },
                 yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Probability', font: { size: 8 } } },
                 annotations: [{
@@ -777,7 +786,7 @@ export function QuantumPanelV2() {
                 }],
               } as any}
               config={{ displayModeBar: false }}
-              style={{ width: '100%', height: 250 }}
+              style={{ width: '100%', height: 350 }}
             />
           )}
         </div>
@@ -802,12 +811,12 @@ export function QuantumPanelV2() {
                   data={[{
                     z: grid,
                     type: 'surface',
-                    colorscale: [[0, '#050505'], [0.3, corTema + '44'], [0.7, corTema + 'BB'], [1, '#ef4444']],
+                    colorscale: PLASMA,
                     showscale: false,
                   }]}
                   layout={{
                     ...PLOTLY_LAYOUT_BASE,
-                    height: 280,
+                    height: 380,
                     scene: {
                       ...PLOTLY_3D_SCENE,
                       camera: { eye: { x: 1.8, y: 1.2, z: 1.0 } },
@@ -818,7 +827,7 @@ export function QuantumPanelV2() {
                     margin: { l: 0, r: 0, t: 10, b: 0 },
                   } as any}
                   config={{ displayModeBar: false }}
-                  style={{ width: '100%', height: 280 }}
+                  style={{ width: '100%', height: 380 }}
                 />
               )
             })()}
@@ -862,18 +871,18 @@ export function QuantumPanelV2() {
                 data={[{
                   y: r.convergence,
                   type: 'scatter', mode: 'lines',
-                  line: { color: corTema, width: 2 },
+                  line: { color: CHART_GREEN, width: 2 },
                   fill: 'tozeroy',
-                  fillcolor: corTema + '11',
+                  fillcolor: CHART_GREEN + '11',
                 }]}
                 layout={{
                   ...PLOTLY_LAYOUT_BASE,
-                  height: 250,
+                  height: 350,
                   xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Optimization Step', font: { size: 8 } } },
                   yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: '<H> Energy', font: { size: 8 } } },
                 } as any}
                 config={{ displayModeBar: false }}
-                style={{ width: '100%', height: 250 }}
+                style={{ width: '100%', height: 350 }}
               />
             )}
           </div>
@@ -891,17 +900,17 @@ export function QuantumPanelV2() {
                     type: 'bar',
                     marker: {
                       color: probs.map((p: number) => p),
-                      colorscale: [[0, '#111'], [0.5, corTema + '88'], [1, corTema]],
+                      colorscale: VIRIDIS,
                     },
                   }]}
                   layout={{
                     ...PLOTLY_LAYOUT_BASE,
-                    height: 250,
+                    height: 350,
                     xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, tickangle: -45, tickfont: { size: 7 } },
                     yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Probability', font: { size: 8 } } },
                   } as any}
                   config={{ displayModeBar: false }}
-                  style={{ width: '100%', height: 250 }}
+                  style={{ width: '100%', height: 350 }}
                 />
               )
             })()}
@@ -929,13 +938,13 @@ export function QuantumPanelV2() {
                   data={[{
                     z: grid,
                     type: 'surface',
-                    colorscale: [[0, '#050505'], [0.3, corTema + '33'], [0.6, corTema + 'AA'], [1, corTema]],
+                    colorscale: VIRIDIS,
                     showscale: false,
                     contours: { z: { show: true, usecolormap: true, project: { z: true } } },
                   }]}
                   layout={{
                     ...PLOTLY_LAYOUT_BASE,
-                    height: 300,
+                    height: 400,
                     scene: {
                       ...PLOTLY_3D_SCENE,
                       camera: { eye: { x: 1.5, y: 1.5, z: 1.0 } },
@@ -943,7 +952,7 @@ export function QuantumPanelV2() {
                     margin: { l: 0, r: 0, t: 10, b: 0 },
                   } as any}
                   config={{ displayModeBar: false }}
-                  style={{ width: '100%', height: 300 }}
+                  style={{ width: '100%', height: 400 }}
                 />
               )
             })()}

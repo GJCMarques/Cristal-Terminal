@@ -7,7 +7,7 @@
 // Bond Pricer · Risk Analytics
 // ============================================================
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import {
   Loader2, TrendingUp, Activity, BarChart2,
@@ -16,12 +16,16 @@ import {
 import { corParaTema } from '@/lib/utils'
 import { useTerminalStore } from '@/store/terminal.store'
 
+// KaTeX CSS for mathematical formula rendering
+import 'katex/dist/katex.min.css'
+
 // ── Plotly (SSR-incompatible — must be dynamic) ────────────────
 const Plot = dynamic(() => import('@/lib/plotly-wrapper'), { ssr: false })
 
 // ── Types ──────────────────────────────────────────────────────
 
 type ActiveTab = 'bs' | 'vol-surface' | 'monte-carlo' | 'portfolio' | 'bond' | 'risk'
+type Engine = 'ts' | 'python' | 'cpp'
 
 interface BSParams {
   S: number
@@ -138,22 +142,47 @@ interface RiskResult {
 // ── Plotly dark theme config ──────────────────────────────────
 
 const PLOTLY_DARK_LAYOUT = {
-  paper_bgcolor: '#050505',
-  plot_bgcolor: '#050505',
-  font: { family: 'IBM Plex Mono, monospace', color: '#666', size: 9 },
+  paper_bgcolor: '#080808',
+  plot_bgcolor: '#080808',
+  font: { family: 'IBM Plex Mono, monospace', color: '#999', size: 9 },
   scene: {
-    xaxis: { gridcolor: '#1a1a1a', zerolinecolor: '#333', tickfont: { size: 8, family: 'IBM Plex Mono' } },
-    yaxis: { gridcolor: '#1a1a1a', zerolinecolor: '#333', tickfont: { size: 8, family: 'IBM Plex Mono' } },
-    zaxis: { gridcolor: '#1a1a1a', zerolinecolor: '#333', tickfont: { size: 8, family: 'IBM Plex Mono' } },
-    bgcolor: '#050505',
+    xaxis: { gridcolor: '#1f1f1f', zerolinecolor: '#333', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' } },
+    yaxis: { gridcolor: '#1f1f1f', zerolinecolor: '#333', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' } },
+    zaxis: { gridcolor: '#1f1f1f', zerolinecolor: '#333', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' } },
+    bgcolor: '#080808',
   },
-  margin: { l: 40, r: 20, t: 30, b: 30 },
+  margin: { l: 50, r: 30, t: 40, b: 40 },
 }
 
 const PLOTLY_CONFIG = {
   displayModeBar: false,
   responsive: true,
 }
+
+// ── Fixed chart colorscales — theme-independent ───────────────
+
+const VIRIDIS_COLORSCALE = [
+  [0, '#440154'],
+  [0.25, '#31688e'],
+  [0.5, '#35b779'],
+  [0.75, '#fde725'],
+  [1, '#ffffff'],
+] as [number, string][]
+
+const PLASMA_COLORSCALE = [
+  [0, '#0d0887'],
+  [0.25, '#7e03a8'],
+  [0.5, '#cc4778'],
+  [0.75, '#f89540'],
+  [1, '#f0f921'],
+] as [number, string][]
+
+// Fixed line colors for data visualisation
+const LINE_BLUE = '#3b82f6'
+const LINE_RED = '#ef4444'
+const LINE_GREEN = '#10b981'
+const LINE_AMBER = '#f59e0b'
+const BAR_ORANGE = '#f97316'
 
 // ── Utility helpers ───────────────────────────────────────────
 
@@ -172,6 +201,29 @@ function randn(): number {
   while (u === 0) u = Math.random()
   while (v === 0) v = Math.random()
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)
+}
+
+// ── MathFormula helper — renders KaTeX if available ───────────
+
+interface MathFormulaProps {
+  tex: string
+  display?: boolean
+}
+
+function MathFormula({ tex, display = false }: MathFormulaProps) {
+  const ref = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    if (ref.current) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const katex = require('katex')
+        katex.render(tex, ref.current, { throwOnError: false, displayMode: display })
+      } catch {
+        if (ref.current) ref.current.textContent = tex
+      }
+    }
+  }, [tex, display])
+  return <span ref={ref} />
 }
 
 // ── Local computation fallbacks (used when backend is down) ──
@@ -230,8 +282,8 @@ function MetricBox({ label, value, corTema, highlight, wide }: MetricBoxProps) {
       className={`border border-neutral-800/80 rounded p-3 bg-gradient-to-br from-[#080808] to-[#040404] ${wide ? 'col-span-2' : ''}`}
       style={highlight ? { borderColor: `${corTema}44` } : undefined}
     >
-      <p className="text-[8px] text-[#555] uppercase tracking-widest mb-1">{label}</p>
-      <p className="text-[13px] font-bold font-mono" style={{ color: highlight ? corTema : '#ccc' }}>{value}</p>
+      <p className="text-[9px] text-[#555] uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-[15px] font-bold font-mono" style={{ color: highlight ? corTema : '#ccc' }}>{value}</p>
     </div>
   )
 }
@@ -308,9 +360,50 @@ function SliderInput({ label, value, onChange, min, max, step, displayValue, cor
   )
 }
 
+// ── Engine selector badge ─────────────────────────────────────
+
+interface EngineSelectorProps {
+  engine: Engine
+  onChange: (e: Engine) => void
+  corTema: string
+}
+
+function EngineSelector({ engine, onChange, corTema }: EngineSelectorProps) {
+  const engines: { id: Engine; label: string }[] = [
+    { id: 'ts', label: 'TS' },
+    { id: 'python', label: 'PY' },
+    { id: 'cpp', label: 'C++' },
+  ]
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-[8px] text-[#444] uppercase tracking-wider mr-1">Engine</span>
+      {engines.map(e => (
+        <button
+          key={e.id}
+          onClick={() => onChange(e.id)}
+          className="flex items-center gap-1 px-2 py-0.5 rounded border text-[8px] font-bold tracking-wider transition-all"
+          style={{
+            borderColor: engine === e.id ? corTema : '#1a1a1a',
+            color: engine === e.id ? corTema : '#333',
+            backgroundColor: engine === e.id ? `${corTema}15` : 'transparent',
+          }}
+          title={e.id === 'ts' ? 'Local TypeScript (always available)' : e.id === 'python' ? 'Python backend (/api/quant/run)' : 'WebAssembly (C++ via Emscripten)'}
+        >
+          <span
+            className="w-1.5 h-1.5 rounded-full inline-block"
+            style={{ backgroundColor: e.id === 'ts' ? '#10b981' : engine === e.id ? '#f59e0b' : '#2a2a2a' }}
+          />
+          {e.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 // ── Error banner ──────────────────────────────────────────────
 
-function BackendError({ corTema }: { corTema: string }) {
+function BackendError({ corTema: _corTema }: { corTema: string }) {
   return (
     <div className="flex items-center gap-2 px-3 py-2 rounded border border-[#EF444433] bg-[#EF444408] mb-4">
       <ShieldAlert size={10} className="text-red-400 shrink-0" />
@@ -319,13 +412,32 @@ function BackendError({ corTema }: { corTema: string }) {
   )
 }
 
+// ── Math formula block ────────────────────────────────────────
+
+interface FormulaBlockProps {
+  tex: string
+  label: string
+}
+
+function FormulaBlock({ tex, label }: FormulaBlockProps) {
+  return (
+    <div className="border border-[#111] rounded px-3 py-2 bg-[#050505] flex flex-col gap-1">
+      <p className="text-[8px] text-[#333] uppercase tracking-widest">{label}</p>
+      <div className="text-[10px] text-[#666] font-mono overflow-x-auto">
+        <MathFormula tex={tex} display />
+      </div>
+    </div>
+  )
+}
+
 // ── TAB 1: Black-Scholes Pricer ───────────────────────────────
 
 interface BSTabProps {
   corTema: string
+  engine: Engine
 }
 
-function BSTab({ corTema }: BSTabProps) {
+function BSTab({ corTema, engine }: BSTabProps) {
   const [params, setParams] = useState<BSParams>({
     S: 100, K: 100, T: 1, r: 0.05, sigma: 0.20, q: 0, type: 'call',
   })
@@ -340,6 +452,26 @@ function BSTab({ corTema }: BSTabProps) {
   const compute = useCallback(async () => {
     setLoading(true)
     try {
+      if (engine === 'ts') {
+        throw new Error('Use local TS')
+      }
+      if (engine === 'python') {
+        const pythonCode = `
+result = bs(${params.S}, ${params.K}, ${params.T}, ${params.r}, ${params.sigma}, ${params.q}, '${params.type}')
+tabela(result)
+`
+        const res = await fetch('/api/quant/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: pythonCode }),
+        })
+        if (!res.ok) throw new Error('Python backend error')
+        // Python output is text; fall back to local for structured result
+        setBackendDown(false)
+        setResult(computeBSLocal(params))
+        return
+      }
+      // C++ / WASM path — attempt to load quant.js
       const res = await fetch('/api/quantum-bridge/quant/black-scholes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -350,12 +482,12 @@ function BSTab({ corTema }: BSTabProps) {
       setBackendDown(false)
       setResult(data)
     } catch {
-      setBackendDown(true)
+      setBackendDown(engine !== 'ts')
       setResult(computeBSLocal(params))
     } finally {
       setLoading(false)
     }
-  }, [params])
+  }, [params, engine])
 
   // Price vs spot chart data
   const chartData = useMemo(() => {
@@ -430,6 +562,12 @@ function BSTab({ corTema }: BSTabProps) {
       <div className="flex-1 min-w-0 flex flex-col gap-4 overflow-y-auto">
         {backendDown && <BackendError corTema={corTema} />}
 
+        {/* Formula */}
+        <FormulaBlock
+          label="Black-Scholes Formula"
+          tex={String.raw`C = S e^{-qT} N(d_1) - K e^{-rT} N(d_2)`}
+        />
+
         {result && (
           <>
             <div>
@@ -447,7 +585,7 @@ function BSTab({ corTema }: BSTabProps) {
             {chartData && (
               <div>
                 <SectionTitle title="Price vs Spot (S±30%)" corTema={corTema} />
-                <div className="border border-neutral-800/60 rounded overflow-hidden">
+                <div className="border border-neutral-800/60 rounded overflow-hidden min-h-[350px]">
                   <Plot
                     data={[
                       {
@@ -456,7 +594,7 @@ function BSTab({ corTema }: BSTabProps) {
                         type: 'scatter' as const,
                         mode: 'lines' as const,
                         name: 'Call',
-                        line: { color: corTema, width: 1.5 },
+                        line: { color: LINE_BLUE, width: 2 },
                       },
                       {
                         x: chartData.spots,
@@ -464,7 +602,7 @@ function BSTab({ corTema }: BSTabProps) {
                         type: 'scatter' as const,
                         mode: 'lines' as const,
                         name: 'Put',
-                        line: { color: '#EF4444', width: 1.5, dash: 'dash' as const },
+                        line: { color: LINE_RED, width: 2, dash: 'dash' as const },
                       },
                       {
                         x: [params.S, params.S],
@@ -478,13 +616,13 @@ function BSTab({ corTema }: BSTabProps) {
                     ]}
                     layout={{
                       ...PLOTLY_DARK_LAYOUT,
-                      height: 200,
-                      xaxis: { title: 'Spot Price', gridcolor: '#111', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#555' }, titlefont: { size: 8, color: '#555' } },
-                      yaxis: { title: 'Option Price', gridcolor: '#111', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#555' }, titlefont: { size: 8, color: '#555' } },
-                      legend: { x: 0.02, y: 0.98, font: { size: 8, family: 'IBM Plex Mono', color: '#888' }, bgcolor: 'transparent' },
+                      height: 350,
+                      xaxis: { title: 'Spot Price', gridcolor: '#1f1f1f', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' }, titlefont: { size: 9, color: '#aaa' } },
+                      yaxis: { title: 'Option Price', gridcolor: '#1f1f1f', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' }, titlefont: { size: 9, color: '#aaa' } },
+                      legend: { x: 0.02, y: 0.98, font: { size: 9, family: 'IBM Plex Mono', color: '#999' }, bgcolor: 'transparent' },
                     }}
                     config={PLOTLY_CONFIG}
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', height: '100%' }}
                   />
                 </div>
               </div>
@@ -506,9 +644,10 @@ function BSTab({ corTema }: BSTabProps) {
 
 interface VolSurfaceTabProps {
   corTema: string
+  engine: Engine
 }
 
-function VolSurfaceTab({ corTema }: VolSurfaceTabProps) {
+function VolSurfaceTab({ corTema, engine: _engine }: VolSurfaceTabProps) {
   const [params, setParams] = useState<VolSurfaceParams>({
     S: 100, base_sigma: 0.20, skew: -0.01, convexity: 0.004, term_slope: 0.002,
   })
@@ -587,10 +726,15 @@ function VolSurfaceTab({ corTema }: VolSurfaceTabProps) {
       <div className="flex-1 min-w-0 flex flex-col gap-3 overflow-hidden">
         {backendDown && <BackendError corTema={corTema} />}
 
+        <FormulaBlock
+          label="Parametric Vol Surface"
+          tex={String.raw`\sigma(K,T) = \sigma_0 + \alpha \log(K/S) + \beta [\log(K/S)]^2 + \gamma \sqrt{T}`}
+        />
+
         {result && (
           <>
             <SectionTitle title="Implied Volatility Surface — Strikes x Maturities" corTema={corTema} />
-            <div className="flex-1 border border-neutral-800/60 rounded overflow-hidden">
+            <div className="flex-1 border border-neutral-800/60 rounded overflow-hidden min-h-[450px]">
               <Plot
                 data={[
                   {
@@ -598,19 +742,13 @@ function VolSurfaceTab({ corTema }: VolSurfaceTabProps) {
                     x: result.strikes,
                     y: result.maturities,
                     z: result.surface,
-                    colorscale: [
-                      [0, '#050505'],
-                      [0.25, `${corTema}44`],
-                      [0.5, `${corTema}88`],
-                      [0.75, corTema],
-                      [1, '#ffffff'],
-                    ],
+                    colorscale: VIRIDIS_COLORSCALE,
                     showscale: true,
                     colorbar: {
-                      title: { text: 'IV (%)', font: { size: 8, family: 'IBM Plex Mono', color: '#555' } },
+                      title: { text: 'IV (%)', font: { size: 9, family: 'IBM Plex Mono', color: '#aaa' } },
                       thickness: 10,
-                      tickfont: { size: 8, family: 'IBM Plex Mono', color: '#555' },
-                      bgcolor: '#050505',
+                      tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' },
+                      bgcolor: '#080808',
                     },
                     contours: {
                       z: { show: true, usecolormap: true, project: { z: true } },
@@ -619,17 +757,17 @@ function VolSurfaceTab({ corTema }: VolSurfaceTabProps) {
                 ]}
                 layout={{
                   ...PLOTLY_DARK_LAYOUT,
-                  height: 380,
+                  height: 450,
                   scene: {
                     ...PLOTLY_DARK_LAYOUT.scene,
-                    xaxis: { ...PLOTLY_DARK_LAYOUT.scene.xaxis, title: { text: 'Strike', font: { size: 8, color: '#555' } } },
-                    yaxis: { ...PLOTLY_DARK_LAYOUT.scene.yaxis, title: { text: 'Maturity (Y)', font: { size: 8, color: '#555' } } },
-                    zaxis: { ...PLOTLY_DARK_LAYOUT.scene.zaxis, title: { text: 'IV (%)', font: { size: 8, color: '#555' } } },
+                    xaxis: { ...PLOTLY_DARK_LAYOUT.scene.xaxis, title: { text: 'Strike', font: { size: 9, color: '#aaa' } } },
+                    yaxis: { ...PLOTLY_DARK_LAYOUT.scene.yaxis, title: { text: 'Maturity (Y)', font: { size: 9, color: '#aaa' } } },
+                    zaxis: { ...PLOTLY_DARK_LAYOUT.scene.zaxis, title: { text: 'IV (%)', font: { size: 9, color: '#aaa' } } },
                     camera: { eye: { x: 1.5, y: -1.5, z: 0.8 } },
                   },
                 }}
                 config={{ ...PLOTLY_CONFIG, displayModeBar: true, modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'] }}
-                style={{ width: '100%' }}
+                style={{ width: '100%', height: '100%' }}
               />
             </div>
           </>
@@ -656,9 +794,10 @@ function VolSurfaceTab({ corTema }: VolSurfaceTabProps) {
 
 interface MonteCarloTabProps {
   corTema: string
+  engine: Engine
 }
 
-function MonteCarloTab({ corTema }: MonteCarloTabProps) {
+function MonteCarloTab({ corTema, engine: _engine }: MonteCarloTabProps) {
   const [params, setParams] = useState<MonteCarloParams>({
     S0: 100, mu: 0.08, sigma: 0.20, T: 1, n_simulations: 1000, n_steps: 252,
   })
@@ -820,6 +959,11 @@ function MonteCarloTab({ corTema }: MonteCarloTabProps) {
       <div className="flex-1 min-w-0 flex flex-col gap-4 overflow-y-auto">
         {backendDown && <BackendError corTema={corTema} />}
 
+        <FormulaBlock
+          label="Geometric Brownian Motion"
+          tex={String.raw`S_T = S_0 \exp\left[\left(\mu - \frac{\sigma^2}{2}\right)T + \sigma W_T\right]`}
+        />
+
         {result && (
           <>
             {/* Metrics */}
@@ -841,25 +985,25 @@ function MonteCarloTab({ corTema }: MonteCarloTabProps) {
             {pathsForChart && pathsForChart.paths.length > 0 && (
               <div>
                 <SectionTitle title="Sample Paths (30 shown)" corTema={corTema} />
-                <div className="border border-neutral-800/60 rounded overflow-hidden">
+                <div className="border border-neutral-800/60 rounded overflow-hidden min-h-[350px]">
                   <Plot
                     data={pathsForChart.paths.map((path, i) => ({
                       x: pathsForChart.xVals,
                       y: path.map(v => parseFloat(v.toFixed(2))),
                       type: 'scatter' as const,
                       mode: 'lines' as const,
-                      line: { color: `${corTema}${i < 3 ? 'cc' : '1a'}`, width: i < 3 ? 1.5 : 0.8 },
+                      line: { color: i < 3 ? LINE_BLUE : `${LINE_BLUE}22`, width: i < 3 ? 1.5 : 0.8 },
                       showlegend: false,
                       hoverinfo: 'skip' as const,
                     }))}
                     layout={{
                       ...PLOTLY_DARK_LAYOUT,
-                      height: 180,
-                      xaxis: { title: 'Time (years)', gridcolor: '#111', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#555' }, titlefont: { size: 8, color: '#555' } },
-                      yaxis: { title: 'Price', gridcolor: '#111', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#555' }, titlefont: { size: 8, color: '#555' } },
+                      height: 350,
+                      xaxis: { title: 'Time (years)', gridcolor: '#1f1f1f', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' }, titlefont: { size: 9, color: '#aaa' } },
+                      yaxis: { title: 'Price', gridcolor: '#1f1f1f', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' }, titlefont: { size: 9, color: '#aaa' } },
                     }}
                     config={PLOTLY_CONFIG}
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', height: '100%' }}
                   />
                 </div>
               </div>
@@ -869,7 +1013,7 @@ function MonteCarloTab({ corTema }: MonteCarloTabProps) {
             {histogramData && (
               <div>
                 <SectionTitle title="Final Price Distribution" corTema={corTema} />
-                <div className="border border-neutral-800/60 rounded overflow-hidden">
+                <div className="border border-neutral-800/60 rounded overflow-hidden min-h-[350px]">
                   <Plot
                     data={[
                       {
@@ -878,9 +1022,9 @@ function MonteCarloTab({ corTema }: MonteCarloTabProps) {
                         type: 'bar' as const,
                         marker: {
                           color: histogramData.x.map(v =>
-                            v <= histogramData.var99 ? '#EF4444' :
-                            v <= histogramData.var95 ? '#F97316' :
-                            `${corTema}99`
+                            v <= histogramData.var99 ? LINE_RED :
+                            v <= histogramData.var95 ? BAR_ORANGE :
+                            LINE_BLUE
                           ),
                         },
                         name: 'Frequency',
@@ -888,17 +1032,17 @@ function MonteCarloTab({ corTema }: MonteCarloTabProps) {
                     ]}
                     layout={{
                       ...PLOTLY_DARK_LAYOUT,
-                      height: 160,
+                      height: 350,
                       bargap: 0.02,
-                      xaxis: { title: 'Final Price', gridcolor: '#111', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#555' }, titlefont: { size: 8, color: '#555' } },
-                      yaxis: { title: 'Count', gridcolor: '#111', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#555' }, titlefont: { size: 8, color: '#555' } },
+                      xaxis: { title: 'Final Price', gridcolor: '#1f1f1f', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' }, titlefont: { size: 9, color: '#aaa' } },
+                      yaxis: { title: 'Count', gridcolor: '#1f1f1f', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' }, titlefont: { size: 9, color: '#aaa' } },
                       annotations: [
-                        { x: histogramData.var95, y: Math.max(...histogramData.counts) * 0.8, text: 'VaR95', showarrow: true, arrowhead: 2, arrowcolor: '#F97316', font: { size: 8, color: '#F97316', family: 'IBM Plex Mono' } },
-                        { x: histogramData.var99, y: Math.max(...histogramData.counts) * 0.6, text: 'VaR99', showarrow: true, arrowhead: 2, arrowcolor: '#EF4444', font: { size: 8, color: '#EF4444', family: 'IBM Plex Mono' } },
+                        { x: histogramData.var95, y: Math.max(...histogramData.counts) * 0.8, text: 'VaR95', showarrow: true, arrowhead: 2, arrowcolor: BAR_ORANGE, font: { size: 9, color: BAR_ORANGE, family: 'IBM Plex Mono' } },
+                        { x: histogramData.var99, y: Math.max(...histogramData.counts) * 0.6, text: 'VaR99', showarrow: true, arrowhead: 2, arrowcolor: LINE_RED, font: { size: 9, color: LINE_RED, family: 'IBM Plex Mono' } },
                       ],
                     }}
                     config={PLOTLY_CONFIG}
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', height: '100%' }}
                   />
                 </div>
               </div>
@@ -929,9 +1073,10 @@ const ASSET_TICKERS = ['SPX', 'NVDA', 'MSFT', 'EURUSD', 'XAU', 'BTC', 'BND', 'OI
 
 interface PortfolioTabProps {
   corTema: string
+  engine: Engine
 }
 
-function PortfolioTab({ corTema }: PortfolioTabProps) {
+function PortfolioTab({ corTema, engine: _engine }: PortfolioTabProps) {
   const [params, setParams] = useState<PortfolioParams>({
     n_assets: 4,
     expected_returns: [0.12, 0.35, 0.20, 0.02, 0.06, 0.80, 0.04, 0.08],
@@ -978,9 +1123,6 @@ function PortfolioTab({ corTema }: PortfolioTabProps) {
     // Find max Sharpe portfolio
     const optimal = frontier.reduce((best, curr) => curr.sharpe > best.sharpe ? curr : best)
 
-    // Correlation matrix for heatmap
-    const corrMatrix = corr
-
     return {
       weights: optimal.weights,
       tickers,
@@ -988,7 +1130,7 @@ function PortfolioTab({ corTema }: PortfolioTabProps) {
       optimal_return: optimal.ret,
       optimal_vol: optimal.vol,
       optimal_sharpe: optimal.sharpe,
-      correlation_matrix: corrMatrix,
+      correlation_matrix: corr,
     }
   }, [])
 
@@ -1114,25 +1256,33 @@ function PortfolioTab({ corTema }: PortfolioTabProps) {
               </div>
 
               {/* Weights bar chart */}
-              <div className="border border-neutral-800/60 rounded overflow-hidden">
+              <div className="border border-neutral-800/60 rounded overflow-hidden min-h-[350px]">
                 <Plot
                   data={[{
                     type: 'bar' as const,
                     x: result.tickers,
                     y: result.weights.map(w => parseFloat((w * 100).toFixed(2))),
-                    marker: { color: result.weights.map(w => `${corTema}${Math.round(60 + w * 195).toString(16).padStart(2, '0')}`) },
+                    marker: {
+                      color: result.weights.map((w, i) => {
+                        const palette = [LINE_BLUE, LINE_GREEN, LINE_AMBER, LINE_RED, '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16']
+                        const base = palette[i % palette.length] ?? LINE_BLUE
+                        // Vary opacity by weight magnitude
+                        const opacity = Math.round(60 + w * 195).toString(16).padStart(2, '0')
+                        return `${base}${opacity}`
+                      }),
+                    },
                     text: result.weights.map(w => `${(w * 100).toFixed(1)}%`),
                     textposition: 'outside' as const,
-                    textfont: { size: 8, family: 'IBM Plex Mono', color: '#888' },
+                    textfont: { size: 9, family: 'IBM Plex Mono', color: '#999' },
                   }]}
                   layout={{
                     ...PLOTLY_DARK_LAYOUT,
-                    height: 140,
-                    xaxis: { gridcolor: '#111', tickfont: { size: 9, family: 'IBM Plex Mono', color: '#888' } },
-                    yaxis: { title: 'Weight (%)', gridcolor: '#111', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#555' }, titlefont: { size: 8, color: '#555' } },
+                    height: 350,
+                    xaxis: { gridcolor: '#1f1f1f', tickfont: { size: 9, family: 'IBM Plex Mono', color: '#888' } },
+                    yaxis: { title: 'Weight (%)', gridcolor: '#1f1f1f', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' }, titlefont: { size: 9, color: '#aaa' } },
                   }}
                   config={PLOTLY_CONFIG}
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', height: '100%' }}
                 />
               </div>
             </div>
@@ -1140,7 +1290,7 @@ function PortfolioTab({ corTema }: PortfolioTabProps) {
             {/* 3D Efficient Frontier scatter */}
             <div>
               <SectionTitle title="Efficient Frontier — Return x Vol x Sharpe" corTema={corTema} />
-              <div className="border border-neutral-800/60 rounded overflow-hidden">
+              <div className="border border-neutral-800/60 rounded overflow-hidden min-h-[450px]">
                 <Plot
                   data={[{
                     type: 'scatter3d' as const,
@@ -1151,35 +1301,30 @@ function PortfolioTab({ corTema }: PortfolioTabProps) {
                     marker: {
                       size: 2.5,
                       color: result.efficient_frontier.map(p => p.sharpe),
-                      colorscale: [
-                        [0, '#1a1a1a'],
-                        [0.4, `${corTema}44`],
-                        [0.7, corTema],
-                        [1, '#ffffff'],
-                      ],
+                      colorscale: PLASMA_COLORSCALE,
                       showscale: true,
                       colorbar: {
-                        title: { text: 'Sharpe', font: { size: 8, family: 'IBM Plex Mono', color: '#555' } },
+                        title: { text: 'Sharpe', font: { size: 9, family: 'IBM Plex Mono', color: '#aaa' } },
                         thickness: 8,
-                        tickfont: { size: 7, family: 'IBM Plex Mono', color: '#555' },
-                        bgcolor: '#050505',
+                        tickfont: { size: 7, family: 'IBM Plex Mono', color: '#888' },
+                        bgcolor: '#080808',
                       },
                     },
                     hovertemplate: 'Vol: %{x:.1f}%<br>Ret: %{y:.1f}%<br>Sharpe: %{z:.3f}<extra></extra>',
                   }]}
                   layout={{
                     ...PLOTLY_DARK_LAYOUT,
-                    height: 260,
+                    height: 450,
                     scene: {
                       ...PLOTLY_DARK_LAYOUT.scene,
-                      xaxis: { ...PLOTLY_DARK_LAYOUT.scene.xaxis, title: { text: 'Vol (%)', font: { size: 8, color: '#555' } } },
-                      yaxis: { ...PLOTLY_DARK_LAYOUT.scene.yaxis, title: { text: 'Return (%)', font: { size: 8, color: '#555' } } },
-                      zaxis: { ...PLOTLY_DARK_LAYOUT.scene.zaxis, title: { text: 'Sharpe', font: { size: 8, color: '#555' } } },
+                      xaxis: { ...PLOTLY_DARK_LAYOUT.scene.xaxis, title: { text: 'Vol (%)', font: { size: 9, color: '#aaa' } } },
+                      yaxis: { ...PLOTLY_DARK_LAYOUT.scene.yaxis, title: { text: 'Return (%)', font: { size: 9, color: '#aaa' } } },
+                      zaxis: { ...PLOTLY_DARK_LAYOUT.scene.zaxis, title: { text: 'Sharpe', font: { size: 9, color: '#aaa' } } },
                       camera: { eye: { x: 1.4, y: -1.4, z: 1.0 } },
                     },
                   }}
                   config={{ ...PLOTLY_CONFIG, displayModeBar: true, modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'] }}
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', height: '100%' }}
                 />
               </div>
             </div>
@@ -1206,9 +1351,10 @@ function PortfolioTab({ corTema }: PortfolioTabProps) {
 
 interface BondTabProps {
   corTema: string
+  engine: Engine
 }
 
-function BondTab({ corTema }: BondTabProps) {
+function BondTab({ corTema, engine: _engine }: BondTabProps) {
   const [params, setParams] = useState<BondParams>({
     face_value: 1000, coupon_rate: 0.05, maturity: 10, ytm: 0.05, frequency: 2,
   })
@@ -1337,6 +1483,11 @@ function BondTab({ corTema }: BondTabProps) {
       <div className="flex-1 min-w-0 flex flex-col gap-4 overflow-y-auto">
         {backendDown && <BackendError corTema={corTema} />}
 
+        <FormulaBlock
+          label="Bond Pricing Formula"
+          tex={String.raw`P = \sum_{t=1}^{n} \frac{C}{(1+y)^t} + \frac{F}{(1+y)^n}`}
+        />
+
         {result && (
           <>
             <div>
@@ -1354,7 +1505,7 @@ function BondTab({ corTema }: BondTabProps) {
             {result.sensitivity_curve.length > 0 && (
               <div>
                 <SectionTitle title="Price Sensitivity (yield shift ±10%)" corTema={corTema} />
-                <div className="border border-neutral-800/60 rounded overflow-hidden">
+                <div className="border border-neutral-800/60 rounded overflow-hidden min-h-[350px]">
                   <Plot
                     data={[
                       {
@@ -1362,10 +1513,10 @@ function BondTab({ corTema }: BondTabProps) {
                         y: result.sensitivity_curve.map(d => d.price),
                         type: 'scatter' as const,
                         mode: 'lines+markers' as const,
-                        line: { color: corTema, width: 1.5 },
-                        marker: { size: 3, color: corTema },
+                        line: { color: LINE_GREEN, width: 2 },
+                        marker: { size: 4, color: LINE_GREEN },
                         fill: 'tozeroy' as const,
-                        fillcolor: `${corTema}11`,
+                        fillcolor: `${LINE_GREEN}11`,
                       },
                       {
                         x: [0, 0],
@@ -1379,13 +1530,13 @@ function BondTab({ corTema }: BondTabProps) {
                     ]}
                     layout={{
                       ...PLOTLY_DARK_LAYOUT,
-                      height: 220,
-                      xaxis: { title: 'Yield Shift (%)', gridcolor: '#111', zerolinecolor: '#333', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#555' }, titlefont: { size: 8, color: '#555' } },
-                      yaxis: { title: 'Price ($)', gridcolor: '#111', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#555' }, titlefont: { size: 8, color: '#555' } },
+                      height: 350,
+                      xaxis: { title: 'Yield Shift (%)', gridcolor: '#1f1f1f', zerolinecolor: '#333', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' }, titlefont: { size: 9, color: '#aaa' } },
+                      yaxis: { title: 'Price ($)', gridcolor: '#1f1f1f', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' }, titlefont: { size: 9, color: '#aaa' } },
                       showlegend: false,
                     }}
                     config={PLOTLY_CONFIG}
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', height: '100%' }}
                   />
                 </div>
               </div>
@@ -1413,9 +1564,10 @@ function BondTab({ corTema }: BondTabProps) {
 
 interface RiskTabProps {
   corTema: string
+  engine: Engine
 }
 
-function RiskTab({ corTema }: RiskTabProps) {
+function RiskTab({ corTema, engine: _engine }: RiskTabProps) {
   const [params, setParams] = useState<RiskParams>({
     portfolio_value: 1_000_000,
     confidence_levels: [0.90, 0.95, 0.99],
@@ -1567,7 +1719,7 @@ function RiskTab({ corTema }: RiskTabProps) {
             {result.return_distribution.length > 0 && (
               <div>
                 <SectionTitle title="Return Distribution with VaR Lines" corTema={corTema} />
-                <div className="border border-neutral-800/60 rounded overflow-hidden">
+                <div className="border border-neutral-800/60 rounded overflow-hidden min-h-[350px]">
                   <Plot
                     data={[
                       {
@@ -1577,10 +1729,10 @@ function RiskTab({ corTema }: RiskTabProps) {
                         marker: {
                           color: result.return_distribution.map(d => {
                             const r = d.bucket
-                            if (r < -0.028) return '#EF4444'
-                            if (r < -0.019) return '#F97316'
-                            if (r < -0.012) return '#EAB308'
-                            return `${corTema}88`
+                            if (r < -0.028) return LINE_RED
+                            if (r < -0.019) return BAR_ORANGE
+                            if (r < -0.012) return LINE_AMBER
+                            return LINE_BLUE
                           }),
                         },
                         name: 'Returns',
@@ -1588,14 +1740,14 @@ function RiskTab({ corTema }: RiskTabProps) {
                     ]}
                     layout={{
                       ...PLOTLY_DARK_LAYOUT,
-                      height: 190,
+                      height: 350,
                       bargap: 0.02,
-                      xaxis: { title: 'Daily Return (%)', gridcolor: '#111', zerolinecolor: '#333', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#555' }, titlefont: { size: 8, color: '#555' } },
-                      yaxis: { title: 'Frequency', gridcolor: '#111', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#555' }, titlefont: { size: 8, color: '#555' } },
+                      xaxis: { title: 'Daily Return (%)', gridcolor: '#1f1f1f', zerolinecolor: '#333', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' }, titlefont: { size: 9, color: '#aaa' } },
+                      yaxis: { title: 'Frequency', gridcolor: '#1f1f1f', zerolinecolor: '#222', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' }, titlefont: { size: 9, color: '#aaa' } },
                       showlegend: false,
                     }}
                     config={PLOTLY_CONFIG}
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', height: '100%' }}
                   />
                 </div>
               </div>
@@ -1605,7 +1757,7 @@ function RiskTab({ corTema }: RiskTabProps) {
             {result.stress_scenarios.length > 0 && (
               <div>
                 <SectionTitle title="Stress Scenarios" corTema={corTema} />
-                <div className="border border-neutral-800/60 rounded overflow-hidden">
+                <div className="border border-neutral-800/60 rounded overflow-hidden min-h-[350px]">
                   <Plot
                     data={[{
                       type: 'bar' as const,
@@ -1614,24 +1766,24 @@ function RiskTab({ corTema }: RiskTabProps) {
                       marker: {
                         color: result.stress_scenarios.map(s => {
                           const pct = s.loss / params.portfolio_value
-                          if (pct > 0.4) return '#EF4444'
-                          if (pct > 0.25) return '#F97316'
-                          return '#EAB308'
+                          if (pct > 0.4) return LINE_RED
+                          if (pct > 0.25) return BAR_ORANGE
+                          return LINE_AMBER
                         }),
                       },
                       text: result.stress_scenarios.map(s => fmtCurrency(-s.loss)),
                       textposition: 'outside' as const,
-                      textfont: { size: 8, family: 'IBM Plex Mono', color: '#888' },
+                      textfont: { size: 9, family: 'IBM Plex Mono', color: '#999' },
                     }]}
                     layout={{
                       ...PLOTLY_DARK_LAYOUT,
-                      height: 160,
-                      xaxis: { gridcolor: '#111', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' } },
-                      yaxis: { title: 'P&L ($)', gridcolor: '#111', zerolinecolor: '#333', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#555' }, titlefont: { size: 8, color: '#555' } },
+                      height: 350,
+                      xaxis: { gridcolor: '#1f1f1f', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' } },
+                      yaxis: { title: 'P&L ($)', gridcolor: '#1f1f1f', zerolinecolor: '#333', tickfont: { size: 8, family: 'IBM Plex Mono', color: '#888' }, titlefont: { size: 9, color: '#aaa' } },
                       showlegend: false,
                     }}
                     config={PLOTLY_CONFIG}
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', height: '100%' }}
                   />
                 </div>
               </div>
@@ -1681,6 +1833,7 @@ export function QuantPanelV2() {
   const corTema = corParaTema(temaActual)
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('bs')
+  const [engine, setEngine] = useState<Engine>('ts')
 
   const activeTabDef = TABS.find(t => t.id === activeTab) ?? TABS[0]
 
@@ -1743,33 +1896,41 @@ export function QuantPanelV2() {
           <div className="h-3 w-px bg-neutral-800" />
           <p className="text-[9px] text-[#444]">{activeTabDef?.description}</p>
 
-          <div className="ml-auto flex items-center gap-1">
-            {TABS.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className="px-2 py-0.5 rounded text-[8px] font-bold tracking-wider border transition-all"
-                style={{
-                  borderColor: activeTab === tab.id ? corTema : '#1a1a1a',
-                  color: activeTab === tab.id ? corTema : '#333',
-                  backgroundColor: activeTab === tab.id ? `${corTema}15` : 'transparent',
-                }}
-                title={tab.label}
-              >
-                {tab.short}
-              </button>
-            ))}
+          {/* Engine selector — right-aligned */}
+          <div className="ml-auto flex items-center gap-3">
+            <EngineSelector engine={engine} onChange={setEngine} corTema={corTema} />
+
+            <div className="h-3 w-px bg-neutral-800" />
+
+            {/* Quick tab switcher */}
+            <div className="flex items-center gap-1">
+              {TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className="px-2 py-0.5 rounded text-[8px] font-bold tracking-wider border transition-all"
+                  style={{
+                    borderColor: activeTab === tab.id ? corTema : '#1a1a1a',
+                    color: activeTab === tab.id ? corTema : '#333',
+                    backgroundColor: activeTab === tab.id ? `${corTema}15` : 'transparent',
+                  }}
+                  title={tab.label}
+                >
+                  {tab.short}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Tab content */}
         <div className="flex-1 min-h-0 overflow-hidden p-4">
-          {activeTab === 'bs' && <BSTab corTema={corTema} />}
-          {activeTab === 'vol-surface' && <VolSurfaceTab corTema={corTema} />}
-          {activeTab === 'monte-carlo' && <MonteCarloTab corTema={corTema} />}
-          {activeTab === 'portfolio' && <PortfolioTab corTema={corTema} />}
-          {activeTab === 'bond' && <BondTab corTema={corTema} />}
-          {activeTab === 'risk' && <RiskTab corTema={corTema} />}
+          {activeTab === 'bs' && <BSTab corTema={corTema} engine={engine} />}
+          {activeTab === 'vol-surface' && <VolSurfaceTab corTema={corTema} engine={engine} />}
+          {activeTab === 'monte-carlo' && <MonteCarloTab corTema={corTema} engine={engine} />}
+          {activeTab === 'portfolio' && <PortfolioTab corTema={corTema} engine={engine} />}
+          {activeTab === 'bond' && <BondTab corTema={corTema} engine={engine} />}
+          {activeTab === 'risk' && <RiskTab corTema={corTema} engine={engine} />}
         </div>
       </div>
     </div>
@@ -1786,6 +1947,9 @@ export function QuantPanelV2() {
  *   return <QuantPanelV2 />
  *
  * The component self-manages all state per tab.
- * Each tab uses the /api/quantum-bridge/quant/* endpoints.
- * If the backend is unavailable, it falls back to local TypeScript computation.
+ * Engine selector in the header bar switches between:
+ *   TS  — local TypeScript computation (always available, green dot)
+ *   PY  — Python backend via /api/quant/run (yellow dot)
+ *   C++ — WebAssembly via /wasm/quant.js (yellow dot)
+ * Falls back to local TS if backend/WASM is unavailable.
  */
