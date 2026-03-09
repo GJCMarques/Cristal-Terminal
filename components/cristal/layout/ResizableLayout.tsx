@@ -26,8 +26,6 @@ import { PortfolioPanel } from '../panels/PortfolioPanel'
 import { DeFiPanel } from '../panels/DeFiPanel'
 import { SentinelaPanel } from '../panels/SentinelaPanel'
 import { ChatPanel } from '../panels/ChatPanel'
-import { QuantPanel } from '../panels/QuantPanel'
-import { QuantumPanel } from '../panels/QuantumPanel'
 import { AdminPanel } from '../panels/AdminPanel'
 import { HelpView } from '../HelpView'
 
@@ -35,6 +33,17 @@ const Spinner = ({ label }: { label: string }) => (
   <div className="flex items-center justify-center h-full bg-[#0A0A0A] font-mono text-xs text-neutral-300">
     <span className="animate-pulse">A carregar {label}…</span>
   </div>
+)
+
+// V2 Panels — heavy (Plotly 3D), loaded dynamically
+const QuantPanelV2 = dynamic(
+  () => import('../panels/QuantPanelV2').then((m) => ({ default: m.QuantPanelV2 })),
+  { ssr: false, loading: () => <Spinner label="quant engine" /> },
+)
+
+const QuantumPanelV2 = dynamic(
+  () => import('../panels/QuantumPanelV2').then((m) => ({ default: m.QuantumPanelV2 })),
+  { ssr: false, loading: () => <Spinner label="quantum engine" /> },
 )
 
 // Componentes SSR-unsafe — carregam apenas no cliente
@@ -94,8 +103,8 @@ function PainelPrincipal() {
       case 'defi': return <DeFiPanel />
       case 'sentinela': return <SentinelaPanel />
       case 'chat': return <ChatPanel />
-      case 'quant': return <QuantPanel />
-      case 'quantum': return <QuantumPanel />
+      case 'quant': return <QuantPanelV2 />
+      case 'quantum': return <QuantumPanelV2 />
       case 'ajuda': return <HelpView />
       default: return <MarketOverviewPanel />
     }

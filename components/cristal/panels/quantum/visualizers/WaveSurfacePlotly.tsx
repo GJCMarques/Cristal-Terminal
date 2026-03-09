@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 
 // Next.js static rendering fails with Plotly, needs dynamic import avoiding SSR
-const Plot = dynamic(() => import('react-plotly.js'), { ssr: false })
+const Plot = dynamic(() => import('@/lib/plotly-wrapper'), { ssr: false })
 
 interface WaveSurfaceProps {
     distribution: { estado: string; prob: number; marcado?: boolean }[]

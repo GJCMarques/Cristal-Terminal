@@ -14,7 +14,7 @@ import { StatusBar } from './StatusBar'
 import { ContextMenu } from './ContextMenu'
 import { CommandPalette } from './CommandPalette'
 import { TradeTicket } from './TradeTicket'
-import { QuantumPanel } from './panels/QuantumPanel'
+import { QuantumPanelV2 } from './panels/QuantumPanelV2'
 import { QuantumHeader } from './panels/quantum/QuantumHeader'
 import { QuantumStatusBar } from './panels/quantum/QuantumStatusBar'
 import { Toaster, toast } from 'sonner'
@@ -366,7 +366,7 @@ export function CristalTerminal() {
           <div className="flex flex-col h-full w-full bg-[#050505]">
             <QuantumHeader />
             <div className="flex-1 overflow-hidden">
-              <QuantumPanel />
+              <QuantumPanelV2 />
             </div>
             <QuantumStatusBar />
           </div>

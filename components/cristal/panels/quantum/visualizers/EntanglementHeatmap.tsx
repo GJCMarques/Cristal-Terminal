@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 
-const Plot = dynamic(() => import('react-plotly.js'), { ssr: false })
+const Plot = dynamic(() => import('@/lib/plotly-wrapper'), { ssr: false })
 
 export function EntanglementHeatmap({ densityMatrix, labels, color = '#00e5ff' }: { densityMatrix: number[][], labels?: string[], color?: string }) {
     const [isClient, setIsClient] = useState(false)
