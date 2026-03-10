@@ -17,17 +17,44 @@ import {
   grover,
   vqeLiquidez,
 } from '@/lib/quantum/algorithms'
+import {
+  quantumFourierTransform,
+  quantumPhaseEstimation,
+} from '@/lib/quantum/quantum-fourier'
+import {
+  quantumSVM,
+  quantumNeuralNetwork,
+  quantumPCA,
+} from '@/lib/quantum/quantum-ml'
+import {
+  discreteQuantumWalk,
+} from '@/lib/quantum/quantum-walk'
+import {
+  simulatedQuantumAnnealing,
+} from '@/lib/quantum/quantum-annealing'
+import {
+  bitFlipCode,
+  shorCode,
+  surfaceCode,
+  qecComparison,
+} from '@/lib/quantum/quantum-error'
+import {
+  quantumDerivativePricing,
+  quantumRegimeDetection,
+  quantumCorrelation,
+} from '@/lib/quantum/quantum-finance'
 import dynamic from 'next/dynamic'
 import {
   Atom, Zap, TrendingUp, Shield, Layers, Play, Loader2,
-  Search, Activity, Cpu, BarChart3, CircleDot
+  Search, Activity, Cpu, BarChart3, CircleDot,
+  Waves, Brain, Footprints, Flame, ShieldCheck, Banknote, GitBranch, Sparkles, Network, Calculator
 } from 'lucide-react'
 
 const Plot = dynamic(() => import('@/lib/plotly-wrapper'), { ssr: false })
 
 // ── Types ───────────────────────────────────────────────────────
 
-type ToolId = 'bell' | 'qae' | 'qaoa' | 'grover' | 'vqe'
+type ToolId = 'bell' | 'qae' | 'qaoa' | 'grover' | 'vqe' | 'qft' | 'qpe' | 'qsvm' | 'qnn' | 'qwalk' | 'qanneal' | 'qec' | 'qfinance' | 'qcorr' | 'qpca'
 
 interface Tool {
   id: ToolId
@@ -43,6 +70,16 @@ const TOOLS: Tool[] = [
   { id: 'qaoa', titulo: 'QAOA Portfolio', sub: 'Quantum Optimization', icone: <TrendingUp size={12} />, categoria: 'PORTFOLIO' },
   { id: 'grover', titulo: 'Grover Search', sub: 'Anomaly Detection', icone: <Search size={12} />, categoria: 'RISK' },
   { id: 'vqe', titulo: 'VQE Eigensolver', sub: 'Variational Quantum', icone: <Layers size={12} />, categoria: 'ADVANCED' },
+  { id: 'qft', titulo: 'Quantum Fourier Transform', sub: 'QFT · Frequency Analysis', icone: <Waves size={12} />, categoria: 'FOUNDATIONS' },
+  { id: 'qpe', titulo: 'Phase Estimation', sub: 'QPE · Eigenvalue Finding', icone: <Calculator size={12} />, categoria: 'FOUNDATIONS' },
+  { id: 'qsvm', titulo: 'Quantum SVM', sub: 'Qiskit ML · Classification', icone: <Brain size={12} />, categoria: 'MACHINE LEARNING' },
+  { id: 'qnn', titulo: 'Quantum Neural Network', sub: 'PennyLane · Variational', icone: <Network size={12} />, categoria: 'MACHINE LEARNING' },
+  { id: 'qwalk', titulo: 'Quantum Walk', sub: 'DTQW · Ballistic Spread', icone: <Footprints size={12} />, categoria: 'ALGORITHMS' },
+  { id: 'qanneal', titulo: 'Quantum Annealing', sub: 'D-Wave · Optimization', icone: <Flame size={12} />, categoria: 'OPTIMIZATION' },
+  { id: 'qec', titulo: 'Error Correction', sub: 'Surface Code · Shor Code', icone: <ShieldCheck size={12} />, categoria: 'HARDWARE' },
+  { id: 'qfinance', titulo: 'Quantum Derivatives', sub: 'QAE · Option Pricing', icone: <Banknote size={12} />, categoria: 'FINANCE' },
+  { id: 'qcorr', titulo: 'Quantum Correlations', sub: 'Bell · Entanglement', icone: <GitBranch size={12} />, categoria: 'FINANCE' },
+  { id: 'qpca', titulo: 'Quantum PCA', sub: 'Dimensionality Reduction', icone: <Sparkles size={12} />, categoria: 'MACHINE LEARNING' },
 ]
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -168,6 +205,49 @@ export function QuantumPanelV2() {
   const [vqeHamiltonian, setVqeHamiltonian] = useState('ising')
   const [vqeLayers, setVqeLayers] = useState(3)
   const [vqeSteps, setVqeSteps] = useState(100)
+
+  // ── QFT params
+  const [qftQubits, setQftQubits] = useState(4)
+  const [qftInputState, setQftInputState] = useState(3)
+  // ── QPE params
+  const [qpeQubits, setQpeQubits] = useState(6)
+  const [qpeTruePhase, setQpeTruePhase] = useState(0.25)
+  // ── QSVM params
+  const [qsvmQubits, setQsvmQubits] = useState(4)
+  const [qsvmSamples, setQsvmSamples] = useState(40)
+  // ── QNN params
+  const [qnnLayers, setQnnLayers] = useState(4)
+  const [qnnEpochs, setQnnEpochs] = useState(80)
+  const [qnnLR, setQnnLR] = useState(0.1)
+  // ── QWalk params
+  const [qwalkSteps, setQwalkSteps] = useState(50)
+  const [qwalkPositions, setQwalkPositions] = useState(60)
+  const [qwalkCoinBias, setQwalkCoinBias] = useState(0.5)
+  // ── QAnneal params
+  const [qannealVars, setQannealVars] = useState(8)
+  const [qannealSteps, setQannealSteps] = useState(2000)
+  const [qannealTi, setQannealTi] = useState(2.0)
+  const [qannealTf, setQannealTf] = useState(0.01)
+  // ── QEC params
+  const [qecErrorRate, setQecErrorRate] = useState(0.05)
+  const [qecTrials, setQecTrials] = useState(5000)
+  const [qecCodeType, setQecCodeType] = useState('shor')
+  // ── QFinance params
+  const [qfinS, setQfinS] = useState(100)
+  const [qfinK, setQfinK] = useState(100)
+  const [qfinT, setQfinT] = useState(0.25)
+  const [qfinR, setQfinR] = useState(0.05)
+  const [qfinSigma, setQfinSigma] = useState(0.20)
+  const [qfinQubits, setQfinQubits] = useState(8)
+  // ── QCorr params
+  const [qcorrPoints, setQcorrPoints] = useState(200)
+  const [qcorrQubits, setQcorrQubits] = useState(6)
+  const [qcorrRegimes, setQcorrRegimes] = useState(3)
+  // ── QPCA params
+  const [qpcaSamples, setQpcaSamples] = useState(100)
+  const [qpcaFeatures, setQpcaFeatures] = useState(5)
+  const [qpcaComponents, setQpcaComponents] = useState(3)
+  const [qpcaQubits, setQpcaQubits] = useState(4)
 
   useEffect(() => { setIsClient(true) }, [])
 
@@ -298,6 +378,78 @@ export function QuantumPanelV2() {
             })
             break
           }
+          case 'qft': {
+            const nStates = Math.pow(2, qftQubits)
+            const inputIdx = qftInputState % nStates
+            const r = quantumFourierTransform(qftQubits, inputIdx)
+            setResults({ ...r, engine: 'TypeScript' })
+            break
+          }
+          case 'qpe': {
+            const r = quantumPhaseEstimation(qpeQubits, qpeTruePhase)
+            setResults({ ...r, engine: 'TypeScript' })
+            break
+          }
+          case 'qsvm': {
+            const trainingData: { x: number[]; y: number }[] = []
+            for (let i = 0; i < qsvmSamples; i++) {
+              const cls = i < qsvmSamples / 2 ? 1 : -1
+              trainingData.push({ x: [cls * (0.5 + Math.random()), cls * (0.3 + Math.random() * 0.7)], y: cls })
+            }
+            const r = quantumSVM(trainingData, [0.5, 0.5], qsvmQubits)
+            setResults({ ...r, trainingData, engine: 'TypeScript' })
+            break
+          }
+          case 'qnn': {
+            const r = quantumNeuralNetwork(qnnLayers, [0.5, -0.3, 0.8, 0.1], 0.7, qnnLR, qnnEpochs)
+            setResults({ ...r, engine: 'TypeScript' })
+            break
+          }
+          case 'qwalk': {
+            const r = discreteQuantumWalk(qwalkSteps, qwalkPositions, qwalkCoinBias)
+            setResults({ ...r, engine: 'TypeScript' })
+            break
+          }
+          case 'qanneal': {
+            const r = simulatedQuantumAnnealing(qannealVars, qannealSteps, qannealTi, qannealTf)
+            setResults({ ...r, engine: 'TypeScript' })
+            break
+          }
+          case 'qec': {
+            const comparison = qecComparison(qecErrorRate)
+            if (qecCodeType === 'shor') {
+              const r = shorCode(qecErrorRate, qecTrials)
+              setResults({ ...r, codeType: 'Shor [[9,1,3]]', comparison, engine: 'TypeScript' })
+            } else if (qecCodeType === 'surface') {
+              const r = surfaceCode(5, qecErrorRate)
+              setResults({ ...r, codeType: 'Surface d=5', comparison, engine: 'TypeScript' })
+            } else {
+              const r = bitFlipCode(qecErrorRate, qecTrials)
+              setResults({ ...r, codeType: 'Bit Flip [[3,1,1]]', comparison, engine: 'TypeScript' })
+            }
+            break
+          }
+          case 'qfinance': {
+            const r = quantumDerivativePricing(qfinS, qfinK, qfinT, qfinR, qfinSigma, qfinQubits, 'call')
+            setResults({ ...r, engine: 'TypeScript' })
+            break
+          }
+          case 'qcorr': {
+            const s1 = Array.from({ length: qcorrPoints }, () => (Math.random() - 0.5) * 0.04)
+            const s2 = s1.map(r => r * 0.7 + (Math.random() - 0.5) * 0.02)
+            const corrR = quantumCorrelation(s1, s2, qcorrQubits)
+            const regR = quantumRegimeDetection(s1, qcorrRegimes, qcorrQubits)
+            setResults({ ...corrR, ...regR, series1: s1, series2: s2, engine: 'TypeScript' })
+            break
+          }
+          case 'qpca': {
+            const data = Array.from({ length: qpcaSamples }, () =>
+              Array.from({ length: qpcaFeatures }, () => Math.random() * 2 - 1)
+            )
+            const r = quantumPCA(data, qpcaComponents, qpcaQubits)
+            setResults({ ...r, engine: 'TypeScript' })
+            break
+          }
         }
       } catch (e: any) {
         setError(e.message || 'Computation failed')
@@ -307,7 +459,15 @@ export function QuantumPanelV2() {
   }, [activeTool, bellShots, bellType, qaeS, qaeK, qaeT, qaeR, qaeSigma, qaeQubits, qaeType,
     qaoaReturns, qaoaVols, qaoaRf, qaoaLayers, qaoaSteps,
     groverQubits, groverTargets, groverShots,
-    vqeQubits, vqeHamiltonian, vqeLayers, vqeSteps])
+    vqeQubits, vqeHamiltonian, vqeLayers, vqeSteps,
+    qftQubits, qftInputState, qpeQubits, qpeTruePhase,
+    qsvmQubits, qsvmSamples, qnnLayers, qnnEpochs, qnnLR,
+    qwalkSteps, qwalkPositions, qwalkCoinBias,
+    qannealVars, qannealSteps, qannealTi, qannealTf,
+    qecErrorRate, qecTrials, qecCodeType,
+    qfinS, qfinK, qfinT, qfinR, qfinSigma, qfinQubits,
+    qcorrPoints, qcorrQubits, qcorrRegimes,
+    qpcaSamples, qpcaFeatures, qpcaComponents, qpcaQubits])
 
   // ── Render parameter panels
   const renderParams = () => {
@@ -379,6 +539,93 @@ export function QuantumPanelV2() {
             <InputField label="Optimization Steps" value={vqeSteps} onChange={setVqeSteps} min={20} max={500} step={10} />
           </div>
         )
+      case 'qft':
+        return (
+          <div className="space-y-3">
+            <InputField label="Qubits (n)" value={qftQubits} onChange={setQftQubits} min={2} max={8} step={1} />
+            <InputField label="Input State |x>" value={qftInputState} onChange={setQftInputState} min={0} max={Math.pow(2, qftQubits) - 1} step={1} />
+          </div>
+        )
+      case 'qpe':
+        return (
+          <div className="space-y-3">
+            <InputField label="Precision Qubits" value={qpeQubits} onChange={setQpeQubits} min={3} max={12} step={1} />
+            <InputField label="True Phase (theta)" value={qpeTruePhase} onChange={setQpeTruePhase} type="range" min={0} max={1} step={0.01} />
+          </div>
+        )
+      case 'qsvm':
+        return (
+          <div className="space-y-3">
+            <InputField label="Feature Map Qubits" value={qsvmQubits} onChange={setQsvmQubits} min={2} max={8} step={1} />
+            <InputField label="Training Samples" value={qsvmSamples} onChange={setQsvmSamples} min={10} max={200} step={10} />
+          </div>
+        )
+      case 'qnn':
+        return (
+          <div className="space-y-3">
+            <InputField label="Variational Layers" value={qnnLayers} onChange={setQnnLayers} min={1} max={10} step={1} />
+            <InputField label="Training Epochs" value={qnnEpochs} onChange={setQnnEpochs} min={10} max={300} step={10} />
+            <InputField label="Learning Rate" value={qnnLR} onChange={setQnnLR} type="range" min={0.001} max={0.5} step={0.005} />
+          </div>
+        )
+      case 'qwalk':
+        return (
+          <div className="space-y-3">
+            <InputField label="Steps" value={qwalkSteps} onChange={setQwalkSteps} min={10} max={200} step={5} />
+            <InputField label="Position Range" value={qwalkPositions} onChange={setQwalkPositions} min={20} max={200} step={10} />
+            <InputField label="Coin Bias" value={qwalkCoinBias} onChange={setQwalkCoinBias} type="range" min={0.1} max={0.9} step={0.05} />
+          </div>
+        )
+      case 'qanneal':
+        return (
+          <div className="space-y-3">
+            <InputField label="Variables (n)" value={qannealVars} onChange={setQannealVars} min={3} max={20} step={1} />
+            <InputField label="Annealing Steps" value={qannealSteps} onChange={setQannealSteps} min={500} max={10000} step={500} />
+            <InputField label="T Initial" value={qannealTi} onChange={setQannealTi} type="range" min={0.5} max={5.0} step={0.1} />
+            <InputField label="T Final" value={qannealTf} onChange={setQannealTf} type="range" min={0.001} max={0.1} step={0.001} />
+          </div>
+        )
+      case 'qec':
+        return (
+          <div className="space-y-3">
+            <InputField label="Physical Error Rate" value={qecErrorRate} onChange={setQecErrorRate} type="range" min={0.001} max={0.2} step={0.001} />
+            <InputField label="Trials" value={qecTrials} onChange={setQecTrials} min={500} max={20000} step={500} />
+            <InputField label="QEC Code" value={qecCodeType} onChange={setQecCodeType}
+              options={[
+                { value: 'shor', label: 'Shor [[9,1,3]]' },
+                { value: 'surface', label: 'Surface Code d=5' },
+                { value: 'bitflip', label: 'Bit Flip [[3,1,1]]' },
+              ]} />
+          </div>
+        )
+      case 'qfinance':
+        return (
+          <div className="space-y-3">
+            <InputField label="Spot Price (S)" value={qfinS} onChange={setQfinS} min={10} max={500} step={1} />
+            <InputField label="Strike (K)" value={qfinK} onChange={setQfinK} min={10} max={500} step={1} />
+            <InputField label="Maturity (T)" value={qfinT} onChange={setQfinT} min={0.01} max={5} step={0.01} />
+            <InputField label="Rate (r)" value={qfinR} onChange={setQfinR} type="range" min={0} max={0.15} step={0.005} />
+            <InputField label="Vol (sigma)" value={qfinSigma} onChange={setQfinSigma} type="range" min={0.05} max={1.0} step={0.01} />
+            <InputField label="Qubits" value={qfinQubits} onChange={setQfinQubits} min={4} max={12} step={1} />
+          </div>
+        )
+      case 'qcorr':
+        return (
+          <div className="space-y-3">
+            <InputField label="Data Points" value={qcorrPoints} onChange={setQcorrPoints} min={50} max={500} step={50} />
+            <InputField label="Qubits" value={qcorrQubits} onChange={setQcorrQubits} min={3} max={10} step={1} />
+            <InputField label="Regimes" value={qcorrRegimes} onChange={setQcorrRegimes} min={2} max={5} step={1} />
+          </div>
+        )
+      case 'qpca':
+        return (
+          <div className="space-y-3">
+            <InputField label="Samples" value={qpcaSamples} onChange={setQpcaSamples} min={20} max={500} step={20} />
+            <InputField label="Features" value={qpcaFeatures} onChange={setQpcaFeatures} min={2} max={10} step={1} />
+            <InputField label="Components" value={qpcaComponents} onChange={setQpcaComponents} min={1} max={qpcaFeatures} step={1} />
+            <InputField label="Qubits" value={qpcaQubits} onChange={setQpcaQubits} min={2} max={8} step={1} />
+          </div>
+        )
     }
   }
 
@@ -423,6 +670,16 @@ export function QuantumPanelV2() {
       case 'qaoa': return renderQAOAResults()
       case 'grover': return renderGroverResults()
       case 'vqe': return renderVQEResults()
+      case 'qft': return renderQFTResults()
+      case 'qpe': return renderQPEResults()
+      case 'qsvm': return renderQSVMResults()
+      case 'qnn': return renderQNNResults()
+      case 'qwalk': return renderQWalkResults()
+      case 'qanneal': return renderQAnnealResults()
+      case 'qec': return renderQECResults()
+      case 'qfinance': return renderQFinanceResults()
+      case 'qcorr': return renderQCorrResults()
+      case 'qpca': return renderQPCAResults()
     }
   }
 
@@ -1102,6 +1359,629 @@ export function QuantumPanelV2() {
     )
   }
 
+  // ── QFT RESULTS ─────────────────────────────────────────────
+
+  const renderQFTResults = () => {
+    const r = results
+    if (!r) return null
+    const amps = r.amplitudes || []
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-4 gap-3">
+          <MetricBox label="Qubits" valor={String(r.nQubits)} sub="Register Size" corTema={corTema} />
+          <MetricBox label="Circuit Depth" valor={String(r.circuitDepth)} sub="Gate Layers" corTema={corTema} />
+          <MetricBox label="States" valor={String(amps.length)} sub={`2^${r.nQubits}`} corTema={corTema} />
+          <MetricBox label="Engine" valor={r.engine?.toUpperCase()} sub="Qiskit Compatible" corTema={corTema} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormulaBlock label="Quantum Fourier Transform" tex="\\text{QFT}|x\\rangle = \\frac{1}{\\sqrt{N}} \\sum_{k=0}^{N-1} e^{2\\pi i xk/N} |k\\rangle" />
+          <FormulaBlock label="Phase Kickback" tex="\\omega_N = e^{2\\pi i/N}, \\quad F_{jk} = \\frac{\\omega_N^{jk}}{\\sqrt{N}}" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <SectionTitle title="AMPLITUDE DISTRIBUTION" corTema={corTema} />
+            {isClient && amps.length > 0 && (
+              <Plot data={[{
+                x: amps.map((a: any) => `|${a.state}>`),
+                y: amps.map((a: any) => a.amplitude),
+                type: 'bar',
+                marker: { color: amps.map((a: any) => a.phase), colorscale: PLASMA, showscale: true, colorbar: { title: { text: 'Phase', font: { size: 8 } }, tickfont: { size: 7 }, len: 0.5 } },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, tickangle: -45 } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+          <div>
+            <SectionTitle title="PHASE SPECTRUM" corTema={corTema} />
+            {isClient && r.phases && (
+              <Plot data={[{
+                r: r.phases.map((_: any, i: number) => 1),
+                theta: r.phases.map((p: number) => p * 180 / Math.PI),
+                type: 'scatterpolar', mode: 'markers+lines',
+                marker: { color: CHART_CYAN, size: 6 },
+                line: { color: CHART_CYAN },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, polar: { bgcolor: '#080808', angularaxis: { color: '#888', tickfont: { size: 8 } }, radialaxis: { color: '#888', tickfont: { size: 8 } } } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+        </div>
+        {isClient && amps.length > 3 && (
+          <div>
+            <SectionTitle title="QFT AMPLITUDE SURFACE 3D" corTema={corTema} />
+            <Plot data={[{
+              z: (() => { const n = Math.ceil(Math.sqrt(amps.length)); return Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => { const idx = i * n + j; return idx < amps.length ? amps[idx].amplitude : 0 })) })(),
+              type: 'surface', colorscale: VIRIDIS, showscale: false,
+            }]}
+            layout={{ ...PLOTLY_LAYOUT_BASE, height: 450, scene: { ...PLOTLY_3D_SCENE, camera: { eye: { x: 1.5, y: 1.5, z: 1.0 } } }, margin: { l: 0, r: 0, t: 10, b: 0 } } as any}
+            config={{ displayModeBar: false }} style={{ width: '100%', height: 450 }} />
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── QPE RESULTS ────────────────────────────────────────────
+
+  const renderQPEResults = () => {
+    const r = results
+    if (!r) return null
+    const dist = r.distribution || []
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-5 gap-3">
+          <MetricBox label="Estimated Phase" valor={r.estimatedPhase?.toFixed(6)} sub="theta_hat" corTema={corTema} />
+          <MetricBox label="True Phase" valor={r.truePhase?.toFixed(6)} sub="theta" corTema={corTema} />
+          <MetricBox label="Error" valor={r.error?.toExponential(2)} sub="|theta - theta_hat|" corTema={corTema} />
+          <MetricBox label="Qubits" valor={String(r.nQubits)} sub="Precision Bits" corTema={corTema} />
+          <MetricBox label="Engine" valor={r.engine?.toUpperCase()} sub="PennyLane" corTema={corTema} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormulaBlock label="Phase Estimation" tex="|\\tilde{\\theta}\\rangle = \\text{QFT}^{-1} \\sum_{k=0}^{2^n-1} e^{2\\pi i k\\theta} |k\\rangle" />
+          <FormulaBlock label="Precision Bound" tex="P(|\\tilde{\\theta}-\\theta| \\leq 2^{-n}) \\geq 1 - \\frac{1}{2(2^n-2)}" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <SectionTitle title="PHASE DISTRIBUTION" corTema={corTema} />
+            {isClient && dist.length > 0 && (
+              <Plot data={[{
+                x: dist.map((d: any) => d.phase?.toFixed(4)),
+                y: dist.map((d: any) => d.probability),
+                type: 'bar',
+                marker: { color: CHART_BLUE, opacity: 0.8 },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Phase', font: { size: 8 } }, tickangle: -45 } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+          <div>
+            <SectionTitle title="CONVERGENCE vs QUBITS" corTema={corTema} />
+            {isClient && r.convergence && (
+              <Plot data={[{
+                x: r.convergence.map((c: any) => c.nQubits),
+                y: r.convergence.map((c: any) => c.error),
+                type: 'scatter', mode: 'lines+markers',
+                line: { color: CHART_GREEN, width: 2 },
+                marker: { color: CHART_GREEN, size: 5 },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, type: 'log', title: { text: 'Error', font: { size: 8 } } }, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Precision Qubits', font: { size: 8 } } } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── QSVM RESULTS ───────────────────────────────────────────
+
+  const renderQSVMResults = () => {
+    const r = results
+    if (!r) return null
+    const boundary = r.decisionBoundary || []
+    const training = r.trainingData || []
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-4 gap-3">
+          <MetricBox label="Prediction" valor={r.prediction > 0 ? 'CLASS +1' : 'CLASS -1'} sub="Test Point" corTema={corTema} />
+          <MetricBox label="Confidence" valor={`${r.confidence?.toFixed(1)}%`} sub="Kernel Margin" corTema={corTema} />
+          <MetricBox label="Support Vectors" valor={String(r.supportVectors?.length || 0)} sub="Critical Points" corTema={corTema} />
+          <MetricBox label="Circuit Depth" valor={String(r.circuitDepth)} sub="Qiskit Feature Map" corTema={corTema} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormulaBlock label="Quantum Kernel" tex="K_Q(x,y) = |\\langle\\phi(x)|\\phi(y)\\rangle|^2 = |\\langle 0|U^\\dagger(x)U(y)|0\\rangle|^2" />
+          <FormulaBlock label="Feature Map" tex="U(x) = \\prod_{i} e^{-ix_i Z_i/2} \\prod_{i<j} e^{-i(\\pi-x_i)(\\pi-x_j)Z_iZ_j}" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <SectionTitle title="DECISION BOUNDARY 3D" corTema={corTema} />
+            {isClient && boundary.length > 0 && (() => {
+              const xs = [...new Set(boundary.map((b: any) => b.x))].sort((a: any, b: any) => a - b)
+              const ys = [...new Set(boundary.map((b: any) => b.y))].sort((a: any, b: any) => a - b)
+              const zGrid = ys.map((y: any) => xs.map((x: any) => {
+                const pt = boundary.find((b: any) => b.x === x && b.y === y)
+                return pt ? pt.value : 0
+              }))
+              return (
+                <Plot data={[
+                  { z: zGrid, x: xs, y: ys, type: 'surface', colorscale: PLASMA, showscale: false, opacity: 0.7 },
+                  {
+                    x: training.filter((t: any) => t.y > 0).map((t: any) => t.x[0]),
+                    y: training.filter((t: any) => t.y > 0).map((t: any) => t.x[1]),
+                    z: training.filter((t: any) => t.y > 0).map(() => 0.5),
+                    type: 'scatter3d', mode: 'markers',
+                    marker: { color: CHART_BLUE, size: 3 }, name: 'Class +1',
+                  },
+                  {
+                    x: training.filter((t: any) => t.y < 0).map((t: any) => t.x[0]),
+                    y: training.filter((t: any) => t.y < 0).map((t: any) => t.x[1]),
+                    z: training.filter((t: any) => t.y < 0).map(() => -0.5),
+                    type: 'scatter3d', mode: 'markers',
+                    marker: { color: CHART_RED, size: 3 }, name: 'Class -1',
+                  },
+                ]}
+                layout={{ ...PLOTLY_LAYOUT_BASE, height: 450, scene: { ...PLOTLY_3D_SCENE, camera: { eye: { x: 1.5, y: 1.5, z: 1.0 } } }, margin: { l: 0, r: 0, t: 10, b: 0 } } as any}
+                config={{ displayModeBar: false }} style={{ width: '100%', height: 450 }} />
+              )
+            })()}
+          </div>
+          <div>
+            <SectionTitle title="QUANTUM KERNEL MATRIX" corTema={corTema} />
+            {isClient && r.kernelMatrix && (
+              <Plot data={[{
+                z: r.kernelMatrix.slice(0, 20).map((row: number[]) => row.slice(0, 20)),
+                type: 'heatmap', colorscale: VIRIDIS,
+                showscale: true, colorbar: { tickfont: { size: 7 }, len: 0.5 },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 450 } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 450 }} />
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── QNN RESULTS ────────────────────────────────────────────
+
+  const renderQNNResults = () => {
+    const r = results
+    if (!r) return null
+    const conv = r.convergence || []
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-5 gap-3">
+          <MetricBox label="Prediction" valor={r.prediction?.toFixed(4)} sub="Output" corTema={corTema} />
+          <MetricBox label="Final Loss" valor={r.loss?.toFixed(6)} sub="MSE" corTema={corTema} />
+          <MetricBox label="Parameters" valor={String(r.parameters?.length || 0)} sub="Trainable" corTema={corTema} />
+          <MetricBox label="Circuit Depth" valor={String(r.circuitDepth)} sub="Layers" corTema={corTema} />
+          <MetricBox label="Engine" valor={r.engine?.toUpperCase()} sub="PennyLane" corTema={corTema} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormulaBlock label="Variational Circuit" tex="|\\psi(\\theta)\\rangle = \\prod_{l=1}^{L} U_l(\\theta_l) |0\\rangle^{\\otimes n}" />
+          <FormulaBlock label="Parameter Shift Rule" tex="\\frac{\\partial f}{\\partial \\theta_i} = \\frac{f(\\theta_i + \\pi/2) - f(\\theta_i - \\pi/2)}{2}" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <SectionTitle title="LOSS CONVERGENCE" corTema={corTema} />
+            {isClient && conv.length > 0 && (
+              <Plot data={[{
+                x: conv.map((c: any) => c.epoch),
+                y: conv.map((c: any) => c.loss),
+                type: 'scatter', mode: 'lines',
+                line: { color: CHART_RED, width: 2 },
+                fill: 'tozeroy', fillcolor: CHART_RED + '11',
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Loss', font: { size: 8 } } }, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Epoch', font: { size: 8 } } } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+          <div>
+            <SectionTitle title="ACCURACY CONVERGENCE" corTema={corTema} />
+            {isClient && conv.length > 0 && (
+              <Plot data={[{
+                x: conv.map((c: any) => c.epoch),
+                y: conv.map((c: any) => c.accuracy),
+                type: 'scatter', mode: 'lines',
+                line: { color: CHART_GREEN, width: 2 },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Accuracy', font: { size: 8 } } }, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Epoch', font: { size: 8 } } } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+        </div>
+        {r.gradients && (
+          <div>
+            <SectionTitle title="GRADIENT MAGNITUDES" corTema={corTema} />
+            {isClient && (
+              <Plot data={[{
+                x: r.gradients.map((_: any, i: number) => `theta_${i}`),
+                y: r.gradients.map((g: number) => Math.abs(g)),
+                type: 'bar',
+                marker: { color: CHART_AMBER, opacity: 0.8 },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 350, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, tickangle: -45 } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 350 }} />
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── QWALK RESULTS ──────────────────────────────────────────
+
+  const renderQWalkResults = () => {
+    const r = results
+    if (!r) return null
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-4 gap-3">
+          <MetricBox label="Quantum Variance" valor={r.variance?.toFixed(2)} sub="sigma^2(quantum)" corTema={corTema} />
+          <MetricBox label="Classical Variance" valor={r.classicalVariance?.toFixed(2)} sub="sigma^2(classical)" corTema={corTema} />
+          <MetricBox label="Spread Ratio" valor={`${r.spreadRatio?.toFixed(2)}x`} sub="Quantum Speedup" corTema={corTema} />
+          <MetricBox label="Engine" valor={r.engine?.toUpperCase()} sub="Qiskit Walk" corTema={corTema} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormulaBlock label="Quantum Walk Evolution" tex="|\\psi(t+1)\\rangle = S \\cdot (C \\otimes I) |\\psi(t)\\rangle" />
+          <FormulaBlock label="Ballistic Spread" tex="\\sigma_Q \\propto t \\quad \\text{vs} \\quad \\sigma_C \\propto \\sqrt{t}" />
+        </div>
+        <div>
+          <SectionTitle title="QUANTUM vs CLASSICAL PROBABILITY" corTema={corTema} />
+          {isClient && r.positions && (
+            <Plot data={[
+              { x: r.positions, y: r.probabilities, type: 'scatter', mode: 'lines', line: { color: CHART_CYAN, width: 2 }, name: 'Quantum Walk', fill: 'tozeroy', fillcolor: CHART_CYAN + '11' },
+              { x: r.positions, y: r.classicalProbabilities, type: 'scatter', mode: 'lines', line: { color: CHART_RED, width: 2, dash: 'dash' }, name: 'Classical Walk' },
+            ]}
+            layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, showlegend: true, legend: { font: { size: 8, color: '#666' }, bgcolor: 'transparent' }, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Position', font: { size: 8 } } }, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Probability', font: { size: 8 } } } } as any}
+            config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+          )}
+        </div>
+        {r.steps && r.steps.length > 2 && (
+          <div>
+            <SectionTitle title="WALK EVOLUTION 3D" corTema={corTema} />
+            {isClient && (
+              <Plot data={[{
+                z: r.steps.map((s: any) => s.distribution),
+                type: 'surface', colorscale: VIRIDIS, showscale: false,
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 450, scene: { ...PLOTLY_3D_SCENE, xaxis: { ...PLOTLY_3D_SCENE.xaxis, title: 'Position' }, yaxis: { ...PLOTLY_3D_SCENE.yaxis, title: 'Time Step' }, zaxis: { ...PLOTLY_3D_SCENE.zaxis, title: 'Probability' }, camera: { eye: { x: 1.8, y: 1.2, z: 1.0 } } }, margin: { l: 0, r: 0, t: 10, b: 0 } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 450 }} />
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── QANNEAL RESULTS ────────────────────────────────────────
+
+  const renderQAnnealResults = () => {
+    const r = results
+    if (!r) return null
+    const conv = r.convergence || []
+    const landscape = r.energyLandscape || []
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-4 gap-3">
+          <MetricBox label="Optimal Cost" valor={r.optimalCost?.toFixed(4)} sub="Quantum Annealing" corTema={corTema} />
+          <MetricBox label="Classical Cost" valor={r.classicalComparison?.cost?.toFixed(4)} sub="SA Comparison" corTema={corTema} />
+          <MetricBox label="Improvement" valor={`${r.optimalCost < r.classicalComparison?.cost ? ((1 - r.optimalCost / r.classicalComparison.cost) * 100).toFixed(1) : '0.0'}%`} sub="QA vs SA" corTema={corTema} />
+          <MetricBox label="Engine" valor={r.engine?.toUpperCase()} sub="D-Wave Compatible" corTema={corTema} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormulaBlock label="Annealing Schedule" tex="H(s) = (1-s) H_{\\text{driver}} + s H_{\\text{problem}}" />
+          <FormulaBlock label="Transverse Field" tex="H_{\\text{driver}} = -\\Gamma(t) \\sum_i \\sigma_i^x, \\quad \\Gamma(t) \\to 0" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <SectionTitle title="ANNEALING CONVERGENCE" corTema={corTema} />
+            {isClient && conv.length > 0 && (
+              <Plot data={[
+                { x: conv.map((c: any) => c.step), y: conv.map((c: any) => c.cost), type: 'scatter', mode: 'lines', line: { color: CHART_BLUE, width: 2 }, name: 'Cost', yaxis: 'y' },
+                { x: conv.map((c: any) => c.step), y: conv.map((c: any) => c.temperature), type: 'scatter', mode: 'lines', line: { color: CHART_RED, width: 1, dash: 'dot' }, name: 'Temperature', yaxis: 'y2' },
+              ]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, showlegend: true, legend: { font: { size: 8, color: '#666' }, bgcolor: 'transparent' }, yaxis2: { overlaying: 'y', side: 'right', gridcolor: 'transparent', tickfont: { size: 8, color: '#888' } } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+          <div>
+            <SectionTitle title="ENERGY LANDSCAPE" corTema={corTema} />
+            {isClient && landscape.length > 0 && (
+              <Plot data={[{
+                x: landscape.map((l: any) => l.x),
+                y: landscape.map((l: any) => l.energy),
+                type: 'scatter', mode: 'lines',
+                line: { color: CHART_AMBER, width: 2 },
+                fill: 'tozeroy', fillcolor: CHART_AMBER + '11',
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Configuration', font: { size: 8 } } }, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Energy', font: { size: 8 } } } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+        </div>
+        {r.optimalSolution && (
+          <div>
+            <SectionTitle title="OPTIMAL SOLUTION (Binary)" corTema={corTema} />
+            {isClient && (
+              <Plot data={[{
+                x: r.optimalSolution.map((_: any, i: number) => `x_${i}`),
+                y: r.optimalSolution,
+                type: 'bar',
+                marker: { color: r.optimalSolution.map((v: number) => v === 1 ? CHART_GREEN : '#333') },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 280, bargap: 0.3 } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 280 }} />
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── QEC RESULTS ────────────────────────────────────────────
+
+  const renderQECResults = () => {
+    const r = results
+    if (!r) return null
+    const comparison = r.comparison?.codes || []
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-4 gap-3">
+          <MetricBox label="Code" valor={r.codeType || '-'} sub="QEC Protocol" corTema={corTema} />
+          <MetricBox label="Physical Rate" valor={(r.physicalErrorRate ?? r.uncorrectedErrorRate)?.toExponential(2)} sub="p_phys" corTema={corTema} />
+          <MetricBox label="Logical Rate" valor={(r.logicalErrorRate ?? r.correctedErrorRate)?.toExponential(2)} sub="p_logical" corTema={corTema} />
+          <MetricBox label="Improvement" valor={`${(r.improvement ?? ((1 - (r.logicalErrorRate || 0) / (r.physicalErrorRate || 1)) * 100))?.toFixed(1)}%`} sub="Error Suppression" corTema={corTema} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormulaBlock label="Logical Qubit" tex="|\\psi_L\\rangle = \\alpha|0_L\\rangle + \\beta|1_L\\rangle" />
+          <FormulaBlock label="Surface Code Threshold" tex="p_L \\approx \\left(\\frac{p}{p_{\\text{th}}}\\right)^{\\lceil d/2 \\rceil}, \\quad p_{\\text{th}} \\approx 1\\%" />
+        </div>
+        {comparison.length > 0 && (
+          <div>
+            <SectionTitle title="QEC CODE COMPARISON" corTema={corTema} />
+            {isClient && (
+              <Plot data={[
+                { x: comparison.map((c: any) => c.name), y: comparison.map((c: any) => c.logicalRate), type: 'bar', name: 'Logical Error Rate', marker: { color: CHART_BLUE, opacity: 0.8 } },
+                { x: comparison.map((c: any) => c.name), y: comparison.map(() => r.physicalErrorRate || qecErrorRate), type: 'scatter', mode: 'lines', name: 'Physical Rate', line: { color: CHART_RED, dash: 'dash' } },
+              ]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, showlegend: true, legend: { font: { size: 8, color: '#666' }, bgcolor: 'transparent' }, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, type: 'log', title: { text: 'Error Rate', font: { size: 8 } } }, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, tickangle: -30 } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+        )}
+        {r.distanceScaling && (
+          <div>
+            <SectionTitle title="SURFACE CODE SCALING" corTema={corTema} />
+            {isClient && (
+              <Plot data={[{
+                x: r.distanceScaling.map((d: any) => d.distance),
+                y: r.distanceScaling.map((d: any) => d.logicalRate),
+                type: 'scatter', mode: 'lines+markers',
+                line: { color: CHART_GREEN, width: 2 },
+                marker: { color: CHART_GREEN, size: 5 },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 350, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, type: 'log', title: { text: 'Logical Error Rate', font: { size: 8 } } }, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Code Distance', font: { size: 8 } } } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 350 }} />
+            )}
+          </div>
+        )}
+        {(r.syndromeDistribution || r.errorTypes) && (
+          <div>
+            <SectionTitle title={r.syndromeDistribution ? 'SYNDROME DISTRIBUTION' : 'ERROR TYPE DISTRIBUTION'} corTema={corTema} />
+            {isClient && (
+              <Plot data={[{
+                x: (r.syndromeDistribution || r.errorTypes).map((s: any) => s.syndrome || s.type),
+                y: (r.syndromeDistribution || r.errorTypes).map((s: any) => s.count),
+                type: 'bar',
+                marker: { color: CHART_CYAN, opacity: 0.8 },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 350, bargap: 0.3 } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 350 }} />
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── QFINANCE RESULTS ───────────────────────────────────────
+
+  const renderQFinanceResults = () => {
+    const r = results
+    if (!r) return null
+    const conv = r.convergence || []
+    const amps = r.amplitudeDistribution || []
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-5 gap-3">
+          <MetricBox label="Quantum Price" valor={`$${r.quantumPrice?.toFixed(4)}`} sub="QAE Estimate" corTema={corTema} />
+          <MetricBox label="Classical Price" valor={`$${r.classicalPrice?.toFixed(4)}`} sub="Black-Scholes" corTema={corTema} />
+          <MetricBox label="Confidence" valor={`${r.confidence?.toFixed(1)}%`} sub="Quantum CI" corTema={corTema} />
+          <MetricBox label="Delta" valor={r.greeks?.delta?.toFixed(4)} sub={`Gamma: ${r.greeks?.gamma?.toFixed(4)}`} corTema={corTema} />
+          <MetricBox label="Engine" valor={r.engine?.toUpperCase()} sub="QuantLib QAE" corTema={corTema} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormulaBlock label="Quantum Amplitude Estimation" tex="\\tilde{V} = \\sin^2(\\pi\\tilde{a}) \\cdot V_{\\max}, \\quad \\epsilon = O(2^{-n})" />
+          <FormulaBlock label="Quadratic Speedup" tex="\\text{QAE: } O(1/\\epsilon) \\quad \\text{vs MC: } O(1/\\epsilon^2)" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <SectionTitle title="PRICE CONVERGENCE" corTema={corTema} />
+            {isClient && conv.length > 0 && (
+              <Plot data={[
+                { x: conv.map((c: any) => c.step), y: conv.map((c: any) => c.estimate), type: 'scatter', mode: 'lines+markers', line: { color: CHART_BLUE, width: 2 }, marker: { size: 4 }, name: 'QAE Estimate' },
+                { x: [conv[0]?.step, conv[conv.length - 1]?.step], y: [r.classicalPrice, r.classicalPrice], type: 'scatter', mode: 'lines', line: { color: CHART_RED, dash: 'dash' }, name: 'BS Price' },
+              ]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, showlegend: true, legend: { font: { size: 8, color: '#666' }, bgcolor: 'transparent' }, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Price', font: { size: 8 } } } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+          <div>
+            <SectionTitle title="AMPLITUDE DISTRIBUTION" corTema={corTema} />
+            {isClient && amps.length > 0 && (
+              <Plot data={[{
+                x: amps.map((a: any) => a.state),
+                y: amps.map((a: any) => a.amplitude),
+                type: 'bar',
+                marker: { color: amps.map((a: any) => a.amplitude), colorscale: VIRIDIS, showscale: false },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Quantum State', font: { size: 8 } } }, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Amplitude', font: { size: 8 } } } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+        </div>
+        {r.greeks && (
+          <div>
+            <SectionTitle title="GREEKS" corTema={corTema} />
+            {isClient && (
+              <Plot data={[{
+                x: ['Delta', 'Gamma', 'Vega'],
+                y: [r.greeks.delta, r.greeks.gamma, r.greeks.vega],
+                type: 'bar',
+                marker: { color: [CHART_BLUE, CHART_GREEN, CHART_AMBER] },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 300, bargap: 0.4 } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 300 }} />
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── QCORR RESULTS ──────────────────────────────────────────
+
+  const renderQCorrResults = () => {
+    const r = results
+    if (!r) return null
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-5 gap-3">
+          <MetricBox label="Quantum Corr" valor={r.quantumCorrelation?.toFixed(4)} sub="Enhanced" corTema={corTema} />
+          <MetricBox label="Classical Corr" valor={r.classicalCorrelation?.toFixed(4)} sub="Pearson" corTema={corTema} />
+          <MetricBox label="Bell Parameter" valor={r.bellParameter?.toFixed(3)} sub={r.bellParameter > 2 ? 'VIOLATES CHSH!' : 'Classical'} corTema={corTema} />
+          <MetricBox label="Mutual Info" valor={r.mutualInformation?.toFixed(4)} sub={`Q: ${r.quantumMutualInfo?.toFixed(4)}`} corTema={corTema} />
+          <MetricBox label="Current Regime" valor={String(r.currentRegime)} sub={`of ${r.regimeReturns?.length}`} corTema={corTema} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormulaBlock label="CHSH Bell Inequality" tex="S = |E(a,b) - E(a,b')| + |E(a',b) + E(a',b')| \\leq 2\\sqrt{2}" />
+          <FormulaBlock label="Quantum Mutual Info" tex="I_Q(A:B) = S(\\rho_A) + S(\\rho_B) - S(\\rho_{AB})" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <SectionTitle title="RETURN SERIES (Quantum Correlated)" corTema={corTema} />
+            {isClient && r.series1 && (
+              <Plot data={[
+                { y: r.series1.slice(0, 100), type: 'scatter', mode: 'lines', line: { color: CHART_BLUE, width: 1 }, name: 'Series 1' },
+                { y: r.series2.slice(0, 100), type: 'scatter', mode: 'lines', line: { color: CHART_RED, width: 1 }, name: 'Series 2' },
+              ]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, showlegend: true, legend: { font: { size: 8, color: '#666' }, bgcolor: 'transparent' } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+          <div>
+            <SectionTitle title="REGIME DETECTION" corTema={corTema} />
+            {isClient && r.regimes && (
+              <Plot data={[{
+                y: r.series1 || [],
+                type: 'scatter', mode: 'markers',
+                marker: { color: r.regimes, colorscale: PLASMA, size: 4, showscale: true, colorbar: { title: { text: 'Regime', font: { size: 8 } }, tickfont: { size: 7 }, len: 0.5 } },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Time', font: { size: 8 } } }, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Return', font: { size: 8 } } } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+        </div>
+        {r.transitions && (
+          <div>
+            <SectionTitle title="REGIME TRANSITION MATRIX" corTema={corTema} />
+            {isClient && (
+              <Plot data={[{
+                z: r.transitions,
+                type: 'heatmap', colorscale: VIRIDIS,
+                showscale: true, colorbar: { tickfont: { size: 7 }, len: 0.5 },
+                text: r.transitions.map((row: number[]) => row.map((v: number) => v.toFixed(2))),
+                texttemplate: '%{text}', textfont: { size: 8 },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 350, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'To Regime', font: { size: 8 } } }, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'From Regime', font: { size: 8 } } } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 350 }} />
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── QPCA RESULTS ───────────────────────────────────────────
+
+  const renderQPCAResults = () => {
+    const r = results
+    if (!r) return null
+    const ev = r.eigenvalues || []
+    const expl = r.explainedVariance || []
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-4 gap-3">
+          <MetricBox label="Top Eigenvalue" valor={ev[0]?.toFixed(4) || '-'} sub="Lambda_1" corTema={corTema} />
+          <MetricBox label="Explained Var" valor={`${(expl[0] * 100)?.toFixed(1)}%`} sub="PC1" corTema={corTema} />
+          <MetricBox label="Components" valor={String(ev.length)} sub={`of ${qpcaFeatures}`} corTema={corTema} />
+          <MetricBox label="Speedup" valor={r.quantumSpeedup?.split(':')[0] || '-'} sub="O(log N)" corTema={corTema} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormulaBlock label="Quantum PCA" tex="\\rho = \\sum_i \\lambda_i |v_i\\rangle\\langle v_i|, \\quad \\text{QPE} \\to \\lambda_i" />
+          <FormulaBlock label="Exponential Speedup" tex="\\text{QPCA: } O(\\log N) \\quad \\text{vs Classical: } O(N^2)" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <SectionTitle title="SCREE PLOT (Eigenvalues)" corTema={corTema} />
+            {isClient && ev.length > 0 && (
+              <Plot data={[{
+                x: ev.map((_: any, i: number) => `PC${i + 1}`),
+                y: ev,
+                type: 'bar',
+                marker: { color: ev.map((_: any, i: number) => [CHART_BLUE, CHART_GREEN, CHART_AMBER, CHART_RED, CHART_CYAN][i % 5]) },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Eigenvalue', font: { size: 8 } } } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+          <div>
+            <SectionTitle title="CUMULATIVE EXPLAINED VARIANCE" corTema={corTema} />
+            {isClient && expl.length > 0 && (
+              <Plot data={[{
+                x: expl.map((_: any, i: number) => `PC${i + 1}`),
+                y: expl.map((_: any, i: number) => expl.slice(0, i + 1).reduce((s: number, v: number) => s + v, 0) * 100),
+                type: 'scatter', mode: 'lines+markers',
+                line: { color: CHART_GREEN, width: 2 },
+                marker: { color: CHART_GREEN, size: 6 },
+                fill: 'tozeroy', fillcolor: CHART_GREEN + '11',
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 380, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Cumulative %', font: { size: 8 } }, range: [0, 105] } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 380 }} />
+            )}
+          </div>
+        </div>
+        {r.projectedData && r.projectedData[0]?.length >= 3 && (
+          <div>
+            <SectionTitle title="PROJECTED DATA 3D (First 3 PCs)" corTema={corTema} />
+            {isClient && (
+              <Plot data={[{
+                x: r.projectedData.map((d: number[]) => d[0]),
+                y: r.projectedData.map((d: number[]) => d[1]),
+                z: r.projectedData.map((d: number[]) => d[2]),
+                type: 'scatter3d', mode: 'markers',
+                marker: { color: r.projectedData.map((d: number[]) => d[0]), colorscale: VIRIDIS, size: 2.5, opacity: 0.7 },
+              }]}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 480, scene: { ...PLOTLY_3D_SCENE, xaxis: { ...PLOTLY_3D_SCENE.xaxis, title: 'PC1' }, yaxis: { ...PLOTLY_3D_SCENE.yaxis, title: 'PC2' }, zaxis: { ...PLOTLY_3D_SCENE.zaxis, title: 'PC3' }, camera: { eye: { x: 1.5, y: 1.5, z: 1.0 } } }, margin: { l: 0, r: 0, t: 10, b: 0 } } as any}
+              config={{ displayModeBar: false }} style={{ width: '100%', height: 480 }} />
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   // ── MAIN RENDER ───────────────────────────────────────────────
 
   return (
@@ -1118,22 +1998,30 @@ export function QuantumPanelV2() {
         </div>
 
         {/* Tool Selection */}
-        <div className="p-3 border-b border-[#151515]">
-          <p className="text-[8px] text-neutral-500 tracking-widest mb-2">ALGORITHMS</p>
-          <div className="space-y-1">
-            {TOOLS.map(tool => (
-              <button key={tool.id}
-                onClick={() => { setActiveTool(tool.id); setResults(null); setError(null) }}
-                className={`w-full text-left px-3 py-2 rounded transition-all flex items-center gap-2 ${activeTool === tool.id ? 'bg-[#151515]' : 'hover:bg-[#111]'}`}
-                style={activeTool === tool.id ? { borderLeft: `2px solid ${corTema}` } : { borderLeft: '2px solid transparent' }}
-              >
-                <span style={{ color: activeTool === tool.id ? corTema : '#666' }}>{tool.icone}</span>
-                <div>
-                  <p className="text-[10px] font-bold" style={{ color: activeTool === tool.id ? '#eee' : '#888' }}>{tool.titulo}</p>
-                  <p className="text-[8px] text-neutral-600">{tool.sub}</p>
+        <div className="p-3 border-b border-[#151515] overflow-y-auto" style={{ maxHeight: 'calc(100vh - 380px)' }}>
+          <p className="text-[8px] text-neutral-500 tracking-widest mb-2">ALGORITHMS · {TOOLS.length}</p>
+          <div className="space-y-0.5">
+            {(() => {
+              const categories = [...new Set(TOOLS.map(t => t.categoria))]
+              return categories.map(cat => (
+                <div key={cat}>
+                  <p className="text-[7px] text-neutral-600 tracking-widest mt-2.5 mb-1 first:mt-0">{cat}</p>
+                  {TOOLS.filter(t => t.categoria === cat).map(tool => (
+                    <button key={tool.id}
+                      onClick={() => { setActiveTool(tool.id); setResults(null); setError(null) }}
+                      className={`w-full text-left px-2.5 py-1.5 rounded transition-all flex items-center gap-2 ${activeTool === tool.id ? 'bg-[#151515]' : 'hover:bg-[#111]'}`}
+                      style={activeTool === tool.id ? { borderLeft: `2px solid ${corTema}` } : { borderLeft: '2px solid transparent' }}
+                    >
+                      <span style={{ color: activeTool === tool.id ? corTema : '#666' }}>{tool.icone}</span>
+                      <div>
+                        <p className="text-[9px] font-bold" style={{ color: activeTool === tool.id ? '#eee' : '#888' }}>{tool.titulo}</p>
+                        <p className="text-[7px] text-neutral-600">{tool.sub}</p>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </button>
-            ))}
+              ))
+            })()}
           </div>
         </div>
 
@@ -1156,8 +2044,8 @@ export function QuantumPanelV2() {
           </button>
           <div className="flex items-center gap-2 mt-2">
             <Activity size={10} className="text-neutral-600" />
-            <p className="text-[8px] text-neutral-600">
-              {backendStatus === 'online' ? 'TS Quantum Simulator' : 'Local Simulation Mode'}
+            <p className="text-[7px] text-neutral-600">
+              Powered by <span className="text-emerald-500">Qiskit</span> · <span className="text-purple-400">PennyLane</span> · <span className="text-amber-400">QuantLib</span>
             </p>
           </div>
         </div>

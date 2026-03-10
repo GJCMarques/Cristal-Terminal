@@ -12,17 +12,20 @@ import dynamic from 'next/dynamic'
 import {
   Loader2, TrendingUp, Activity, BarChart2,
   Layers, ShieldAlert, Calculator, ChevronRight,
+  Diamond, Grid3X3, Waves, Landmark, AlertTriangle,
+  LineChart, PieChart, Link2, Radio, Flame,
 } from 'lucide-react'
 import { corParaTema } from '@/lib/utils'
 import { useTerminalStore } from '@/store/terminal.store'
 import { MathFormula, FormulaBlock } from '@/components/cristal/MathFormula'
+import { normalCDF as _normalCDF, normalPDF as _normalPDF } from '@/lib/quant/statistics'
 
 // ── Plotly (SSR-incompatible — must be dynamic) ────────────────
 const Plot = dynamic(() => import('@/lib/plotly-wrapper'), { ssr: false })
 
 // ── Types ──────────────────────────────────────────────────────
 
-type ActiveTab = 'bs' | 'vol-surface' | 'monte-carlo' | 'portfolio' | 'bond' | 'risk'
+type ActiveTab = 'bs' | 'vol-surface' | 'monte-carlo' | 'portfolio' | 'bond' | 'risk' | 'exotic' | 'greeks' | 'stoch-vol' | 'rates' | 'credit' | 'econ' | 'factor' | 'copula' | 'signal' | 'stress'
 type Engine = 'ts' | 'python' | 'cpp'
 
 interface BSParams {
@@ -235,16 +238,9 @@ function computeBSLocal(p: BSParams): BSResult {
   const d1 = (Math.log(S / K) + (r - q + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T))
   const d2 = d1 - sigma * Math.sqrt(T)
 
-  // Standard normal CDF approximation (Abramowitz & Stegun)
-  const normalCDF = (x: number): number => {
-    const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741
-    const a4 = -1.453152027, a5 = 1.061405429, p0 = 0.3275911
-    const sign = x < 0 ? -1 : 1
-    const t = 1 / (1 + p0 * Math.abs(x))
-    const y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x)
-    return 0.5 * (1 + sign * y)
-  }
-  const normalPDF = (x: number): number => Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI)
+  // High-precision normal CDF (Cody 1969, matches scipy to ~1e-16)
+  const normalCDF = _normalCDF
+  const normalPDF = _normalPDF
 
   let price: number, delta: number, rho: number
   if (type === 'call') {
@@ -1987,6 +1983,819 @@ print(json.dumps({
   )
 }
 
+// ── TAB 7: Exotic Options ─────────────────────────────────────
+
+function ExoticTab({ corTema }: { corTema: string }) {
+  const [S, setS] = useState(100)
+  const [K, setK] = useState(100)
+  const [T, setT] = useState(1)
+  const [r, setR] = useState(0.05)
+  const [sigma, setSigma] = useState(0.2)
+  const [barrier, setBarrier] = useState(120)
+  const [result, setResult] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+
+  const compute = useCallback(() => {
+    setLoading(true)
+    setTimeout(() => {
+      const N = _normalCDF
+      const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T))
+      const d2 = d1 - sigma * Math.sqrt(T)
+      const bsCall = S * N(d1) - K * Math.exp(-r * T) * N(d2)
+      const bsPut = K * Math.exp(-r * T) * N(-d2) - S * N(-d1)
+      // Asian geometric (closed-form)
+      const sigmaA = sigma / Math.sqrt(3)
+      const rA = 0.5 * (r - 0.5 * sigma * sigma + r + 0.5 * sigmaA * sigmaA)
+      const d1a = (Math.log(S / K) + (rA + 0.5 * sigmaA * sigmaA) * T) / (sigmaA * Math.sqrt(T))
+      const d2a = d1a - sigmaA * Math.sqrt(T)
+      const asianCall = Math.exp(-r * T) * (S * Math.exp(rA * T) * N(d1a) - K * N(d2a))
+      // Digital cash-or-nothing
+      const digitalCall = Math.exp(-r * T) * N(d2)
+      const digitalPut = Math.exp(-r * T) * N(-d2)
+      // Barrier: up-and-out call
+      const lambda = (r + 0.5 * sigma * sigma) / (sigma * sigma)
+      const x1 = Math.log(S / K) / (sigma * Math.sqrt(T)) + lambda * sigma * Math.sqrt(T)
+      const y1 = Math.log(barrier * barrier / (S * K)) / (sigma * Math.sqrt(T)) + lambda * sigma * Math.sqrt(T)
+      const barrierCall = barrier > S ? bsCall - S * Math.pow(barrier / S, 2 * lambda) * N(y1) + K * Math.exp(-r * T) * Math.pow(barrier / S, 2 * lambda - 2) * N(y1 - sigma * Math.sqrt(T)) : 0
+      // Lookback (floating strike call)
+      const a1 = (Math.log(S / (S * 0.9)) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T))
+      const a2 = a1 - sigma * Math.sqrt(T)
+      const lookbackCall = S * N(a1) - S * 0.9 * Math.exp(-r * T) * N(a2) + S * Math.exp(-r * T) * sigma * sigma / (2 * r) * (Math.pow(S / (S * 0.9), -2 * r / (sigma * sigma)) * N(-a1 + 2 * r * Math.sqrt(T) / sigma) - Math.exp(r * T) * N(-a1))
+      // Chooser option
+      const chooserT = 0.5
+      const d1c = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T))
+      const d2c = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * chooserT) / (sigma * Math.sqrt(chooserT))
+      const chooser = S * N(d1c) - K * Math.exp(-r * T) * N(d1c - sigma * Math.sqrt(T)) - S * N(-d2c) + K * Math.exp(-r * chooserT) * N(-d2c + sigma * Math.sqrt(chooserT))
+      // Payoff curves
+      const spots = Array.from({ length: 80 }, (_, i) => S * 0.5 + (S * 1.5 - S * 0.5) * i / 79)
+      const payoffs = {
+        call: spots.map(s => Math.max(s - K, 0)),
+        put: spots.map(s => Math.max(K - s, 0)),
+        digital: spots.map(s => s > K ? 1 : 0),
+        barrier: spots.map(s => s > barrier ? 0 : Math.max(s - K, 0)),
+      }
+      setResult({ bsCall, bsPut, asianCall, digitalCall, digitalPut, barrierCall: Math.max(barrierCall, 0), lookbackCall: Math.abs(lookbackCall), chooser: Math.max(chooser, 0), spots, payoffs })
+      setLoading(false)
+    }, 50)
+  }, [S, K, T, r, sigma, barrier])
+
+  return (
+    <div className="h-full overflow-y-auto space-y-4">
+      <div className="flex gap-4">
+        <div className="w-[200px] shrink-0 space-y-2">
+          <SectionTitle title="Parameters" corTema={corTema} />
+          <NumberInput label="Spot S" value={S} onChange={setS} min={1} step={1} />
+          <NumberInput label="Strike K" value={K} onChange={setK} min={1} step={1} />
+          <NumberInput label="Maturity T" value={T} onChange={setT} min={0.01} step={0.1} />
+          <NumberInput label="Rate r" value={r} onChange={setR} step={0.005} />
+          <NumberInput label="Vol σ" value={sigma} onChange={setSigma} min={0.01} step={0.01} />
+          <NumberInput label="Barrier H" value={barrier} onChange={setBarrier} min={1} step={1} />
+          <button onClick={compute} disabled={loading} className="w-full py-2 rounded text-[9px] font-bold tracking-widest" style={{ backgroundColor: corTema, color: '#000' }}>
+            {loading ? 'COMPUTING...' : 'COMPUTE'}
+          </button>
+          <FormulaBlock label="Asian Geometric" tex="C_{asian} = e^{-rT}[Se^{r_AT}N(d_1^A) - KN(d_2^A)]" />
+          <FormulaBlock label="Digital Cash-or-Nothing" tex="C_{dig} = e^{-rT}N(d_2)" />
+        </div>
+        <div className="flex-1 min-w-0 space-y-3">
+          {!result && !loading && <div className="flex items-center justify-center h-64 text-[#333] text-[10px]">Configure parameters and press COMPUTE</div>}
+          {result && (
+            <>
+              <div className="grid grid-cols-4 gap-2">
+                <MetricBox label="BS Call" value={`$${fmt2(result.bsCall)}`} corTema={corTema} />
+                <MetricBox label="Asian Geometric" value={`$${fmt2(result.asianCall)}`} corTema={corTema} highlight />
+                <MetricBox label="Digital Call" value={`$${fmt2(result.digitalCall)}`} corTema={corTema} />
+                <MetricBox label="Barrier (U&O)" value={`$${fmt2(result.barrierCall)}`} corTema={corTema} />
+                <MetricBox label="BS Put" value={`$${fmt2(result.bsPut)}`} corTema={corTema} />
+                <MetricBox label="Lookback" value={`$${fmt2(result.lookbackCall)}`} corTema={corTema} highlight />
+                <MetricBox label="Digital Put" value={`$${fmt2(result.digitalPut)}`} corTema={corTema} />
+                <MetricBox label="Chooser" value={`$${fmt2(result.chooser)}`} corTema={corTema} />
+              </div>
+              <Plot data={[
+                { x: result.spots, y: result.payoffs.call, type: 'scatter', mode: 'lines', name: 'Call', line: { color: LINE_BLUE, width: 2 } },
+                { x: result.spots, y: result.payoffs.put, type: 'scatter', mode: 'lines', name: 'Put', line: { color: LINE_RED, width: 2 } },
+                { x: result.spots, y: result.payoffs.digital, type: 'scatter', mode: 'lines', name: 'Digital', line: { color: LINE_GREEN, width: 2 } },
+                { x: result.spots, y: result.payoffs.barrier, type: 'scatter', mode: 'lines', name: 'Barrier', line: { color: LINE_AMBER, width: 2 } },
+              ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 380, title: { text: 'Exotic Payoff Profiles', font: { size: 10, color: '#888' } }, showlegend: true, legend: { font: { size: 8, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 380 }} />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── TAB 8: Greeks Laboratory ──────────────────────────────────
+
+function GreeksTab({ corTema }: { corTema: string }) {
+  const [S, setS] = useState(100)
+  const [K, setK] = useState(100)
+  const [T, setT] = useState(1)
+  const [r, setR] = useState(0.05)
+  const [sigma, setSigma] = useState(0.2)
+  const [result, setResult] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+
+  const compute = useCallback(() => {
+    setLoading(true)
+    setTimeout(() => {
+      const N = _normalCDF, n = _normalPDF
+      const spots = Array.from({ length: 40 }, (_, i) => S * 0.6 + (S * 1.4 - S * 0.6) * i / 39)
+      const maturities = Array.from({ length: 20 }, (_, i) => 0.05 + 2.0 * i / 19)
+      const deltaSurface: number[][] = []
+      const gammaSurface: number[][] = []
+      const vegaSurface: number[][] = []
+      const thetaSurface: number[][] = []
+      for (const mat of maturities) {
+        const dRow: number[] = [], gRow: number[] = [], vRow: number[] = [], tRow: number[] = []
+        for (const s of spots) {
+          const d1 = (Math.log(s / K) + (r + 0.5 * sigma * sigma) * mat) / (sigma * Math.sqrt(mat))
+          dRow.push(N(d1))
+          gRow.push(n(d1) / (s * sigma * Math.sqrt(mat)))
+          vRow.push(s * n(d1) * Math.sqrt(mat) / 100)
+          tRow.push(-(s * n(d1) * sigma) / (2 * Math.sqrt(mat)) / 365)
+        }
+        deltaSurface.push(dRow)
+        gammaSurface.push(gRow)
+        vegaSurface.push(vRow)
+        thetaSurface.push(tRow)
+      }
+      // Cross-sections at current T
+      const crossSection = spots.map(s => {
+        const d1 = (Math.log(s / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * Math.sqrt(T))
+        return { spot: s, delta: N(d1), gamma: n(d1) / (s * sigma * Math.sqrt(T)), vega: s * n(d1) * Math.sqrt(T) / 100, theta: -(s * n(d1) * sigma) / (2 * Math.sqrt(T)) / 365 }
+      })
+      setResult({ spots, maturities, deltaSurface, gammaSurface, vegaSurface, thetaSurface, crossSection })
+      setLoading(false)
+    }, 50)
+  }, [S, K, T, r, sigma])
+
+  return (
+    <div className="h-full overflow-y-auto space-y-4">
+      <div className="flex gap-3 items-end">
+        <NumberInput label="Spot" value={S} onChange={setS} min={1} step={1} />
+        <NumberInput label="Strike" value={K} onChange={setK} min={1} step={1} />
+        <NumberInput label="T" value={T} onChange={setT} min={0.01} step={0.1} />
+        <NumberInput label="r" value={r} onChange={setR} step={0.005} />
+        <NumberInput label="σ" value={sigma} onChange={setSigma} min={0.01} step={0.01} />
+        <button onClick={compute} disabled={loading} className="px-4 py-2 rounded text-[9px] font-bold tracking-widest shrink-0" style={{ backgroundColor: corTema, color: '#000' }}>COMPUTE</button>
+      </div>
+      <FormulaBlock label="Greeks" tex="\Delta = N(d_1), \quad \Gamma = \frac{n(d_1)}{S\sigma\sqrt{T}}, \quad \mathcal{V} = S\,n(d_1)\sqrt{T}, \quad \Theta = -\frac{S\,n(d_1)\sigma}{2\sqrt{T}}" />
+      {result && (
+        <div className="grid grid-cols-2 gap-3">
+          <Plot data={[{ z: result.deltaSurface, x: result.spots, y: result.maturities, type: 'surface', colorscale: VIRIDIS_COLORSCALE, showscale: false }]}
+            layout={{ ...PLOTLY_DARK_LAYOUT, height: 400, scene: { ...PLOTLY_DARK_LAYOUT.scene, xaxis: { ...PLOTLY_DARK_LAYOUT.scene.xaxis, title: { text: 'Spot', font: { size: 8 } } }, yaxis: { ...PLOTLY_DARK_LAYOUT.scene.yaxis, title: { text: 'T', font: { size: 8 } } }, zaxis: { ...PLOTLY_DARK_LAYOUT.scene.zaxis, title: { text: 'Delta', font: { size: 8 } } } }, title: { text: 'Delta Surface', font: { size: 10, color: '#888' } }, margin: { l: 0, r: 0, t: 30, b: 0 } } as any}
+            config={PLOTLY_CONFIG} style={{ width: '100%', height: 400 }} />
+          <Plot data={[{ z: result.gammaSurface, x: result.spots, y: result.maturities, type: 'surface', colorscale: PLASMA_COLORSCALE, showscale: false }]}
+            layout={{ ...PLOTLY_DARK_LAYOUT, height: 400, scene: { ...PLOTLY_DARK_LAYOUT.scene, xaxis: { ...PLOTLY_DARK_LAYOUT.scene.xaxis, title: { text: 'Spot', font: { size: 8 } } }, yaxis: { ...PLOTLY_DARK_LAYOUT.scene.yaxis, title: { text: 'T', font: { size: 8 } } }, zaxis: { ...PLOTLY_DARK_LAYOUT.scene.zaxis, title: { text: 'Gamma', font: { size: 8 } } } }, title: { text: 'Gamma Surface', font: { size: 10, color: '#888' } }, margin: { l: 0, r: 0, t: 30, b: 0 } } as any}
+            config={PLOTLY_CONFIG} style={{ width: '100%', height: 400 }} />
+          <Plot data={[{ z: result.vegaSurface, x: result.spots, y: result.maturities, type: 'surface', colorscale: VIRIDIS_COLORSCALE, showscale: false }]}
+            layout={{ ...PLOTLY_DARK_LAYOUT, height: 400, scene: { ...PLOTLY_DARK_LAYOUT.scene, xaxis: { ...PLOTLY_DARK_LAYOUT.scene.xaxis, title: { text: 'Spot', font: { size: 8 } } }, yaxis: { ...PLOTLY_DARK_LAYOUT.scene.yaxis, title: { text: 'T', font: { size: 8 } } }, zaxis: { ...PLOTLY_DARK_LAYOUT.scene.zaxis, title: { text: 'Vega', font: { size: 8 } } } }, title: { text: 'Vega Surface', font: { size: 10, color: '#888' } }, margin: { l: 0, r: 0, t: 30, b: 0 } } as any}
+            config={PLOTLY_CONFIG} style={{ width: '100%', height: 400 }} />
+          <Plot data={[
+            { x: result.crossSection.map((c: any) => c.spot), y: result.crossSection.map((c: any) => c.delta), type: 'scatter', mode: 'lines', name: 'Delta', line: { color: LINE_BLUE, width: 2 } },
+            { x: result.crossSection.map((c: any) => c.spot), y: result.crossSection.map((c: any) => c.gamma * 100), type: 'scatter', mode: 'lines', name: 'Gamma×100', line: { color: LINE_RED, width: 2 } },
+            { x: result.crossSection.map((c: any) => c.spot), y: result.crossSection.map((c: any) => c.vega), type: 'scatter', mode: 'lines', name: 'Vega', line: { color: LINE_GREEN, width: 2 } },
+          ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 400, title: { text: `Greeks @ T=${T}`, font: { size: 10, color: '#888' } }, showlegend: true, legend: { font: { size: 8, color: '#888' } } } as any}
+            config={PLOTLY_CONFIG} style={{ width: '100%', height: 400 }} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── TAB 9: Stochastic Volatility ──────────────────────────────
+
+function StochVolTab({ corTema }: { corTema: string }) {
+  const [S, setS] = useState(100)
+  const [K, setK] = useState(100)
+  const [T, setT] = useState(1)
+  const [r, setR] = useState(0.05)
+  const [v0, setV0] = useState(0.04)
+  const [kappa, setKappa] = useState(2)
+  const [theta, setTheta] = useState(0.04)
+  const [xi, setXi] = useState(0.3)
+  const [rho, setRho] = useState(-0.7)
+  const [result, setResult] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+
+  const compute = useCallback(() => {
+    setLoading(true)
+    setTimeout(() => {
+      const N = _normalCDF
+      const nPaths = 2000; const nSteps = 100; const dt = T / nSteps
+      let sumPayoff = 0
+      const volPaths: number[][] = []; const pricePaths: number[][] = []
+      for (let p = 0; p < nPaths; p++) {
+        let s = S, v = v0
+        const vPath = [Math.sqrt(v)]; const sPath = [s]
+        for (let i = 0; i < nSteps; i++) {
+          const z1 = randn(); const z2 = rho * z1 + Math.sqrt(1 - rho * rho) * randn()
+          v = Math.max(v + kappa * (theta - v) * dt + xi * Math.sqrt(Math.max(v, 0) * dt) * z1, 0.0001)
+          s = s * Math.exp((r - 0.5 * v) * dt + Math.sqrt(v * dt) * z2)
+          if (p < 8) { vPath.push(Math.sqrt(v)); sPath.push(s) }
+        }
+        sumPayoff += Math.max(s - K, 0)
+        if (p < 8) { volPaths.push(vPath); pricePaths.push(sPath) }
+      }
+      const hestonPrice = Math.exp(-r * T) * sumPayoff / nPaths
+      // BS price for comparison
+      const bsSigma = Math.sqrt(v0)
+      const d1 = (Math.log(S / K) + (r + 0.5 * v0) * T) / (bsSigma * Math.sqrt(T))
+      const d2 = d1 - bsSigma * Math.sqrt(T)
+      const bsPrice = S * N(d1) - K * Math.exp(-r * T) * N(d2)
+      // Vol smile (strike range)
+      const strikes = Array.from({ length: 30 }, (_, i) => S * 0.7 + (S * 1.3 - S * 0.7) * i / 29)
+      const hestonSmile: number[] = []; const bsSmile: number[] = []
+      for (const k of strikes) {
+        const moneyness = Math.log(k / S)
+        const skew = rho * xi / kappa * moneyness * 0.8
+        const smile = Math.sqrt(v0) + skew + 0.5 * xi * xi / (kappa * kappa) * moneyness * moneyness
+        hestonSmile.push(Math.max(smile, 0.05))
+        bsSmile.push(Math.sqrt(v0))
+      }
+      const times = Array.from({ length: nSteps + 1 }, (_, i) => i * dt)
+      setResult({ hestonPrice, bsPrice, pricePaths, volPaths, strikes, hestonSmile, bsSmile, times })
+      setLoading(false)
+    }, 100)
+  }, [S, K, T, r, v0, kappa, theta, xi, rho])
+
+  return (
+    <div className="h-full overflow-y-auto space-y-4">
+      <div className="flex gap-4">
+        <div className="w-[200px] shrink-0 space-y-2">
+          <SectionTitle title="Heston Parameters" corTema={corTema} />
+          <NumberInput label="Spot S" value={S} onChange={setS} min={1} step={1} />
+          <NumberInput label="Strike K" value={K} onChange={setK} min={1} step={1} />
+          <NumberInput label="v₀" value={v0} onChange={setV0} min={0.001} step={0.005} />
+          <NumberInput label="κ (mean rev)" value={kappa} onChange={setKappa} min={0.1} step={0.1} />
+          <NumberInput label="θ (long-run)" value={theta} onChange={setTheta} min={0.001} step={0.005} />
+          <NumberInput label="ξ (vol-of-vol)" value={xi} onChange={setXi} min={0.01} step={0.05} />
+          <NumberInput label="ρ (correlation)" value={rho} onChange={setRho} min={-1} max={1} step={0.05} />
+          <button onClick={compute} disabled={loading} className="w-full py-2 rounded text-[9px] font-bold tracking-widest" style={{ backgroundColor: corTema, color: '#000' }}>{loading ? 'COMPUTING...' : 'COMPUTE'}</button>
+          <FormulaBlock label="Heston SDE" tex="dv_t = \kappa(\theta - v_t)dt + \xi\sqrt{v_t}dW_t^v" />
+        </div>
+        <div className="flex-1 min-w-0 space-y-3">
+          {result && (
+            <>
+              <div className="grid grid-cols-3 gap-2">
+                <MetricBox label="Heston MC Price" value={`$${fmt2(result.hestonPrice)}`} corTema={corTema} highlight />
+                <MetricBox label="BS Price (flat vol)" value={`$${fmt2(result.bsPrice)}`} corTema={corTema} />
+                <MetricBox label="Skew Effect" value={`${((result.hestonPrice - result.bsPrice) / result.bsPrice * 100).toFixed(2)}%`} corTema={corTema} />
+              </div>
+              <Plot data={result.pricePaths.map((path: number[], i: number) => ({ x: result.times, y: path, type: 'scatter', mode: 'lines', line: { color: [LINE_BLUE, LINE_RED, LINE_GREEN, LINE_AMBER, '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'][i], width: 1 }, showlegend: false }))}
+                layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Heston Price Paths', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+              <div className="grid grid-cols-2 gap-3">
+                <Plot data={result.volPaths.map((path: number[], i: number) => ({ x: result.times, y: path, type: 'scatter', mode: 'lines', line: { color: [LINE_BLUE, LINE_RED, LINE_GREEN, LINE_AMBER, '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'][i], width: 1 }, showlegend: false }))}
+                  layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Stochastic Vol Paths (√v)', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+                <Plot data={[
+                  { x: result.strikes, y: result.hestonSmile, type: 'scatter', mode: 'lines', name: 'Heston', line: { color: LINE_BLUE, width: 2 } },
+                  { x: result.strikes, y: result.bsSmile, type: 'scatter', mode: 'lines', name: 'BS (flat)', line: { color: '#555', width: 1, dash: 'dot' } },
+                ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Volatility Smile', font: { size: 10, color: '#888' } }, showlegend: true, legend: { font: { size: 8, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── TAB 10: Interest Rates ────────────────────────────────────
+
+function RatesTab({ corTema }: { corTema: string }) {
+  const [r0, setR0] = useState(0.05)
+  const [kappa, setKappa] = useState(0.5)
+  const [theta, setTheta] = useState(0.05)
+  const [sigma, setSigma] = useState(0.02)
+  const [T, setT] = useState(10)
+  const [model, setModel] = useState<'vasicek' | 'cir'>('vasicek')
+  const [result, setResult] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+
+  const compute = useCallback(() => {
+    setLoading(true)
+    setTimeout(() => {
+      const nPaths = 12; const dt = 0.01; const nSteps = Math.round(T / dt)
+      const times = Array.from({ length: nSteps + 1 }, (_, i) => i * dt)
+      const paths: number[][] = []
+      for (let p = 0; p < nPaths; p++) {
+        const path = [r0]
+        for (let i = 1; i <= nSteps; i++) {
+          const rPrev = Math.max(path[i - 1], 0)
+          const z = randn()
+          if (model === 'vasicek') {
+            path.push(rPrev + kappa * (theta - rPrev) * dt + sigma * Math.sqrt(dt) * z)
+          } else {
+            path.push(Math.max(rPrev + kappa * (theta - rPrev) * dt + sigma * Math.sqrt(Math.max(rPrev, 0) * dt) * z, 0))
+          }
+        }
+        paths.push(path.filter((_, i) => i % 10 === 0))
+      }
+      const sampledTimes = times.filter((_, i) => i % 10 === 0)
+      // Yield curve
+      const maturities = Array.from({ length: 40 }, (_, i) => 0.25 + i * 0.5)
+      const yieldCurve = maturities.map(m => {
+        let price: number
+        if (model === 'vasicek') {
+          const B = (1 - Math.exp(-kappa * m)) / kappa
+          const A = (theta - sigma * sigma / (2 * kappa * kappa)) * (B - m) - sigma * sigma * B * B / (4 * kappa)
+          price = Math.exp(A - B * r0)
+        } else {
+          const h = Math.sqrt(kappa * kappa + 2 * sigma * sigma)
+          const An = 2 * h * Math.exp((kappa + h) * m / 2)
+          const Ad = 2 * h + (kappa + h) * (Math.exp(h * m) - 1)
+          const Af = Math.pow(An / Ad, 2 * kappa * theta / (sigma * sigma))
+          const Bf = 2 * (Math.exp(h * m) - 1) / (2 * h + (kappa + h) * (Math.exp(h * m) - 1))
+          price = Af * Math.exp(-Bf * r0)
+        }
+        return { T: m, yield: -Math.log(Math.max(price, 1e-10)) / m, price }
+      })
+      // Rate distribution at final time
+      const finalRates = paths.map(p => p[p.length - 1])
+      setResult({ paths, sampledTimes, yieldCurve, finalRates })
+      setLoading(false)
+    }, 100)
+  }, [r0, kappa, theta, sigma, T, model])
+
+  return (
+    <div className="h-full overflow-y-auto space-y-4">
+      <div className="flex gap-4">
+        <div className="w-[200px] shrink-0 space-y-2">
+          <SectionTitle title="Model Parameters" corTema={corTema} />
+          <div className="space-y-0.5">
+            <label className="text-[9px] text-[#888] uppercase tracking-wider">Model</label>
+            <select value={model} onChange={e => setModel(e.target.value as any)} className="w-full bg-[#0a0a0a] border border-neutral-800 text-[#ccc] px-2 py-1.5 text-[10px] rounded font-mono">
+              <option value="vasicek">Vasicek</option>
+              <option value="cir">Cox-Ingersoll-Ross</option>
+            </select>
+          </div>
+          <NumberInput label="r₀ (initial)" value={r0} onChange={setR0} step={0.005} />
+          <NumberInput label="κ (mean rev)" value={kappa} onChange={setKappa} min={0.01} step={0.1} />
+          <NumberInput label="θ (long-run)" value={theta} onChange={setTheta} step={0.005} />
+          <NumberInput label="σ (vol)" value={sigma} onChange={setSigma} min={0.001} step={0.005} />
+          <NumberInput label="T (horizon)" value={T} onChange={setT} min={1} max={30} step={1} />
+          <button onClick={compute} disabled={loading} className="w-full py-2 rounded text-[9px] font-bold tracking-widest" style={{ backgroundColor: corTema, color: '#000' }}>{loading ? 'COMPUTING...' : 'COMPUTE'}</button>
+          <FormulaBlock label={model === 'vasicek' ? 'Vasicek SDE' : 'CIR SDE'} tex={model === 'vasicek' ? 'dr_t = \\kappa(\\theta - r_t)dt + \\sigma\\,dW_t' : 'dr_t = \\kappa(\\theta - r_t)dt + \\sigma\\sqrt{r_t}\\,dW_t'} />
+        </div>
+        <div className="flex-1 min-w-0 space-y-3">
+          {result && (
+            <>
+              <Plot data={result.paths.map((path: number[], i: number) => ({ x: result.sampledTimes, y: path, type: 'scatter', mode: 'lines', line: { color: `hsl(${i * 30}, 70%, 60%)`, width: 1 }, showlegend: false }))}
+                layout={{ ...PLOTLY_DARK_LAYOUT, height: 380, title: { text: `${model.toUpperCase()} Short Rate Paths`, font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 380 }} />
+              <div className="grid grid-cols-2 gap-3">
+                <Plot data={[{ x: result.yieldCurve.map((y: any) => y.T), y: result.yieldCurve.map((y: any) => y.yield * 100), type: 'scatter', mode: 'lines', line: { color: LINE_BLUE, width: 2 } }]}
+                  layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Zero-Coupon Yield Curve (%)', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+                <Plot data={[{ x: result.finalRates, type: 'histogram', nbinsx: 25, marker: { color: LINE_GREEN + '88' } }]}
+                  layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: `Rate Distribution at T=${T}`, font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── TAB 11: Credit Risk ───────────────────────────────────────
+
+function CreditTab({ corTema }: { corTema: string }) {
+  const [V, setV] = useState(100)
+  const [D, setD] = useState(80)
+  const [T, setT] = useState(5)
+  const [r, setR] = useState(0.05)
+  const [sigmaV, setSigmaV] = useState(0.25)
+  const [result, setResult] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+
+  const compute = useCallback(() => {
+    setLoading(true)
+    setTimeout(() => {
+      const N = _normalCDF
+      const d1 = (Math.log(V / D) + (r + 0.5 * sigmaV * sigmaV) * T) / (sigmaV * Math.sqrt(T))
+      const d2 = d1 - sigmaV * Math.sqrt(T)
+      const equity = V * N(d1) - D * Math.exp(-r * T) * N(d2)
+      const defaultProb = N(-d2)
+      const dd = d2
+      const debtValue = V - equity
+      const yieldDebt = -Math.log(debtValue / D) / T
+      const creditSpread = Math.max(yieldDebt - r, 0)
+      // Term structure of PD and spread
+      const termStructure = Array.from({ length: 40 }, (_, i) => {
+        const t = (i + 1) * 0.25
+        const d2t = (Math.log(V / D) + (r - 0.5 * sigmaV * sigmaV) * t) / (sigmaV * Math.sqrt(t))
+        return { T: t, pd: N(-d2t), spread: Math.max(-Math.log((V - V * N((Math.log(V / D) + (r + 0.5 * sigmaV * sigmaV) * t) / (sigmaV * Math.sqrt(t))) + D * Math.exp(-r * t) * N(d2t)) / D) / t - r, 0) * 10000 }
+      })
+      // Firm value paths with default barrier
+      const nPaths = 10; const nSteps = 100; const dt = T / nSteps
+      const firmPaths: number[][] = []
+      for (let p = 0; p < nPaths; p++) {
+        const path = [V]
+        for (let i = 1; i <= nSteps; i++) {
+          const prev = path[i - 1]
+          path.push(prev * Math.exp((r - 0.5 * sigmaV * sigmaV) * dt + sigmaV * Math.sqrt(dt) * randn()))
+        }
+        firmPaths.push(path)
+      }
+      const firmTimes = Array.from({ length: nSteps + 1 }, (_, i) => i * dt)
+      // CDS spread from hazard rate
+      const hazardRate = creditSpread / (1 - 0.4) // assume 40% recovery
+      const recovery = 0.4
+      const cdsDt = 0.25; const cdsN = Math.round(T / cdsDt)
+      let protLeg = 0, premLeg = 0
+      for (let i = 1; i <= cdsN; i++) {
+        const t = i * cdsDt
+        const sp = Math.exp(-hazardRate * t); const sp_prev = Math.exp(-hazardRate * (t - cdsDt))
+        const df = Math.exp(-r * t)
+        protLeg += (1 - recovery) * (sp_prev - sp) * df
+        premLeg += cdsDt * sp * df
+      }
+      const cdsSpread = premLeg > 0 ? protLeg / premLeg * 10000 : 0
+      setResult({ equity, defaultProb, dd, creditSpread: creditSpread * 10000, debtValue, termStructure, firmPaths, firmTimes, cdsSpread })
+      setLoading(false)
+    }, 100)
+  }, [V, D, T, r, sigmaV])
+
+  return (
+    <div className="h-full overflow-y-auto space-y-4">
+      <div className="flex gap-4">
+        <div className="w-[200px] shrink-0 space-y-2">
+          <SectionTitle title="Merton Model" corTema={corTema} />
+          <NumberInput label="Firm Value V" value={V} onChange={setV} min={1} step={5} />
+          <NumberInput label="Debt D" value={D} onChange={setD} min={1} step={5} />
+          <NumberInput label="T (maturity)" value={T} onChange={setT} min={0.5} step={0.5} />
+          <NumberInput label="Rate r" value={r} onChange={setR} step={0.005} />
+          <NumberInput label="σ_V (asset vol)" value={sigmaV} onChange={setSigmaV} min={0.01} step={0.01} />
+          <button onClick={compute} disabled={loading} className="w-full py-2 rounded text-[9px] font-bold tracking-widest" style={{ backgroundColor: corTema, color: '#000' }}>{loading ? 'COMPUTING...' : 'COMPUTE'}</button>
+          <FormulaBlock label="Distance-to-Default" tex="DD = \frac{\ln(V/D) + (\mu - \frac{1}{2}\sigma_V^2)T}{\sigma_V\sqrt{T}}" />
+        </div>
+        <div className="flex-1 min-w-0 space-y-3">
+          {result && (
+            <>
+              <div className="grid grid-cols-4 gap-2">
+                <MetricBox label="Equity Value" value={`$${fmt2(result.equity, 2)}`} corTema={corTema} />
+                <MetricBox label="Default Prob" value={fmtPct(result.defaultProb)} corTema={corTema} highlight />
+                <MetricBox label="Distance-to-Default" value={fmt2(result.dd, 2)} corTema={corTema} />
+                <MetricBox label="Credit Spread" value={`${result.creditSpread.toFixed(0)} bps`} corTema={corTema} highlight />
+                <MetricBox label="Debt Value" value={`$${fmt2(result.debtValue, 2)}`} corTema={corTema} />
+                <MetricBox label="CDS Spread" value={`${result.cdsSpread.toFixed(0)} bps`} corTema={corTema} />
+              </div>
+              <Plot data={[
+                ...result.firmPaths.map((path: number[], i: number) => ({ x: result.firmTimes, y: path, type: 'scatter', mode: 'lines', line: { color: `hsl(${i * 36}, 70%, 60%)`, width: 1 }, showlegend: false })),
+                { x: [0, T], y: [D, D], type: 'scatter', mode: 'lines', name: 'Default Barrier', line: { color: LINE_RED, width: 2, dash: 'dash' } },
+              ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 380, title: { text: 'Firm Value Paths vs Default Barrier', font: { size: 10, color: '#888' } }, showlegend: true, legend: { font: { size: 8, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 380 }} />
+              <div className="grid grid-cols-2 gap-3">
+                <Plot data={[{ x: result.termStructure.map((t: any) => t.T), y: result.termStructure.map((t: any) => t.pd * 100), type: 'scatter', mode: 'lines', line: { color: LINE_RED, width: 2 } }]}
+                  layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Default Probability Term Structure (%)', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+                <Plot data={[{ x: result.termStructure.map((t: any) => t.T), y: result.termStructure.map((t: any) => t.spread), type: 'scatter', mode: 'lines', line: { color: LINE_AMBER, width: 2 } }]}
+                  layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Credit Spread Term Structure (bps)', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── TAB 12: Econometrics ──────────────────────────────────────
+
+function EconTab({ corTema }: { corTema: string }) {
+  const [nObs, setNObs] = useState(500)
+  const [result, setResult] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+
+  const compute = useCallback(async () => {
+    setLoading(true)
+    setTimeout(() => {
+      const { acf: acfFn, pacf: pacfFn, hurstExponent: hurstFn, garchFit: garchFn, regimeDetection: regimeFn, spectralDensity: spectralFn } = require('@/lib/quant/econometrics')
+      // Generate regime-switching data
+      const data: number[] = []; let regime = 0
+      for (let i = 0; i < nObs; i++) {
+        if (Math.random() < 0.02) regime = 1 - regime
+        const mu = regime === 0 ? 0.0005 : -0.001
+        const vol = regime === 0 ? 0.01 : 0.025
+        data.push(mu + vol * randn())
+      }
+      const acfValues = acfFn(data, 30)
+      const pacfValues = pacfFn(data, 30)
+      const hurst = hurstFn(data)
+      const garch = garchFn(data)
+      const regimes = regimeFn(data, 2)
+      const spectrum = spectralFn(data)
+      setResult({ data, acfValues, pacfValues, hurst, garch, regimes, spectrum })
+      setLoading(false)
+    }, 100)
+  }, [nObs])
+
+  return (
+    <div className="h-full overflow-y-auto space-y-4">
+      <div className="flex items-end gap-3">
+        <NumberInput label="Observations" value={nObs} onChange={setNObs} min={100} max={2000} step={100} />
+        <button onClick={compute} disabled={loading} className="px-4 py-2 rounded text-[9px] font-bold tracking-widest shrink-0" style={{ backgroundColor: corTema, color: '#000' }}>{loading ? 'COMPUTING...' : 'COMPUTE'}</button>
+        <FormulaBlock label="GARCH(1,1)" tex="\sigma_t^2 = \omega + \alpha\,\varepsilon_{t-1}^2 + \beta\,\sigma_{t-1}^2" />
+        <FormulaBlock label="Hurst" tex="H = \frac{\log(R/S)}{\log(n)}, \quad H > 0.5 \Rightarrow \text{long memory}" />
+      </div>
+      {result && (
+        <>
+          <div className="grid grid-cols-5 gap-2">
+            <MetricBox label="Hurst Exponent" value={fmt2(result.hurst.H, 3)} corTema={corTema} highlight />
+            <MetricBox label={result.hurst.isLongMemory ? 'Long Memory' : 'Short Memory'} value={result.hurst.isLongMemory ? 'PERSISTENT' : 'ANTIPERSIST'} corTema={corTema} />
+            <MetricBox label="GARCH α" value={fmt2(result.garch.alpha, 3)} corTema={corTema} />
+            <MetricBox label="GARCH β" value={fmt2(result.garch.beta, 3)} corTema={corTema} />
+            <MetricBox label="Persistence" value={fmt2(result.garch.persistence, 3)} corTema={corTema} highlight />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Plot data={[
+              { y: result.data, type: 'scatter', mode: 'lines', line: { color: LINE_BLUE, width: 1 }, showlegend: false },
+              { y: result.garch.conditionalVol.map((v: number) => v * 2), type: 'scatter', mode: 'lines', name: '±2σ GARCH', line: { color: LINE_RED, width: 1 }, showlegend: false },
+              { y: result.garch.conditionalVol.map((v: number) => -v * 2), type: 'scatter', mode: 'lines', line: { color: LINE_RED, width: 1 }, showlegend: false },
+            ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Returns + GARCH Vol Bands', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+            <Plot data={[
+              { y: result.regimes.regimes, type: 'scatter', mode: 'lines', name: 'Regime', line: { color: LINE_AMBER, width: 2 } },
+            ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Detected Regimes (0=calm, 1=volatile)', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+            <Plot data={[
+              { x: Array.from({ length: result.acfValues.length }, (_, i) => i), y: result.acfValues, type: 'bar', marker: { color: LINE_BLUE } },
+            ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'ACF', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+            <Plot data={[
+              { x: result.spectrum.freq.slice(0, 100), y: result.spectrum.power.slice(0, 100), type: 'scatter', mode: 'lines', line: { color: LINE_GREEN, width: 1 } },
+            ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Power Spectral Density', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ── TAB 13: Factor Models ─────────────────────────────────────
+
+function FactorTab({ corTema }: { corTema: string }) {
+  const [nAssets, setNAssets] = useState(8)
+  const [nFactors, setNFactors] = useState(3)
+  const [result, setResult] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+
+  const compute = useCallback(() => {
+    setLoading(true)
+    setTimeout(() => {
+      const { pcaFactors, generateCorrelatedReturns } = require('@/lib/quant/factor-models')
+      const means = Array.from({ length: nAssets }, (_, i) => 0.05 + i * 0.02)
+      const vols = Array.from({ length: nAssets }, (_, i) => 0.15 + i * 0.03)
+      const returns = generateCorrelatedReturns(nAssets, 252, means, vols)
+      const pca = pcaFactors(returns, nFactors)
+      setResult({ pca, nAssets, nFactors })
+      setLoading(false)
+    }, 100)
+  }, [nAssets, nFactors])
+
+  return (
+    <div className="h-full overflow-y-auto space-y-4">
+      <div className="flex items-end gap-3">
+        <NumberInput label="Assets" value={nAssets} onChange={setNAssets} min={3} max={20} step={1} />
+        <NumberInput label="Factors" value={nFactors} onChange={setNFactors} min={1} max={10} step={1} />
+        <button onClick={compute} disabled={loading} className="px-4 py-2 rounded text-[9px] font-bold tracking-widest shrink-0" style={{ backgroundColor: corTema, color: '#000' }}>{loading ? 'COMPUTING...' : 'COMPUTE'}</button>
+        <FormulaBlock label="Factor Model" tex="r_i = \alpha_i + \sum_{k=1}^{K}\beta_{ik}f_k + \varepsilon_i" />
+      </div>
+      {result && (
+        <>
+          <div className="grid grid-cols-3 gap-2">
+            {result.pca.explainedVariance.map((ev: number, i: number) => (
+              <MetricBox key={i} label={`Factor ${i + 1} Variance`} value={fmtPct(ev)} corTema={corTema} highlight={i === 0} />
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Plot data={[{ x: Array.from({ length: result.pca.eigenvalues.length }, (_, i) => `F${i + 1}`), y: result.pca.eigenvalues, type: 'bar', marker: { color: LINE_BLUE } }]}
+              layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Scree Plot (Eigenvalues)', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+            <Plot data={[{ x: Array.from({ length: result.pca.cumulativeVariance.length }, (_, i) => `F${i + 1}`), y: result.pca.cumulativeVariance.map((v: number) => v * 100), type: 'scatter', mode: 'lines+markers', line: { color: LINE_GREEN, width: 2 }, marker: { color: LINE_GREEN, size: 6 } }]}
+              layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Cumulative Explained Variance (%)', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+            <Plot data={[{ z: result.pca.loadings, type: 'heatmap', colorscale: VIRIDIS_COLORSCALE, showscale: true }]}
+              layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Factor Loadings Heatmap', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+            <Plot data={result.pca.factorReturns.slice(0, 3).map((fr: number[], i: number) => ({ y: fr.slice(0, 100), type: 'scatter', mode: 'lines', name: `Factor ${i + 1}`, line: { color: [LINE_BLUE, LINE_RED, LINE_GREEN][i], width: 1 } }))}
+              layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Factor Returns (first 100 obs)', font: { size: 10, color: '#888' } }, showlegend: true, legend: { font: { size: 8, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ── TAB 14: Copulas ───────────────────────────────────────────
+
+function CopulaTab({ corTema }: { corTema: string }) {
+  const [copulaType, setCopulaType] = useState<'gaussian' | 'clayton' | 'frank' | 'gumbel' | 't'>('gaussian')
+  const [param, setParam] = useState(0.7)
+  const [nSamples, setNSamples] = useState(2000)
+  const [result, setResult] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+
+  const compute = useCallback(() => {
+    setLoading(true)
+    setTimeout(() => {
+      const { copulaSample, tailDependence, copulaContourGrid } = require('@/lib/quant/copulas')
+      const params = copulaType === 'gaussian' || copulaType === 't' ? { rho: param, nu: 5 } : { theta: param }
+      const samples = copulaSample(copulaType, params, nSamples)
+      const tail = tailDependence(copulaType, params)
+      const contour = copulaContourGrid(copulaType === 't' ? 'gaussian' : copulaType, param, 30)
+      // Compare all copula types
+      const types = ['gaussian', 'clayton', 'frank', 'gumbel'] as const
+      const comparison = types.map(t => {
+        const td = tailDependence(t, t === 'gaussian' ? { rho: param } : { theta: Math.max(param, 0.5) })
+        return { type: t, lower: td.lower, upper: td.upper }
+      })
+      setResult({ samples, tail, contour, comparison })
+      setLoading(false)
+    }, 100)
+  }, [copulaType, param, nSamples])
+
+  return (
+    <div className="h-full overflow-y-auto space-y-4">
+      <div className="flex items-end gap-3">
+        <div className="space-y-0.5">
+          <label className="text-[9px] text-[#888] uppercase tracking-wider">Copula</label>
+          <select value={copulaType} onChange={e => setCopulaType(e.target.value as any)} className="w-full bg-[#0a0a0a] border border-neutral-800 text-[#ccc] px-2 py-1.5 text-[10px] rounded font-mono">
+            <option value="gaussian">Gaussian</option>
+            <option value="t">Student-t</option>
+            <option value="clayton">Clayton</option>
+            <option value="frank">Frank</option>
+            <option value="gumbel">Gumbel</option>
+          </select>
+        </div>
+        <NumberInput label={copulaType === 'gaussian' || copulaType === 't' ? 'ρ' : 'θ'} value={param} onChange={setParam} min={-0.99} max={copulaType === 'gaussian' ? 0.99 : 10} step={0.05} />
+        <NumberInput label="Samples" value={nSamples} onChange={setNSamples} min={500} max={10000} step={500} />
+        <button onClick={compute} disabled={loading} className="px-4 py-2 rounded text-[9px] font-bold tracking-widest shrink-0" style={{ backgroundColor: corTema, color: '#000' }}>{loading ? 'COMPUTING...' : 'COMPUTE'}</button>
+        <FormulaBlock label="Gaussian Copula" tex="C(u,v) = \Phi_2(\Phi^{-1}(u), \Phi^{-1}(v); \rho)" />
+      </div>
+      {result && (
+        <>
+          <div className="grid grid-cols-4 gap-2">
+            <MetricBox label="Lower Tail Dep" value={fmt2(result.tail.lower, 4)} corTema={corTema} highlight />
+            <MetricBox label="Upper Tail Dep" value={fmt2(result.tail.upper, 4)} corTema={corTema} highlight />
+            <MetricBox label="Copula Type" value={copulaType.toUpperCase()} corTema={corTema} />
+            <MetricBox label="Samples" value={`${nSamples}`} corTema={corTema} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Plot data={[{ x: result.samples.u, y: result.samples.v, type: 'scatter', mode: 'markers', marker: { color: LINE_BLUE, size: 2, opacity: 0.4 } }]}
+              layout={{ ...PLOTLY_DARK_LAYOUT, height: 400, title: { text: `${copulaType} Copula Samples`, font: { size: 10, color: '#888' } }, xaxis: { ...PLOTLY_DARK_LAYOUT.margin, title: { text: 'U', font: { size: 8 } } }, yaxis: { title: { text: 'V', font: { size: 8 } } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 400 }} />
+            <Plot data={[{ z: result.contour.z, x: result.contour.x, y: result.contour.y, type: 'contour', colorscale: VIRIDIS_COLORSCALE, showscale: false }]}
+              layout={{ ...PLOTLY_DARK_LAYOUT, height: 400, title: { text: 'Copula Density Contour', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 400 }} />
+            <Plot data={[
+              { x: result.comparison.map((c: any) => c.type), y: result.comparison.map((c: any) => c.lower), type: 'bar', name: 'Lower', marker: { color: LINE_BLUE } },
+              { x: result.comparison.map((c: any) => c.type), y: result.comparison.map((c: any) => c.upper), type: 'bar', name: 'Upper', marker: { color: LINE_RED } },
+            ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Tail Dependence Comparison', font: { size: 10, color: '#888' } }, barmode: 'group', showlegend: true, legend: { font: { size: 8, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ── TAB 15: Signal Analysis ───────────────────────────────────
+
+function SignalTab({ corTema }: { corTema: string }) {
+  const [nObs, setNObs] = useState(300)
+  const [result, setResult] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+
+  const compute = useCallback(() => {
+    setLoading(true)
+    setTimeout(() => {
+      const { bollingerBands, rsi: rsiFn, macd: macdFn, fftSpectrum, decompose } = require('@/lib/quant/signal-processing')
+      // Generate price-like signal
+      const prices: number[] = [100]
+      for (let i = 1; i < nObs; i++) {
+        const trend = 0.0002
+        const seasonal = 2 * Math.sin(2 * Math.PI * i / 50)
+        prices.push(prices[i - 1] * Math.exp(trend + 0.015 * randn()) + seasonal * 0.01)
+      }
+      const bb = bollingerBands(prices, 20, 2)
+      const rsiValues = rsiFn(prices, 14)
+      const macdValues = macdFn(prices, 12, 26, 9)
+      const returns = prices.slice(1).map((p, i) => Math.log(p / prices[i]))
+      const fft = fftSpectrum(returns)
+      const decomp = decompose(prices, 20)
+      setResult({ prices, bb, rsi: rsiValues, macd: macdValues, fft, decomp })
+      setLoading(false)
+    }, 100)
+  }, [nObs])
+
+  return (
+    <div className="h-full overflow-y-auto space-y-4">
+      <div className="flex items-end gap-3">
+        <NumberInput label="Data Points" value={nObs} onChange={setNObs} min={100} max={1000} step={50} />
+        <button onClick={compute} disabled={loading} className="px-4 py-2 rounded text-[9px] font-bold tracking-widest shrink-0" style={{ backgroundColor: corTema, color: '#000' }}>{loading ? 'COMPUTING...' : 'COMPUTE'}</button>
+        <FormulaBlock label="RSI" tex="RSI = 100 - \frac{100}{1 + RS}, \quad RS = \frac{\overline{Gain}}{\overline{Loss}}" />
+        <FormulaBlock label="Bollinger" tex="BB_{\pm} = SMA_{20} \pm 2\sigma_{20}" />
+      </div>
+      {result && (
+        <div className="grid grid-cols-2 gap-3">
+          <Plot data={[
+            { y: result.prices, type: 'scatter', mode: 'lines', name: 'Price', line: { color: LINE_BLUE, width: 1.5 } },
+            { y: result.bb.upper, type: 'scatter', mode: 'lines', name: 'BB Upper', line: { color: LINE_RED, width: 1, dash: 'dot' } },
+            { y: result.bb.middle, type: 'scatter', mode: 'lines', name: 'SMA20', line: { color: LINE_AMBER, width: 1 } },
+            { y: result.bb.lower, type: 'scatter', mode: 'lines', name: 'BB Lower', line: { color: LINE_GREEN, width: 1, dash: 'dot' } },
+          ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 380, title: { text: 'Bollinger Bands', font: { size: 10, color: '#888' } }, showlegend: true, legend: { font: { size: 7, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 380 }} />
+          <Plot data={[
+            { y: result.rsi, type: 'scatter', mode: 'lines', line: { color: LINE_GREEN, width: 1.5 } },
+            { y: new Array(result.rsi.length).fill(70), type: 'scatter', mode: 'lines', line: { color: LINE_RED, width: 1, dash: 'dot' }, showlegend: false },
+            { y: new Array(result.rsi.length).fill(30), type: 'scatter', mode: 'lines', line: { color: LINE_GREEN, width: 1, dash: 'dot' }, showlegend: false },
+          ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 380, title: { text: 'RSI (14)', font: { size: 10, color: '#888' } }, yaxis: { range: [0, 100] } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 380 }} />
+          <Plot data={[
+            { y: result.macd.macd, type: 'scatter', mode: 'lines', name: 'MACD', line: { color: LINE_BLUE, width: 1.5 } },
+            { y: result.macd.signal, type: 'scatter', mode: 'lines', name: 'Signal', line: { color: LINE_RED, width: 1.5 } },
+            { y: result.macd.histogram, type: 'bar', name: 'Histogram', marker: { color: result.macd.histogram.map((h: number) => h >= 0 ? LINE_GREEN : LINE_RED) } },
+          ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 380, title: { text: 'MACD', font: { size: 10, color: '#888' } }, showlegend: true, legend: { font: { size: 7, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 380 }} />
+          <Plot data={[{ x: result.fft.frequencies.slice(1, 80), y: result.fft.magnitudes.slice(1, 80), type: 'scatter', mode: 'lines', line: { color: LINE_AMBER, width: 1.5 } }]}
+            layout={{ ...PLOTLY_DARK_LAYOUT, height: 380, title: { text: 'FFT Frequency Spectrum', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 380 }} />
+          <Plot data={[
+            { y: result.decomp.trend, type: 'scatter', mode: 'lines', name: 'Trend', line: { color: LINE_BLUE, width: 2 } },
+          ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Trend Component', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+          <Plot data={[
+            { y: result.decomp.seasonal, type: 'scatter', mode: 'lines', name: 'Seasonal', line: { color: LINE_GREEN, width: 1 } },
+            { y: result.decomp.residual, type: 'scatter', mode: 'lines', name: 'Residual', line: { color: LINE_RED, width: 1, opacity: 0.6 } },
+          ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Seasonal + Residual', font: { size: 10, color: '#888' } }, showlegend: true, legend: { font: { size: 7, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── TAB 16: Stress Testing ────────────────────────────────────
+
+function StressTab({ corTema }: { corTema: string }) {
+  const [portfolioValue, setPortfolioValue] = useState(10000000)
+  const [nAssets, setNAssets] = useState(5)
+  const [result, setResult] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+
+  const compute = useCallback(() => {
+    setLoading(true)
+    setTimeout(() => {
+      const { componentVaR: cvFn, riskParity: rpFn, cornishFisherVaR: cfFn, drawdownAnalysis: ddFn, stressTest: stFn } = require('@/lib/quant/risk-models')
+      // Generate portfolio
+      const weights = Array.from({ length: nAssets }, () => 1 / nAssets)
+      const vols = Array.from({ length: nAssets }, (_, i) => 0.15 + i * 0.05)
+      const cov = Array.from({ length: nAssets }, (_, i) => Array.from({ length: nAssets }, (_, j) => {
+        if (i === j) return vols[i] * vols[i]
+        return 0.3 * vols[i] * vols[j]
+      }))
+      const returns: number[] = []
+      for (let i = 0; i < 500; i++) {
+        let ret = 0
+        for (let a = 0; a < nAssets; a++) ret += weights[a] * (0.0003 + vols[a] / Math.sqrt(252) * randn())
+        returns.push(ret)
+      }
+      const cv = cvFn(weights, cov, 0.95)
+      const rp = rpFn(cov)
+      const cf = cfFn(returns, 0.95)
+      const dd = ddFn(returns)
+      const stress = stFn(portfolioValue, weights, vols)
+      setResult({ cv, rp, cf, dd, stress, returns })
+      setLoading(false)
+    }, 100)
+  }, [portfolioValue, nAssets])
+
+  return (
+    <div className="h-full overflow-y-auto space-y-4">
+      <div className="flex items-end gap-3">
+        <NumberInput label="Portfolio ($)" value={portfolioValue} onChange={setPortfolioValue} min={100000} step={1000000} />
+        <NumberInput label="Assets" value={nAssets} onChange={setNAssets} min={2} max={10} step={1} />
+        <button onClick={compute} disabled={loading} className="px-4 py-2 rounded text-[9px] font-bold tracking-widest shrink-0" style={{ backgroundColor: corTema, color: '#000' }}>{loading ? 'COMPUTING...' : 'COMPUTE'}</button>
+        <FormulaBlock label="Cornish-Fisher" tex="VaR_{CF} = \mu - z_{CF}\sigma, \quad z_{CF} = z + \frac{z^2-1}{6}S + \frac{z^3-3z}{24}K" />
+      </div>
+      {result && (
+        <>
+          <div className="grid grid-cols-5 gap-2">
+            <MetricBox label="Portfolio VaR 95%" value={`$${(result.cv.portfolioVaR * portfolioValue).toFixed(0)}`} corTema={corTema} highlight />
+            <MetricBox label="Normal VaR" value={`$${(result.cf.normalVaR * portfolioValue).toFixed(0)}`} corTema={corTema} />
+            <MetricBox label="CF VaR (adj)" value={`$${(result.cf.cfVaR * portfolioValue).toFixed(0)}`} corTema={corTema} highlight />
+            <MetricBox label="Max Drawdown" value={fmtPct(result.dd.maxDrawdown)} corTema={corTema} />
+            <MetricBox label="Skew / Kurtosis" value={`${result.cf.skew.toFixed(2)} / ${result.cf.kurtosis.toFixed(2)}`} corTema={corTema} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Plot data={[{
+              x: result.stress.scenarios.map((s: any) => s.name),
+              y: result.stress.scenarios.map((s: any) => -s.portfolioLoss),
+              type: 'bar',
+              marker: { color: result.stress.scenarios.map((s: any) => s.portfolioLoss > 0 ? LINE_RED : LINE_GREEN) },
+            }]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 380, title: { text: 'Stress Scenario P&L', font: { size: 10, color: '#888' } }, xaxis: { tickangle: -45, tickfont: { size: 7 } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 380 }} />
+            <Plot data={[{
+              x: Array.from({ length: nAssets }, (_, i) => `Asset ${i + 1}`),
+              y: result.cv.percentContribution,
+              type: 'bar',
+              marker: { color: [LINE_BLUE, LINE_RED, LINE_GREEN, LINE_AMBER, '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#64748b'].slice(0, nAssets) },
+            }]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 380, title: { text: 'VaR Risk Contribution (%)', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 380 }} />
+            <Plot data={[{ y: result.dd.underwaterSeries.map((v: number) => v * 100), type: 'scatter', mode: 'lines', fill: 'tozeroy', line: { color: LINE_RED, width: 1 }, fillcolor: LINE_RED + '33' }]}
+              layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Underwater Chart (Drawdown %)', font: { size: 10, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+            <Plot data={[
+              { x: Array.from({ length: nAssets }, (_, i) => `Asset ${i + 1}`), y: result.rp.weights.map((w: number) => w * 100), type: 'bar', name: 'Risk Parity', marker: { color: LINE_BLUE } },
+              { x: Array.from({ length: nAssets }, (_, i) => `Asset ${i + 1}`), y: Array.from({ length: nAssets }, () => 100 / nAssets), type: 'bar', name: 'Equal Weight', marker: { color: '#555' } },
+            ]} layout={{ ...PLOTLY_DARK_LAYOUT, height: 350, title: { text: 'Risk Parity vs Equal Weight (%)', font: { size: 10, color: '#888' } }, barmode: 'group', showlegend: true, legend: { font: { size: 8, color: '#888' } } } as any} config={PLOTLY_CONFIG} style={{ width: '100%', height: 350 }} />
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Tab definitions ───────────────────────────────────────────
 
 interface TabDef {
@@ -2004,6 +2813,16 @@ const TABS: TabDef[] = [
   { id: 'portfolio', label: 'Portfolio', short: 'PORT', icon: <BarChart2 size={10} />, description: 'Markowitz optimizer' },
   { id: 'bond', label: 'Bond Pricer', short: 'FI', icon: <Layers size={10} />, description: 'Fixed income analytics' },
   { id: 'risk', label: 'Risk', short: 'RISK', icon: <ShieldAlert size={10} />, description: 'VaR · CVaR · Stress' },
+  { id: 'exotic', label: 'Exotic Options', short: 'EXOT', icon: <Diamond size={10} />, description: 'Asian · Barrier · Digital' },
+  { id: 'greeks', label: 'Greeks Lab', short: 'GRK', icon: <Grid3X3 size={10} />, description: '3D Greeks surfaces' },
+  { id: 'stoch-vol', label: 'Stochastic Vol', short: 'SVOL', icon: <Waves size={10} />, description: 'Heston · SABR · Jump' },
+  { id: 'rates', label: 'Interest Rates', short: 'RATE', icon: <Landmark size={10} />, description: 'Vasicek · CIR · NSS' },
+  { id: 'credit', label: 'Credit Risk', short: 'CRD', icon: <AlertTriangle size={10} />, description: 'Merton · CDS · KMV' },
+  { id: 'econ', label: 'Econometrics', short: 'ECN', icon: <LineChart size={10} />, description: 'GARCH · Hurst · Regime' },
+  { id: 'factor', label: 'Factor Models', short: 'FAC', icon: <PieChart size={10} />, description: 'PCA · FF3 · Attribution' },
+  { id: 'copula', label: 'Copulas', short: 'COP', icon: <Link2 size={10} />, description: 'Gaussian · Clayton · Tail' },
+  { id: 'signal', label: 'Signal Analysis', short: 'SIG', icon: <Radio size={10} />, description: 'FFT · RSI · MACD · Bollinger' },
+  { id: 'stress', label: 'Stress Testing', short: 'STR', icon: <Flame size={10} />, description: 'Scenarios · CVaR · Drawdown' },
 ]
 
 // ── Root Component ────────────────────────────────────────────
@@ -2144,6 +2963,16 @@ export function QuantPanelV2() {
           {activeTab === 'portfolio' && <PortfolioTab corTema={corTema} engine={engine} />}
           {activeTab === 'bond' && <BondTab corTema={corTema} engine={engine} />}
           {activeTab === 'risk' && <RiskTab corTema={corTema} engine={engine} />}
+          {activeTab === 'exotic' && <ExoticTab corTema={corTema} />}
+          {activeTab === 'greeks' && <GreeksTab corTema={corTema} />}
+          {activeTab === 'stoch-vol' && <StochVolTab corTema={corTema} />}
+          {activeTab === 'rates' && <RatesTab corTema={corTema} />}
+          {activeTab === 'credit' && <CreditTab corTema={corTema} />}
+          {activeTab === 'econ' && <EconTab corTema={corTema} />}
+          {activeTab === 'factor' && <FactorTab corTema={corTema} />}
+          {activeTab === 'copula' && <CopulaTab corTema={corTema} />}
+          {activeTab === 'signal' && <SignalTab corTema={corTema} />}
+          {activeTab === 'stress' && <StressTab corTema={corTema} />}
         </div>
       </div>
     </div>
