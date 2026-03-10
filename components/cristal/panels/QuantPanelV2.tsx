@@ -359,43 +359,60 @@ function SliderInput({ label, value, onChange, min, max, step, displayValue, cor
   )
 }
 
-// ── Engine selector badge ─────────────────────────────────────
+// ── Engine selector badge with live health check ─────────────
+
+interface EngineStatus {
+  ts: 'online'
+  python: 'checking' | 'online' | 'offline'
+  cpp: 'checking' | 'online' | 'offline'
+}
 
 interface EngineSelectorProps {
   engine: Engine
   onChange: (e: Engine) => void
   corTema: string
+  status: EngineStatus
 }
 
-function EngineSelector({ engine, onChange, corTema }: EngineSelectorProps) {
+function EngineSelector({ engine, onChange, corTema, status }: EngineSelectorProps) {
   const engines: { id: Engine; label: string }[] = [
     { id: 'ts', label: 'TS' },
     { id: 'python', label: 'PY' },
     { id: 'cpp', label: 'C++' },
   ]
 
+  const statusColor = (s: 'checking' | 'online' | 'offline') =>
+    s === 'online' ? '#10b981' : s === 'checking' ? '#f59e0b' : '#ef4444'
+
   return (
     <div className="flex items-center gap-1.5">
       <span className="text-[8px] text-[#444] uppercase tracking-wider mr-1">Engine</span>
-      {engines.map(e => (
-        <button
-          key={e.id}
-          onClick={() => onChange(e.id)}
-          className="flex items-center gap-1 px-2 py-0.5 rounded border text-[8px] font-bold tracking-wider transition-all"
-          style={{
-            borderColor: engine === e.id ? corTema : '#1a1a1a',
-            color: engine === e.id ? corTema : '#333',
-            backgroundColor: engine === e.id ? `${corTema}15` : 'transparent',
-          }}
-          title={e.id === 'ts' ? 'Local TypeScript (always available)' : e.id === 'python' ? 'Python backend (/api/quant/run)' : 'WebAssembly (C++ via Emscripten)'}
-        >
-          <span
-            className="w-1.5 h-1.5 rounded-full inline-block"
-            style={{ backgroundColor: e.id === 'ts' ? '#10b981' : engine === e.id ? '#f59e0b' : '#2a2a2a' }}
-          />
-          {e.label}
-        </button>
-      ))}
+      {engines.map(e => {
+        const s = status[e.id]
+        return (
+          <button
+            key={e.id}
+            onClick={() => onChange(e.id)}
+            className="flex items-center gap-1 px-2 py-0.5 rounded border text-[8px] font-bold tracking-wider transition-all"
+            style={{
+              borderColor: engine === e.id ? corTema : '#1a1a1a',
+              color: engine === e.id ? corTema : '#333',
+              backgroundColor: engine === e.id ? `${corTema}15` : 'transparent',
+            }}
+            title={
+              e.id === 'ts' ? 'Local TypeScript (always available)' :
+              e.id === 'python' ? `Python via child_process (${s})` :
+              `C++ WebAssembly (${s})`
+            }
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full inline-block ${s === 'checking' ? 'animate-pulse' : ''}`}
+              style={{ backgroundColor: statusColor(s) }}
+            />
+            {e.label}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -698,7 +715,7 @@ function VolSurfaceTab({ corTema, engine }: VolSurfaceTabProps) {
 import json
 K_list = ${JSON.stringify(strikes)}
 T_list = ${JSON.stringify(maturities)}
-df = superficie_vol(${params.S}, K_list, T_list, ${params.base_sigma}, skew=${params.skew}, convex=${params.convexity})
+df = superficie_vol(${params.S}, K_list, T_list, 0.05, sigma_base=${params.base_sigma}, skew=${params.skew}, convex=${params.convexity})
 surface = []
 for T_val in T_list:
     row = []
@@ -904,22 +921,30 @@ function MonteCarloTab({ corTema, engine }: MonteCarloTabProps) {
       if (engine === 'python') {
         const pythonCode = `
 import json
-result = mc_gbm(${params.S0}, ${params.mu}, ${params.sigma}, ${params.T}, ${params.n_simulations}, 252)
-var95 = sorted(result['precos_finais'])[int(0.05*len(result['precos_finais']))]
-var99 = sorted(result['precos_finais'])[int(0.01*len(result['precos_finais']))]
-b95 = [p for p in result['precos_finais'] if p <= var95]
-b99 = [p for p in result['precos_finais'] if p <= var99]
-import numpy as np
-fps = result['precos_finais']
+rng = np.random.default_rng(42)
+S0, mu, sigma, T = ${params.S0}, ${params.mu}, ${params.sigma}, ${params.T}
+n_sim, n_steps = ${params.n_simulations}, 252
+dt = T / n_steps
+Z = rng.standard_normal((n_sim, n_steps))
+inc = (mu - 0.5*sigma**2)*dt + sigma*np.sqrt(dt)*Z
+paths = S0 * np.exp(np.cumsum(inc, axis=1))
+fps = paths[:, -1].tolist()
+sorted_fps = sorted(fps)
+n = len(fps)
+var95 = sorted_fps[int(0.05*n)]
+var99 = sorted_fps[int(0.01*n)]
+b95 = [p for p in fps if p <= var95]
+b99 = [p for p in fps if p <= var99]
+sample_paths = paths[:8, ::max(1,n_steps//50)].tolist()
 print(json.dumps({
-  "paths": [p[:50] for p in result.get('caminhos', [])[:10]] if 'caminhos' in result else [],
+  "paths": sample_paths,
   "final_prices": fps[:2000],
   "var_95": var95, "var_99": var99,
   "cvar_95": float(np.mean(b95)) if b95 else var95,
   "cvar_99": float(np.mean(b99)) if b99 else var99,
   "mean_price": float(np.mean(fps)),
   "std_price": float(np.std(fps)),
-  "prob_profit": float(np.sum(np.array(fps) > ${params.S0}) / len(fps))
+  "prob_profit": float(np.sum(np.array(fps) > S0) / n)
 }))
 `
         const res = await fetch('/api/quant/run', {
@@ -1205,18 +1230,35 @@ function PortfolioTab({ corTema, engine }: PortfolioTabProps) {
         const n = params.n_assets
         const rets = JSON.stringify(params.expected_returns.slice(0, n))
         const vols = JSON.stringify(params.volatilities.slice(0, n))
+        const tickers = JSON.stringify(params.tickers?.slice(0, n) || Array.from({length: n}, (_, i) => `Asset ${i+1}`))
         const pythonCode = `
 import json, numpy as np
-rets = ${rets}
-vols = ${vols}
+rets_ann = ${rets}
+vols_ann = ${vols}
+tickers = ${tickers}
 n = ${n}
 rf = 0.05
-# Generate synthetic return series
-series = []
-for i in range(n):
-    series.append(list(np.random.normal(rets[i]/252, vols[i]/np.sqrt(252), 500)))
-result = markowitz(series, rf, ${params.n_portfolios || 5000})
-print(json.dumps(result))
+rng = np.random.default_rng(42)
+# Generate synthetic daily return series
+series = [list(rng.normal(rets_ann[i]/252, vols_ann[i]/np.sqrt(252), 500)) for i in range(n)]
+df = markowitz(series, rf, ${params.n_portfolios || 5000})
+# DataFrame -> find optimal
+best_idx = df['sharpe'].idxmax()
+best = df.iloc[best_idx]
+# Correlation matrix
+R = np.array(series)
+corr = np.corrcoef(R).tolist()
+# Build frontier
+frontier = [{"ret": float(r['retorno']), "vol": float(r['vol']), "sharpe": float(r['sharpe'])} for _, r in df.iterrows()]
+print(json.dumps({
+  "weights": best['pesos'],
+  "tickers": tickers,
+  "efficient_frontier": frontier[:500],
+  "optimal_return": float(best['retorno']),
+  "optimal_vol": float(best['vol']),
+  "optimal_sharpe": float(best['sharpe']),
+  "correlation_matrix": corr
+}))
 `
         const res = await fetch('/api/quant/run', {
           method: 'POST',
@@ -1511,13 +1553,14 @@ sens = []
 for i in range(21):
     shift = (i - 10) * 0.01
     new_ytm = ${params.ytm} + shift
-    r2 = preco_bond(${params.face_value}, ${params.coupon_rate}, new_ytm, ${params.maturity})
-    sens.append({"yield_shift": round(shift * 100, 1), "price": round(r2["preco"], 4)})
+    if new_ytm > 0:
+        r2 = preco_bond(${params.face_value}, ${params.coupon_rate}, new_ytm, ${params.maturity})
+        sens.append({"yield_shift": round(shift * 100, 1), "price": round(r2["preco"], 4)})
 print(json.dumps({
     "clean_price": result["preco"],
     "dirty_price": result["preco"],
-    "duration": result.get("duration", 0),
-    "convexity": result.get("convexidade", 0),
+    "duration": result.get("dur_mac", 0),
+    "convexity": result.get("convex", 0),
     "dv01": result.get("dv01", 0),
     "ytm": ${params.ytm},
     "sensitivity_curve": sens
@@ -1971,6 +2014,39 @@ export function QuantPanelV2() {
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('bs')
   const [engine, setEngine] = useState<Engine>('ts')
+  const [engineStatus, setEngineStatus] = useState<EngineStatus>({
+    ts: 'online',
+    python: 'checking',
+    cpp: 'checking',
+  })
+
+  // Health check Python and WASM on mount
+  useEffect(() => {
+    // Check Python: send a trivial computation
+    fetch('/api/quant/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ codigo: 'print("OK")' }),
+    })
+      .then(r => r.json())
+      .then(d => {
+        setEngineStatus(prev => ({
+          ...prev,
+          python: d.stdout?.includes('OK') ? 'online' : 'offline',
+        }))
+      })
+      .catch(() => setEngineStatus(prev => ({ ...prev, python: 'offline' })))
+
+    // Check WASM: try to fetch quant.wasm
+    fetch('/wasm/quant.wasm', { method: 'HEAD' })
+      .then(r => {
+        setEngineStatus(prev => ({
+          ...prev,
+          cpp: r.ok ? 'online' : 'offline',
+        }))
+      })
+      .catch(() => setEngineStatus(prev => ({ ...prev, cpp: 'offline' })))
+  }, [])
 
   const activeTabDef = TABS.find(t => t.id === activeTab) ?? TABS[0]
 
@@ -2035,7 +2111,7 @@ export function QuantPanelV2() {
 
           {/* Engine selector — right-aligned */}
           <div className="ml-auto flex items-center gap-3">
-            <EngineSelector engine={engine} onChange={setEngine} corTema={corTema} />
+            <EngineSelector engine={engine} onChange={setEngine} corTema={corTema} status={engineStatus} />
 
             <div className="h-3 w-px bg-neutral-800" />
 

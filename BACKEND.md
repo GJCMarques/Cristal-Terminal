@@ -258,3 +258,28 @@ ls public/wasm/quant.js public/wasm/quant.wasm
 npx kill-port 3000
 npm run dev
 ```
+Here's the status:
+                                                                                                                                                                                                          
+  Python Engine - WORKS in WSL:
+  - python3 with numpy 2.4.2, scipy 1.17.1, pandas 3.0.1 all installed
+  - The health check (print("OK")) succeeds — includes('OK') correctly matches even with the init.py banner
+  - BS, MC, Portfolio, Bond, Vol Surface, Risk computations all produce valid JSON
+  - The frontend correctly extracts the last JSON line from stdout (skipping banner)
+
+  C++ WASM Engine - WORKS:
+  - quant.wasm (26KB) and quant.js (12KB) both exist in /public/wasm/
+  - Fixed: The middleware was blocking .wasm files (302 redirect to login). Added wasm to the excluded extensions in middleware.ts. Now returns 200.
+
+  Quantum Panel - WORKS:
+  - Uses TS quantum simulator directly (lib/quantum/algorithms.ts)
+  - Status is always "online" (green dot) — no external API needed
+  - All 5 algorithms (Bell, QAE, QAOA, Grover, VQE) run locally
+
+  The middleware fix was the key missing piece. The .wasm extension wasn't in the exclusion list, so WASM files were getting auth-redirected. This has been fixed.
+
+  When you open the QUANT panel after logging in:
+  - TS — always green (local computation)
+  - PY — should show green after ~2-3 seconds (health check via /api/quant/run)
+  - C++ — should show green immediately (HEAD request to /wasm/quant.wasm returns 200)
+
+  Make sure you're running npm run dev from WSL terminal (not Windows PowerShell), so the Node.js process spawns python3 from WSL's /usr/bin/python3.

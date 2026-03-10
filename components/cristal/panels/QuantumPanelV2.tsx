@@ -2,7 +2,7 @@
 
 // ============================================================
 // CRISTAL CAPITAL TERMINAL — Quantum Computing Panel V2
-// Real Qiskit/PennyLane backend · Interactive Plotly 3D
+// Real Quantum TS Engine backend · Interactive Plotly 3D
 // Bell · QAE · QAOA · Grover · VQE
 // ============================================================
 
@@ -392,7 +392,7 @@ export function QuantumPanelV2() {
           <Cpu size={24} style={{ color: corTema, filter: `drop-shadow(0 0 10px ${corTema})` }} />
         </div>
         <p className="text-[11px] tracking-widest mt-2" style={{ color: corTema }}>QUANTUM COMPUTATION IN PROGRESS...</p>
-        <p className="text-[9px] text-neutral-600">Processing via {backendStatus === 'online' ? 'Qiskit/PennyLane Backend' : 'Local Simulator'}</p>
+        <p className="text-[9px] text-neutral-600">Processing via {backendStatus === 'online' ? 'Quantum TS Engine' : 'Local Simulator'}</p>
       </div>
     )
 
@@ -412,7 +412,7 @@ export function QuantumPanelV2() {
         <p className="text-[12px] font-mono tracking-widest text-[#AAA]">SELECT ALGORITHM & COMPUTE</p>
         <p className="text-[9px] text-neutral-600 max-w-sm text-center">
           Configure parameters in the sidebar and press COMPUTE to run quantum computations
-          via {backendStatus === 'online' ? 'Qiskit/PennyLane' : 'simulation'} backend.
+          via {backendStatus === 'online' ? 'Quantum TS Engine' : 'simulation'} backend.
         </p>
       </div>
     )
@@ -1157,7 +1157,7 @@ export function QuantumPanelV2() {
           <div className="flex items-center gap-2 mt-2">
             <Activity size={10} className="text-neutral-600" />
             <p className="text-[8px] text-neutral-600">
-              {backendStatus === 'online' ? 'Qiskit + PennyLane' : 'Local Simulation Mode'}
+              {backendStatus === 'online' ? 'TS Quantum Simulator' : 'Local Simulation Mode'}
             </p>
           </div>
         </div>
