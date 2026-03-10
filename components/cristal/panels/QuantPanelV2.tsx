@@ -15,9 +15,7 @@ import {
 } from 'lucide-react'
 import { corParaTema } from '@/lib/utils'
 import { useTerminalStore } from '@/store/terminal.store'
-
-// KaTeX CSS for mathematical formula rendering
-import 'katex/dist/katex.min.css'
+import { MathFormula, FormulaBlock } from '@/components/cristal/MathFormula'
 
 // ── Plotly (SSR-incompatible — must be dynamic) ────────────────
 const Plot = dynamic(() => import('@/lib/plotly-wrapper'), { ssr: false })
@@ -203,27 +201,28 @@ function randn(): number {
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)
 }
 
-// ── MathFormula helper — renders KaTeX if available ───────────
+// MathFormula & FormulaBlock imported from @/components/cristal/MathFormula
 
-interface MathFormulaProps {
-  tex: string
-  display?: boolean
-}
+// ── WASM loader (lazy singleton) ─────────────────────────────
 
-function MathFormula({ tex, display = false }: MathFormulaProps) {
-  const ref = useRef<HTMLSpanElement>(null)
-  useEffect(() => {
-    if (ref.current) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const katex = require('katex')
-        katex.render(tex, ref.current, { throwOnError: false, displayMode: display })
-      } catch {
-        if (ref.current) ref.current.textContent = tex
-      }
-    }
-  }, [tex, display])
-  return <span ref={ref} />
+let wasmModule: any = null
+
+async function getWasm(): Promise<any> {
+  if (wasmModule) return wasmModule
+  // The Emscripten module is served as a static asset from /public/wasm/
+  // We load it at runtime via fetch to avoid SSR issues.
+  const scriptText = await fetch('/wasm/quant.js').then(r => {
+    if (!r.ok) throw new Error('WASM loader not found at /wasm/quant.js')
+    return r.text()
+  })
+  // Emscripten exports the factory function as `CristalQuant`.
+  // Wrap in a Function so we can capture the return value.
+  // biome-ignore lint/security/noGlobalEval: required to load Emscripten module
+  const factory = new Function('module', 'exports', scriptText + '\nreturn typeof CristalQuant !== "undefined" ? CristalQuant : undefined;')
+  const CristalQuant = factory({}, {})
+  if (typeof CristalQuant !== 'function') throw new Error('CristalQuant factory not found in quant.js')
+  wasmModule = await CristalQuant({ locateFile: (f: string) => '/wasm/' + f })
+  return wasmModule
 }
 
 // ── Local computation fallbacks (used when backend is down) ──
@@ -414,21 +413,6 @@ function BackendError({ corTema: _corTema }: { corTema: string }) {
 
 // ── Math formula block ────────────────────────────────────────
 
-interface FormulaBlockProps {
-  tex: string
-  label: string
-}
-
-function FormulaBlock({ tex, label }: FormulaBlockProps) {
-  return (
-    <div className="border border-[#111] rounded px-3 py-2 bg-[#050505] flex flex-col gap-1">
-      <p className="text-[8px] text-[#333] uppercase tracking-widest">{label}</p>
-      <div className="text-[10px] text-[#666] font-mono overflow-x-auto">
-        <MathFormula tex={tex} display />
-      </div>
-    </div>
-  )
-}
 
 // ── TAB 1: Black-Scholes Pricer ───────────────────────────────
 
@@ -453,34 +437,58 @@ function BSTab({ corTema, engine }: BSTabProps) {
     setLoading(true)
     try {
       if (engine === 'ts') {
-        throw new Error('Use local TS')
-      }
-      if (engine === 'python') {
-        const pythonCode = `
-result = bs(${params.S}, ${params.K}, ${params.T}, ${params.r}, ${params.sigma}, ${params.q}, '${params.type}')
-tabela(result)
-`
-        const res = await fetch('/api/quant/run', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: pythonCode }),
-        })
-        if (!res.ok) throw new Error('Python backend error')
-        // Python output is text; fall back to local for structured result
+        // Always-available local TypeScript computation
         setBackendDown(false)
         setResult(computeBSLocal(params))
         return
       }
-      // C++ / WASM path — attempt to load quant.js
-      const res = await fetch('/api/quantum-bridge/quant/black-scholes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
-      })
-      if (!res.ok) throw new Error('Backend error')
-      const data: BSResult = await res.json()
-      setBackendDown(false)
-      setResult(data)
+
+      if (engine === 'python') {
+        const pythonCode = `
+import json
+result = bs(${params.S}, ${params.K}, ${params.T}, ${params.r}, ${params.sigma}, ${params.q}, '${params.type}')
+print(json.dumps({
+  'price': result['preco'],
+  'delta': result['delta'],
+  'gamma': result['gamma'],
+  'theta': result['theta'],
+  'vega':  result['vega'],
+  'rho':   result['rho'],
+}))
+`
+        const res = await fetch('/api/quant/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ codigo: pythonCode }),
+        })
+        if (!res.ok) throw new Error('Python backend error')
+        const data = await res.json()
+        if (!data.stdout && data.stderr) throw new Error(data.stderr)
+        // stdout may contain the init.py banner lines before the JSON;
+        // find the last line that starts with '{' to get the JSON output.
+        const jsonLine = data.stdout.trim().split('\n').reverse().find((l: string) => l.trim().startsWith('{'))
+        if (!jsonLine) throw new Error('No JSON output from Python')
+        const parsed = JSON.parse(jsonLine)
+        setBackendDown(false)
+        setResult({ price: parsed.price, delta: parsed.delta, gamma: parsed.gamma, theta: parsed.theta, vega: parsed.vega, rho: parsed.rho })
+        return
+      }
+
+      // C++ / WASM path — load quant.js from /public/wasm/
+      if (engine === 'cpp') {
+        const wasm = await getWasm()
+        const { S, K, T, r, sigma, q } = params
+        const isCall = params.type === 'call'
+        const price = isCall ? wasm._bs_call(S, K, T, r, sigma) : wasm._bs_put(S, K, T, r, sigma)
+        const delta = isCall ? wasm._bs_delta_call(S, K, T, r, sigma) : wasm._bs_delta_put(S, K, T, r, sigma)
+        const gamma = wasm._bs_gamma(S, K, T, r, sigma)
+        const vega = wasm._bs_vega(S, K, T, r, sigma)
+        const theta = isCall ? wasm._bs_theta_call(S, K, T, r, sigma) : wasm._bs_theta_put(S, K, T, r, sigma)
+        // q (dividend yield) is not exposed in the C++ WASM interface; results use q=0
+        setBackendDown(false)
+        setResult({ price, delta, gamma, theta, vega: vega / 100, rho: 0 })
+        return
+      }
     } catch {
       setBackendDown(engine !== 'ts')
       setResult(computeBSLocal(params))
@@ -647,7 +655,7 @@ interface VolSurfaceTabProps {
   engine: Engine
 }
 
-function VolSurfaceTab({ corTema, engine: _engine }: VolSurfaceTabProps) {
+function VolSurfaceTab({ corTema, engine }: VolSurfaceTabProps) {
   const [params, setParams] = useState<VolSurfaceParams>({
     S: 100, base_sigma: 0.20, skew: -0.01, convexity: 0.004, term_slope: 0.002,
   })
@@ -675,22 +683,53 @@ function VolSurfaceTab({ corTema, engine: _engine }: VolSurfaceTabProps) {
   const compute = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/quantum-bridge/quant/vol-surface', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
-      })
-      if (!res.ok) throw new Error('Backend error')
-      const data: VolSurfaceResult = await res.json()
-      setBackendDown(false)
-      setResult(data)
+      if (engine === 'ts' || engine === 'cpp') {
+        // TS engine (always available) and C++ engine (no WASM function for vol surface) both use local TS
+        setBackendDown(false)
+        setResult(computeLocal(params))
+        return
+      }
+
+      // Python engine — use init.py superficie_vol()
+      if (engine === 'python') {
+        const strikes = [70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130]
+        const maturities = [0.08, 0.17, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0]
+        const pythonCode = `
+import json
+K_list = ${JSON.stringify(strikes)}
+T_list = ${JSON.stringify(maturities)}
+df = superficie_vol(${params.S}, K_list, T_list, ${params.base_sigma}, skew=${params.skew}, convex=${params.convexity})
+surface = []
+for T_val in T_list:
+    row = []
+    for K_val in K_list:
+        mask = (df['T'] == T_val) & (df['K'] == K_val)
+        row.append(float(df[mask]['vol'].values[0]) * 100)
+    surface.append(row)
+print(json.dumps({'strikes': K_list, 'maturities': T_list, 'surface': surface}))
+`
+        const res = await fetch('/api/quant/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ codigo: pythonCode }),
+        })
+        if (!res.ok) throw new Error('Python backend error')
+        const data = await res.json()
+        if (!data.stdout && data.stderr) throw new Error(data.stderr)
+        const jsonLine = data.stdout.trim().split('\n').reverse().find((l: string) => l.trim().startsWith('{'))
+        if (!jsonLine) throw new Error('No JSON output from Python')
+        const parsed = JSON.parse(jsonLine)
+        setBackendDown(false)
+        setResult(parsed as VolSurfaceResult)
+        return
+      }
     } catch {
-      setBackendDown(true)
+      setBackendDown(engine !== 'ts')
       setResult(computeLocal(params))
     } finally {
       setLoading(false)
     }
-  }, [params, computeLocal])
+  }, [params, engine, computeLocal])
 
   return (
     <div className="flex gap-4 h-full min-h-0">
@@ -797,7 +836,7 @@ interface MonteCarloTabProps {
   engine: Engine
 }
 
-function MonteCarloTab({ corTema, engine: _engine }: MonteCarloTabProps) {
+function MonteCarloTab({ corTema, engine }: MonteCarloTabProps) {
   const [params, setParams] = useState<MonteCarloParams>({
     S0: 100, mu: 0.08, sigma: 0.20, T: 1, n_simulations: 1000, n_steps: 252,
   })
@@ -862,22 +901,47 @@ function MonteCarloTab({ corTema, engine: _engine }: MonteCarloTabProps) {
   const compute = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/quantum-bridge/quant/monte-carlo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
-      })
-      if (!res.ok) throw new Error('Backend error')
-      const data: MonteCarloResult = await res.json()
-      setBackendDown(false)
-      setResult(data)
+      if (engine === 'python') {
+        const pythonCode = `
+import json
+result = mc_gbm(${params.S0}, ${params.mu}, ${params.sigma}, ${params.T}, ${params.n_simulations}, 252)
+var95 = sorted(result['precos_finais'])[int(0.05*len(result['precos_finais']))]
+var99 = sorted(result['precos_finais'])[int(0.01*len(result['precos_finais']))]
+b95 = [p for p in result['precos_finais'] if p <= var95]
+b99 = [p for p in result['precos_finais'] if p <= var99]
+import numpy as np
+fps = result['precos_finais']
+print(json.dumps({
+  "paths": [p[:50] for p in result.get('caminhos', [])[:10]] if 'caminhos' in result else [],
+  "final_prices": fps[:2000],
+  "var_95": var95, "var_99": var99,
+  "cvar_95": float(np.mean(b95)) if b95 else var95,
+  "cvar_99": float(np.mean(b99)) if b99 else var99,
+  "mean_price": float(np.mean(fps)),
+  "std_price": float(np.std(fps)),
+  "prob_profit": float(np.sum(np.array(fps) > ${params.S0}) / len(fps))
+}))
+`
+        const res = await fetch('/api/quant/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ codigo: pythonCode }),
+        })
+        const data = await res.json()
+        if (data.stderr && !data.stdout?.trim()) throw new Error(data.stderr)
+        const parsed = JSON.parse(data.stdout.trim())
+        setBackendDown(false)
+        setResult(parsed)
+        return
+      }
+      throw new Error('Use local TS')
     } catch {
-      setBackendDown(true)
+      setBackendDown(engine !== 'ts')
       setResult(computeLocal(params))
     } finally {
       setLoading(false)
     }
-  }, [params, computeLocal])
+  }, [params, engine, computeLocal])
 
   // Build histogram from final_prices
   const histogramData = useMemo(() => {
@@ -1076,7 +1140,7 @@ interface PortfolioTabProps {
   engine: Engine
 }
 
-function PortfolioTab({ corTema, engine: _engine }: PortfolioTabProps) {
+function PortfolioTab({ corTema, engine }: PortfolioTabProps) {
   const [params, setParams] = useState<PortfolioParams>({
     n_assets: 4,
     expected_returns: [0.12, 0.35, 0.20, 0.02, 0.06, 0.80, 0.04, 0.08],
@@ -1137,29 +1201,43 @@ function PortfolioTab({ corTema, engine: _engine }: PortfolioTabProps) {
   const compute = useCallback(async () => {
     setLoading(true)
     try {
-      // Generate realistic return series for backend
-      const seriesLength = 500
-      const returnsSeries = params.expected_returns.slice(0, params.n_assets).map((mu, i) => {
-        const sigma = params.volatilities[i] ?? 0.2
-        return Array.from({ length: seriesLength }, () => mu / 252 + (sigma / Math.sqrt(252)) * randn())
-      })
-
-      const res = await fetch('/api/quantum-bridge/quant/portfolio-optimize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...params, returns_series: returnsSeries }),
-      })
-      if (!res.ok) throw new Error('Backend error')
-      const data: PortfolioResult = await res.json()
-      setBackendDown(false)
-      setResult(data)
+      if (engine === 'python') {
+        const n = params.n_assets
+        const rets = JSON.stringify(params.expected_returns.slice(0, n))
+        const vols = JSON.stringify(params.volatilities.slice(0, n))
+        const pythonCode = `
+import json, numpy as np
+rets = ${rets}
+vols = ${vols}
+n = ${n}
+rf = 0.05
+# Generate synthetic return series
+series = []
+for i in range(n):
+    series.append(list(np.random.normal(rets[i]/252, vols[i]/np.sqrt(252), 500)))
+result = markowitz(series, rf, ${params.n_portfolios || 5000})
+print(json.dumps(result))
+`
+        const res = await fetch('/api/quant/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ codigo: pythonCode }),
+        })
+        const data = await res.json()
+        if (data.stderr && !data.stdout?.trim()) throw new Error(data.stderr)
+        const parsed = JSON.parse(data.stdout.trim())
+        setBackendDown(false)
+        setResult(parsed)
+        return
+      }
+      throw new Error('Use local TS')
     } catch {
-      setBackendDown(true)
+      setBackendDown(engine !== 'ts')
       setResult(computeLocal(params))
     } finally {
       setLoading(false)
     }
-  }, [params, computeLocal])
+  }, [params, engine, computeLocal])
 
   return (
     <div className="flex gap-4 h-full min-h-0">
@@ -1354,7 +1432,7 @@ interface BondTabProps {
   engine: Engine
 }
 
-function BondTab({ corTema, engine: _engine }: BondTabProps) {
+function BondTab({ corTema, engine }: BondTabProps) {
   const [params, setParams] = useState<BondParams>({
     face_value: 1000, coupon_rate: 0.05, maturity: 10, ytm: 0.05, frequency: 2,
   })
@@ -1425,22 +1503,46 @@ function BondTab({ corTema, engine: _engine }: BondTabProps) {
   const compute = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/quantum-bridge/quant/bond-pricing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
-      })
-      if (!res.ok) throw new Error('Backend error')
-      const data: BondResult = await res.json()
-      setBackendDown(false)
-      setResult(data)
+      if (engine === 'python') {
+        const pythonCode = `
+import json
+result = preco_bond(${params.face_value}, ${params.coupon_rate}, ${params.ytm}, ${params.maturity})
+sens = []
+for i in range(21):
+    shift = (i - 10) * 0.01
+    new_ytm = ${params.ytm} + shift
+    r2 = preco_bond(${params.face_value}, ${params.coupon_rate}, new_ytm, ${params.maturity})
+    sens.append({"yield_shift": round(shift * 100, 1), "price": round(r2["preco"], 4)})
+print(json.dumps({
+    "clean_price": result["preco"],
+    "dirty_price": result["preco"],
+    "duration": result.get("duration", 0),
+    "convexity": result.get("convexidade", 0),
+    "dv01": result.get("dv01", 0),
+    "ytm": ${params.ytm},
+    "sensitivity_curve": sens
+}))
+`
+        const res = await fetch('/api/quant/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ codigo: pythonCode }),
+        })
+        const data = await res.json()
+        if (data.stderr && !data.stdout?.trim()) throw new Error(data.stderr)
+        const parsed = JSON.parse(data.stdout.trim())
+        setBackendDown(false)
+        setResult(parsed)
+        return
+      }
+      throw new Error('Use local TS')
     } catch {
-      setBackendDown(true)
+      setBackendDown(engine !== 'ts')
       setResult(computeLocal(params))
     } finally {
       setLoading(false)
     }
-  }, [params, computeLocal])
+  }, [params, engine, computeLocal])
 
   return (
     <div className="flex gap-4 h-full min-h-0">
@@ -1567,7 +1669,7 @@ interface RiskTabProps {
   engine: Engine
 }
 
-function RiskTab({ corTema, engine: _engine }: RiskTabProps) {
+function RiskTab({ corTema, engine }: RiskTabProps) {
   const [params, setParams] = useState<RiskParams>({
     portfolio_value: 1_000_000,
     confidence_levels: [0.90, 0.95, 0.99],
@@ -1629,24 +1731,59 @@ function RiskTab({ corTema, engine: _engine }: RiskTabProps) {
   const compute = useCallback(async () => {
     setLoading(true)
     try {
-      // Generate sample returns for backend
-      const sample_returns = Array.from({ length: 300 }, () => randn() * 0.012 + 0.0003)
-      const res = await fetch('/api/quantum-bridge/quant/risk-analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...params, sample_returns }),
-      })
-      if (!res.ok) throw new Error('Backend error')
-      const data: RiskResult = await res.json()
-      setBackendDown(false)
-      setResult(data)
+      if (engine === 'python') {
+        const pythonCode = `
+import json, numpy as np
+mu = ${params.annual_return}
+sigma = ${params.annual_volatility}
+val = ${params.portfolio_value}
+h = ${params.horizon}
+n = 10000
+rets = np.random.normal(mu/252, sigma/np.sqrt(252), n)
+sorted_r = np.sort(rets)
+sqrt_h = np.sqrt(h)
+var90 = float(-sorted_r[int(0.10*n)] * val * sqrt_h)
+var95 = float(-sorted_r[int(0.05*n)] * val * sqrt_h)
+var99 = float(-sorted_r[int(0.01*n)] * val * sqrt_h)
+cvar90 = float(-np.mean(sorted_r[:int(0.10*n)]) * val * sqrt_h)
+cvar95 = float(-np.mean(sorted_r[:int(0.05*n)]) * val * sqrt_h)
+cvar99 = float(-np.mean(sorted_r[:int(0.01*n)]) * val * sqrt_h)
+stress = [
+    {"name": "2008 GFC", "loss": val * 0.52},
+    {"name": "COVID-19", "loss": val * 0.34},
+    {"name": "Dot-com", "loss": val * 0.49},
+    {"name": "Black Monday", "loss": val * 0.22},
+    {"name": "EU Debt Crisis", "loss": val * 0.19},
+    {"name": "Rate Shock +3%", "loss": val * 0.08},
+]
+hist, edges = np.histogram(rets, bins=35)
+dist = [{"bucket": round(float(edges[i]), 4), "count": int(hist[i])} for i in range(len(hist))]
+print(json.dumps({
+    "var_90": var90, "var_95": var95, "var_99": var99,
+    "cvar_90": cvar90, "cvar_95": cvar95, "cvar_99": cvar99,
+    "stress_scenarios": stress, "return_distribution": dist
+}))
+`
+        const res = await fetch('/api/quant/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ codigo: pythonCode }),
+        })
+        const data = await res.json()
+        if (data.stderr && !data.stdout?.trim()) throw new Error(data.stderr)
+        const parsed = JSON.parse(data.stdout.trim())
+        setBackendDown(false)
+        setResult(parsed)
+        return
+      }
+      throw new Error('Use local TS')
     } catch {
-      setBackendDown(true)
+      setBackendDown(engine !== 'ts')
       setResult(computeLocal(params))
     } finally {
       setLoading(false)
     }
-  }, [params, computeLocal])
+  }, [params, engine, computeLocal])
 
   const fmtCurrency = (v: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)

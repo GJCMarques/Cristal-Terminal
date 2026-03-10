@@ -13,6 +13,7 @@ import {
 } from 'recharts'
 import { CURVAS_RENDIMENTO } from '@/lib/mocks/yield-curve'
 import { useTerminalStore } from '@/store/terminal.store'
+import { MathFormula, FormulaBlock } from '@/components/cristal/MathFormula'
 import type { CurvaRendimento } from '@/types/market'
 
 // ── Cálculos de Obrigações ────────────────────────────────────
@@ -139,7 +140,20 @@ function BondCalculator({ corTema }: { corTema: string }) {
   const premium = resultado && precoNum > 0 ? ((precoNum / (parseFloat(nominal) || 100)) - 1) * 100 : null
 
   return (
-    <div className="flex-1 min-h-0 overflow-auto p-4 md:p-8 bg-[#020202] grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="flex-1 min-h-0 overflow-auto p-4 md:p-8 bg-[#020202] flex flex-col gap-6">
+      {/* ── Fórmulas (full width) ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <FormulaBlock
+          label="Bond Price"
+          tex="P = \\sum_{t=1}^{n} \\frac{C}{(1+y)^t} + \\frac{F}{(1+y)^n}"
+        />
+        <FormulaBlock
+          label="Modified Duration & DV01"
+          tex="D_{\\text{mod}} = \\frac{D_{\\text{Mac}}}{1+y}, \\quad \\text{DV01} = D_{\\text{mod}} \\cdot P \\cdot 0.0001"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* ── Entradas PRICING ENGINE ── */}
       <div className="space-y-6">
         <div>
@@ -154,7 +168,7 @@ function BondCalculator({ corTema }: { corTema: string }) {
             { label: 'MATURIDADE (YRS)', val: maturidade, set: setMaturidade, step: '1', placeholder: '10' },
             { label: 'YTM ALVO (%)', val: ytm, set: setYtm, step: '0.05', placeholder: '3.85' },
           ].map(({ label, val, set, step, placeholder }) => (
-            <div key={label} className="bg-[#0A0C10] p-3 border border-neutral-800/50 rounded flex flex-col justify-between hover:border-neutral-700 transition-colors">
+            <div key={label} className="bg-[#0A0A0A] p-3 border border-neutral-800/50 rounded flex flex-col justify-between hover:border-neutral-700 transition-colors">
               <label className="text-[9px] text-neutral-500 font-mono uppercase tracking-wider mb-2">{label}</label>
               <div className="flex items-center">
                 <input
@@ -174,7 +188,7 @@ function BondCalculator({ corTema }: { corTema: string }) {
           ))}
         </div>
 
-        <div className="bg-[#0A0C10] p-4 mt-4 border border-violet-900/30 rounded relative overflow-hidden group">
+        <div className="bg-[#0A0A0A] p-4 mt-4 border border-violet-900/30 rounded relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-violet-600/5 blur-3xl group-hover:bg-violet-600/10 transition-colors" />
           <label className="text-[9px] text-violet-400 font-mono uppercase tracking-wider mb-2 block relative z-10">PREÇO DE MERCADO (CALCULAR YTM INVERSO)</label>
           <div className="flex items-center relative z-10">
@@ -206,7 +220,7 @@ function BondCalculator({ corTema }: { corTema: string }) {
         {resultado ? (
           <div className="flex-1 flex flex-col space-y-4">
             {/* The Big Price */}
-            <div className="flex items-center justify-between bg-[#0A0C10] p-6 border-l-4 rounded" style={{ borderColor: corTema }}>
+            <div className="flex items-center justify-between bg-[#0A0A0A] p-6 border-l-4 rounded" style={{ borderColor: corTema }}>
               <div>
                 <div className="text-[10px] text-neutral-500 font-mono mb-1 uppercase tracking-wider">PREÇO TEÓRICO SUJO (DIRTY)</div>
                 <div className="text-4xl lg:text-5xl font-mono font-black text-white shadow-black drop-shadow-lg tracking-tighter">
@@ -231,7 +245,7 @@ function BondCalculator({ corTema }: { corTema: string }) {
                 { label: 'MOD. DURATION', val: `${resultado.durModificada.toFixed(2)}` },
                 { label: 'CONVEXIDADE', val: `${resultado.convexidade.toFixed(2)}` },
               ].map((m) => (
-                <div key={m.label} className="bg-[#0A0C10] border border-neutral-900 px-4 py-3 flex flex-col justify-center">
+                <div key={m.label} className="bg-[#0A0A0A] border border-neutral-900 px-4 py-3 flex flex-col justify-center">
                   <span className="text-[9px] text-neutral-500 font-mono uppercase tracking-wider mb-1">{m.label}</span>
                   <span className={`text-lg font-mono font-bold ${m.glow ? 'text-white' : 'text-neutral-300'}`}>
                     {m.val}
@@ -278,6 +292,7 @@ function BondCalculator({ corTema }: { corTema: string }) {
             <span className="text-neutral-500 font-mono text-xs uppercase tracking-widest">Aguardando Parâmetros...</span>
           </div>
         )}
+      </div>
       </div>
     </div>
   )
@@ -344,7 +359,7 @@ export function YieldCurvePanel() {
   return (
     <div className="flex flex-col h-full bg-[#050505] font-mono shadow-[inset_0_0_20px_rgba(0,0,0,1)]">
       {/* ── Cabeçalho Principal ──────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between px-4 py-2 border-b border-neutral-800 shrink-0 bg-[#0A0C10]">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between px-4 py-2 border-b border-neutral-800 shrink-0 bg-[#0A0A0A]">
         <div>
           <div className="flex items-center gap-3 mb-1 md:mb-0">
             <span className="font-mono text-sm font-bold text-white tracking-wide">YIELD CURVE & FIXED INCOME</span>
@@ -398,7 +413,7 @@ export function YieldCurvePanel() {
 
       {/* Sub-header Filter Toolbar */}
       {aba !== 'bond' && (
-        <div className="flex items-center justify-between px-4 py-1.5 bg-[#0A0C10] border-b border-neutral-800">
+        <div className="flex items-center justify-between px-4 py-1.5 bg-[#0A0A0A] border-b border-neutral-800">
           <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar">
             {CURVAS_RENDIMENTO.map((c) => {
               const isSelected = curvasSelecionadas.includes(c.benchmark)
@@ -477,7 +492,7 @@ export function YieldCurvePanel() {
         )}
 
         {aba !== 'bond' && (
-          <div className="shrink-0 overflow-x-auto border-t border-neutral-800 bg-[#0A0C10]">
+          <div className="shrink-0 overflow-x-auto border-t border-neutral-800 bg-[#0A0A0A]">
             <table className="w-full font-mono text-xs whitespace-nowrap">
               <thead>
                 <tr className="border-b border-neutral-800 bg-[#020202]">

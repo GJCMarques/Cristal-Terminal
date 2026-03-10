@@ -184,7 +184,7 @@ export function BolhasPanel() {
       </div>
 
       {/* ── Área Gráfica Com Quadrantes ────────────────────────── */}
-      <div className={`flex-1 min-h-0 relative p-4 bg-[#0A0C10] transition-opacity duration-700 ease-out ${showChart ? 'opacity-100' : 'opacity-0'}`}>
+      <div className={`flex-1 min-h-0 relative p-4 bg-[#0A0A0A] transition-opacity duration-700 ease-out ${showChart ? 'opacity-100' : 'opacity-0'}`}>
 
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>

@@ -91,7 +91,7 @@ function SingleOrderBook({
 
   return (
     <div className="flex-1 flex flex-col h-full bg-[#050505] font-mono shadow-[inset_0_0_20px_rgba(0,0,0,1)] border-r border-neutral-800 last:border-r-0">
-      <div className="flex bg-[#0A0C10] items-center justify-between px-4 py-2 border-b border-neutral-800 shrink-0">
+      <div className="flex bg-[#0A0A0A] items-center justify-between px-4 py-2 border-b border-neutral-800 shrink-0">
         <div className="flex items-center gap-3">
           <select
             value={ticker}

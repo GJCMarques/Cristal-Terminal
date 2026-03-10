@@ -17,7 +17,8 @@ Público-alvo: profissionais de mercado (traders, analistas, quants, gestores).
 | Estado | Zustand 5 (com `subscribeWithSelector` + `devtools`) |
 | Base de Dados | **SQLite local** (`data/cristal.db`) — sem dependências externas |
 | Auth | next-auth v5 (Auth.js beta) + bcryptjs + otplib (TOTP/MFA) |
-| Gráficos | Plotly.js 3D, Recharts, lightweight-charts, KaTeX (fórmulas) |
+| Gráficos | Plotly.js 3D, Recharts, lightweight-charts, KaTeX (fórmulas), d3-scale/array/interpolate |
+| Matemática | mathjs, simple-statistics, ml-matrix, numeric (álgebra linear, PCA, regressão) |
 | IA | Ollama/Llama 3 (local) via `services/ollama.ts` |
 | Fontes | IBM Plex Mono (monospace) — usada em TUDO |
 | Linting | Biome (`biome.json`) |
@@ -284,11 +285,27 @@ const LINE_AMBER = '#f59e0b'
 
 ### Fórmulas Matemáticas (KaTeX)
 
-O painel Quant usa KaTeX para renderizar fórmulas LaTeX inline:
+Componente partilhado em `components/cristal/MathFormula.tsx`:
 ```tsx
+import { MathFormula, FormulaBlock } from '@/components/cristal/MathFormula'
+
+// Inline formula
 <MathFormula tex="C = S e^{-qT} N(d_1) - K e^{-rT} N(d_2)" display />
+
+// Block with label (used in Quant/Quantum/YieldCurve panels)
+<FormulaBlock label="Black-Scholes" tex="C = S e^{-qT} N(d_1) - K e^{-rT} N(d_2)" />
 ```
-CSS carregado via `require('katex/dist/katex.min.css')` com fallback se o pacote não estiver instalado.
+CSS importado automaticamente pelo componente. Usado em: QuantPanelV2, QuantumPanelV2, YieldCurvePanel.
+
+### Bibliotecas Matemáticas
+
+| Biblioteca | Uso |
+|-----------|-----|
+| `mathjs` | Álgebra simbólica, parser de expressões, matrizes |
+| `simple-statistics` | Regressão, quantis, distribuições, Bayesian |
+| `ml-matrix` | SVD, PCA, decomposição LU/QR, eigenvalues |
+| `numeric` | Álgebra linear numérica, FFT, optimização |
+| `d3-scale/array/interpolate` | Escalas para visualização, interpolação de cores |
 
 ### Tamanhos dos Gráficos
 
