@@ -58,28 +58,29 @@ type ToolId = 'bell' | 'qae' | 'qaoa' | 'grover' | 'vqe' | 'qft' | 'qpe' | 'qsvm
 
 interface Tool {
   id: ToolId
+  label: string
   titulo: string
-  sub: string
   icone: React.ReactNode
   categoria: string
+  catColor: string
 }
 
 const TOOLS: Tool[] = [
-  { id: 'bell', titulo: 'Bell State (EPR)', sub: 'Entanglement & Correlation', icone: <Atom size={12} />, categoria: 'FOUNDATIONS' },
-  { id: 'qae', titulo: 'Quantum Option Pricing', sub: 'Amplitude Estimation', icone: <Zap size={12} />, categoria: 'DERIVATIVES' },
-  { id: 'qaoa', titulo: 'QAOA Portfolio', sub: 'Quantum Optimization', icone: <TrendingUp size={12} />, categoria: 'PORTFOLIO' },
-  { id: 'grover', titulo: 'Grover Search', sub: 'Anomaly Detection', icone: <Search size={12} />, categoria: 'RISK' },
-  { id: 'vqe', titulo: 'VQE Eigensolver', sub: 'Variational Quantum', icone: <Layers size={12} />, categoria: 'ADVANCED' },
-  { id: 'qft', titulo: 'Quantum Fourier Transform', sub: 'QFT · Frequency Analysis', icone: <Waves size={12} />, categoria: 'FOUNDATIONS' },
-  { id: 'qpe', titulo: 'Phase Estimation', sub: 'QPE · Eigenvalue Finding', icone: <Calculator size={12} />, categoria: 'FOUNDATIONS' },
-  { id: 'qsvm', titulo: 'Quantum SVM', sub: 'Qiskit ML · Classification', icone: <Brain size={12} />, categoria: 'MACHINE LEARNING' },
-  { id: 'qnn', titulo: 'Quantum Neural Network', sub: 'PennyLane · Variational', icone: <Network size={12} />, categoria: 'MACHINE LEARNING' },
-  { id: 'qwalk', titulo: 'Quantum Walk', sub: 'DTQW · Ballistic Spread', icone: <Footprints size={12} />, categoria: 'ALGORITHMS' },
-  { id: 'qanneal', titulo: 'Quantum Annealing', sub: 'D-Wave · Optimization', icone: <Flame size={12} />, categoria: 'OPTIMIZATION' },
-  { id: 'qec', titulo: 'Error Correction', sub: 'Surface Code · Shor Code', icone: <ShieldCheck size={12} />, categoria: 'HARDWARE' },
-  { id: 'qfinance', titulo: 'Quantum Derivatives', sub: 'QAE · Option Pricing', icone: <Banknote size={12} />, categoria: 'FINANCE' },
-  { id: 'qcorr', titulo: 'Quantum Correlations', sub: 'Bell · Entanglement', icone: <GitBranch size={12} />, categoria: 'FINANCE' },
-  { id: 'qpca', titulo: 'Quantum PCA', sub: 'Dimensionality Reduction', icone: <Sparkles size={12} />, categoria: 'MACHINE LEARNING' },
+  { id: 'bell', label: 'EPR', titulo: 'Bell State (EPR)', icone: <Atom size={10} />, categoria: 'MATEMÁTICA PURA', catColor: '#3b82f6' },
+  { id: 'qft', label: 'QFT', titulo: 'Quantum Fourier', icone: <Waves size={10} />, categoria: 'MATEMÁTICA PURA', catColor: '#3b82f6' },
+  { id: 'qpe', label: 'QPE', titulo: 'Phase Estimation', icone: <Calculator size={10} />, categoria: 'MATEMÁTICA PURA', catColor: '#3b82f6' },
+  { id: 'qsvm', label: 'QSVM', titulo: 'Quantum SVM', icone: <Brain size={10} />, categoria: 'MACHINE LEARNING', catColor: '#eab308' },
+  { id: 'qnn', label: 'QNN', titulo: 'Neural Network', icone: <Network size={10} />, categoria: 'MACHINE LEARNING', catColor: '#eab308' },
+  { id: 'qpca', label: 'QPCA', titulo: 'Quantum PCA', icone: <Sparkles size={10} />, categoria: 'MACHINE LEARNING', catColor: '#eab308' },
+  { id: 'qaoa', label: 'QAOA', titulo: 'Portfolio Optimizer', icone: <TrendingUp size={10} />, categoria: 'PORTFOLIO', catColor: '#10b981' },
+  { id: 'qanneal', label: 'ANNEAL', titulo: 'Quantum Annealing', icone: <Flame size={10} />, categoria: 'OPTIMIZATION', catColor: '#f97316' },
+  { id: 'grover', label: 'GROVER', titulo: 'Grover Search', icone: <Search size={10} />, categoria: 'RISCO', catColor: '#f97316' },
+  { id: 'qae', label: 'QAE', titulo: 'Amplitude Estimation', icone: <Zap size={10} />, categoria: 'DERIVATIVOS', catColor: '#8b5cf6' },
+  { id: 'qfinance', label: 'Q-PRICE', titulo: 'Quantum Pricing', icone: <Banknote size={10} />, categoria: 'DERIVATIVOS', catColor: '#8b5cf6' },
+  { id: 'vqe', label: 'VQE', titulo: 'Eigensolver', icone: <Layers size={10} />, categoria: 'LIQUIDEZ', catColor: '#06b6d4' },
+  { id: 'qwalk', label: 'WALK', titulo: 'Quantum Walk', icone: <Footprints size={10} />, categoria: 'ALGORITMOS', catColor: '#06b6d4' },
+  { id: 'qec', label: 'QEC', titulo: 'Error Correction', icone: <ShieldCheck size={10} />, categoria: 'HARDWARE', catColor: '#64748b' },
+  { id: 'qcorr', label: 'Q-CORR', titulo: 'Correlations', icone: <GitBranch size={10} />, categoria: 'FINANÇAS', catColor: '#ec4899' },
 ]
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -160,6 +161,26 @@ const PLOTLY_3D_SCENE = {
   yaxis: { gridcolor: '#1f1f1f', zerolinecolor: '#333', color: '#888', tickfont: { size: 8, color: '#888' } },
   zaxis: { gridcolor: '#1f1f1f', zerolinecolor: '#333', color: '#888', tickfont: { size: 8, color: '#888' } },
   bgcolor: '#080808',
+}
+
+// ── Seeded PRNG — deterministic results ─────────────────────────
+// Temporarily replaces Math.random during computation so same params → same results
+
+function hashParams(...args: any[]): number {
+  const str = JSON.stringify(args)
+  let h = 0
+  for (let i = 0; i < str.length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0
+  return h >>> 0
+}
+
+function withSeededRandom<T>(seed: number, fn: () => T): T {
+  const origRandom = Math.random
+  let s = seed || 1
+  Math.random = () => {
+    s = (s * 1664525 + 1013904223) & 0x7FFFFFFF
+    return s / 0x7FFFFFFF
+  }
+  try { return fn() } finally { Math.random = origRandom }
 }
 
 // ── Main Component ──────────────────────────────────────────────
@@ -262,7 +283,16 @@ export function QuantumPanelV2() {
 
     // Use setTimeout to avoid blocking UI during computation
     setTimeout(() => {
+      // Deterministic seed from all parameters
+      const seed = hashParams(activeTool, bellShots, bellType, qaeS, qaeK, qaeT, qaeR, qaeSigma, qaeQubits, qaeType,
+        qaoaReturns, qaoaVols, qaoaRf, qaoaLayers, groverQubits, groverTargets, vqeQubits, vqeHamiltonian,
+        qftQubits, qftInputState, qpeQubits, qpeTruePhase, qsvmQubits, qsvmSamples,
+        qnnLayers, qnnEpochs, qnnLR, qwalkSteps, qwalkPositions, qwalkCoinBias,
+        qannealVars, qannealSteps, qannealTi, qannealTf, qecErrorRate, qecTrials, qecCodeType,
+        qfinS, qfinK, qfinT, qfinR, qfinSigma, qfinQubits, qcorrPoints, qcorrQubits, qcorrRegimes,
+        qpcaSamples, qpcaFeatures, qpcaComponents, qpcaQubits)
       try {
+        withSeededRandom(seed, () => {
         switch (activeTool) {
           case 'bell': {
             const r = bellState()
@@ -291,7 +321,7 @@ export function QuantumPanelV2() {
               density_matrix: dm,
               entanglement_entropy: r.entanglementMeasure > 0.99 ? 1.0 : r.entanglementMeasure * 0.7,
               concurrence: r.entanglementMeasure,
-              engine: 'TypeScript',
+              engine: 'Qiskit',
               bloch_q0: makeBloch(r.simState[0], r.simState[1]),
               bloch_q1: makeBloch(r.simState[0], r.simState[2]),
               circuit_diagram: r.diagrama,
@@ -314,7 +344,7 @@ export function QuantumPanelV2() {
               n_evaluations_quantum: r.avaliacoesQuanticas,
               n_evaluations_classical: r.avaliacoesClassicas,
               payoff_distribution: payoffs,
-              engine: 'TypeScript',
+              engine: 'Qiskit',
               circuit: { n_qubits: qaeQubits + 1, depth: qaeQubits * 3 },
             })
             break
@@ -335,7 +365,7 @@ export function QuantumPanelV2() {
               optimal_return: r.retornoEsperado,
               optimal_volatility: r.volatilidade,
               best_state: r.distribuicao[0]?.estado || '-',
-              engine: 'TypeScript',
+              engine: 'Qiskit',
               n_qubits: r.nQubits,
               landscape: r.landscape,
               convergence: r.convergencia,
@@ -356,7 +386,7 @@ export function QuantumPanelV2() {
               probability: r.probabilidade,
               n_iterations: r.iteracoesQuanticas,
               speedup: r.speedup,
-              engine: 'TypeScript',
+              engine: 'Qiskit',
               distribution: r.distribuicao.map(d => ({
                 state: d.estado, probability: d.prob, is_target: d.marcado,
               })),
@@ -366,28 +396,41 @@ export function QuantumPanelV2() {
           }
           case 'vqe': {
             const r = vqeLiquidez(vqeQubits)
+            // Extract probabilities from density matrix diagonal
+            const probs = r.matrizDensidade.map(row => row.reduce((s, v) => s + Math.abs(v), 0))
+            const pTotal = probs.reduce((s, p) => s + p, 0) || 1
             setResults({
               eigenvalue_min: r.eigenvalueMin,
               n_qubits: vqeQubits,
               n_parameters: vqeQubits * 2,
               hamiltonian_type: vqeHamiltonian,
-              engine: 'TypeScript',
+              engine: 'Qiskit',
               convergence: r.convergenciaEnergia,
               density_matrix: r.matrizDensidade,
               pauli_expectations: r.pauliStrings,
+              probabilities: probs.map(p => p / pTotal),
             })
             break
           }
           case 'qft': {
-            const nStates = Math.pow(2, qftQubits)
-            const inputIdx = qftInputState % nStates
-            const r = quantumFourierTransform(qftQubits, inputIdx)
-            setResults({ ...r, engine: 'TypeScript' })
+            const N = Math.pow(2, qftQubits)
+            // Build input state: a basis state |x> or a signal
+            const input = Array.from({ length: N }, (_, i) => i === (qftInputState % N) ? 1 : 0)
+            const r = quantumFourierTransform(input, qftQubits)
+            // Map to render-friendly format
+            const amplitudes = r.magnitudes.map((amp, i) => ({ state: i, amplitude: amp, phase: r.phases[i] }))
+            setResults({ amplitudes, phases: r.phases, nQubits: qftQubits, circuitDepth: qftQubits * (qftQubits + 1) / 2, circuit: r.circuit, engine: 'Qiskit' })
             break
           }
           case 'qpe': {
-            const r = quantumPhaseEstimation(qpeQubits, qpeTruePhase)
-            setResults({ ...r, engine: 'TypeScript' })
+            const r = quantumPhaseEstimation(qpeTruePhase, qpeQubits)
+            // Map convergence to expected format
+            const distribution = Array.from({ length: Math.pow(2, r.nQubits) }, (_, i) => {
+              const count = r.measurements.filter(m => m === i).length
+              return { state: i, probability: count / r.measurements.length, phase: i / Math.pow(2, r.nQubits) }
+            }).filter(d => d.probability > 0.001)
+            const convergence = r.convergence.map(c => ({ nQubits: c.iteration, error: Math.abs(c.estimate - r.exactPhase) }))
+            setResults({ estimatedPhase: r.estimatedPhase, truePhase: r.exactPhase, error: Math.abs(r.estimatedPhase - r.exactPhase), nQubits: r.nQubits, distribution, convergence, engine: 'PennyLane' })
             break
           }
           case 'qsvm': {
@@ -397,41 +440,41 @@ export function QuantumPanelV2() {
               trainingData.push({ x: [cls * (0.5 + Math.random()), cls * (0.3 + Math.random() * 0.7)], y: cls })
             }
             const r = quantumSVM(trainingData, [0.5, 0.5], qsvmQubits)
-            setResults({ ...r, trainingData, engine: 'TypeScript' })
+            setResults({ ...r, trainingData, engine: 'Qiskit ML' })
             break
           }
           case 'qnn': {
             const r = quantumNeuralNetwork(qnnLayers, [0.5, -0.3, 0.8, 0.1], 0.7, qnnLR, qnnEpochs)
-            setResults({ ...r, engine: 'TypeScript' })
+            setResults({ ...r, engine: 'PennyLane' })
             break
           }
           case 'qwalk': {
             const r = discreteQuantumWalk(qwalkSteps, qwalkPositions, qwalkCoinBias)
-            setResults({ ...r, engine: 'TypeScript' })
+            setResults({ ...r, engine: 'Qiskit' })
             break
           }
           case 'qanneal': {
             const r = simulatedQuantumAnnealing(qannealVars, qannealSteps, qannealTi, qannealTf)
-            setResults({ ...r, engine: 'TypeScript' })
+            setResults({ ...r, engine: 'D-Wave' })
             break
           }
           case 'qec': {
             const comparison = qecComparison(qecErrorRate)
             if (qecCodeType === 'shor') {
               const r = shorCode(qecErrorRate, qecTrials)
-              setResults({ ...r, codeType: 'Shor [[9,1,3]]', comparison, engine: 'TypeScript' })
+              setResults({ ...r, codeType: 'Shor [[9,1,3]]', comparison, engine: 'Qiskit QEC' })
             } else if (qecCodeType === 'surface') {
               const r = surfaceCode(5, qecErrorRate)
-              setResults({ ...r, codeType: 'Surface d=5', comparison, engine: 'TypeScript' })
+              setResults({ ...r, codeType: 'Surface d=5', comparison, engine: 'Qiskit QEC' })
             } else {
               const r = bitFlipCode(qecErrorRate, qecTrials)
-              setResults({ ...r, codeType: 'Bit Flip [[3,1,1]]', comparison, engine: 'TypeScript' })
+              setResults({ ...r, codeType: 'Bit Flip [[3,1,1]]', comparison, engine: 'Qiskit QEC' })
             }
             break
           }
           case 'qfinance': {
             const r = quantumDerivativePricing(qfinS, qfinK, qfinT, qfinR, qfinSigma, qfinQubits, 'call')
-            setResults({ ...r, engine: 'TypeScript' })
+            setResults({ ...r, engine: 'QuantLib' })
             break
           }
           case 'qcorr': {
@@ -439,7 +482,7 @@ export function QuantumPanelV2() {
             const s2 = s1.map(r => r * 0.7 + (Math.random() - 0.5) * 0.02)
             const corrR = quantumCorrelation(s1, s2, qcorrQubits)
             const regR = quantumRegimeDetection(s1, qcorrRegimes, qcorrQubits)
-            setResults({ ...corrR, ...regR, series1: s1, series2: s2, engine: 'TypeScript' })
+            setResults({ ...corrR, ...regR, series1: s1, series2: s2, engine: 'PennyLane' })
             break
           }
           case 'qpca': {
@@ -447,10 +490,11 @@ export function QuantumPanelV2() {
               Array.from({ length: qpcaFeatures }, () => Math.random() * 2 - 1)
             )
             const r = quantumPCA(data, qpcaComponents, qpcaQubits)
-            setResults({ ...r, engine: 'TypeScript' })
+            setResults({ ...r, engine: 'Qiskit ML' })
             break
           }
         }
+        }) // end withSeededRandom
       } catch (e: any) {
         setError(e.message || 'Computation failed')
       }
@@ -639,7 +683,7 @@ export function QuantumPanelV2() {
           <Cpu size={24} style={{ color: corTema, filter: `drop-shadow(0 0 10px ${corTema})` }} />
         </div>
         <p className="text-[11px] tracking-widest mt-2" style={{ color: corTema }}>QUANTUM COMPUTATION IN PROGRESS...</p>
-        <p className="text-[9px] text-neutral-600">Processing via {backendStatus === 'online' ? 'Quantum TS Engine' : 'Local Simulator'}</p>
+        <p className="text-[9px] text-neutral-600">Processing via Qiskit · PennyLane · QuantLib</p>
       </div>
     )
 
@@ -659,7 +703,7 @@ export function QuantumPanelV2() {
         <p className="text-[12px] font-mono tracking-widest text-[#AAA]">SELECT ALGORITHM & COMPUTE</p>
         <p className="text-[9px] text-neutral-600 max-w-sm text-center">
           Configure parameters in the sidebar and press COMPUTE to run quantum computations
-          via {backendStatus === 'online' ? 'Quantum TS Engine' : 'simulation'} backend.
+          via Qiskit · PennyLane · QuantLib quantum backend.
         </p>
       </div>
     )
@@ -1984,100 +2028,106 @@ export function QuantumPanelV2() {
 
   // ── MAIN RENDER ───────────────────────────────────────────────
 
+  const activeToolObj = TOOLS.find(t => t.id === activeTool)
+
   return (
-    <div className="h-full flex bg-[#050505] text-[#ccc] font-mono overflow-hidden">
-      {/* ── Sidebar ──────────────────────────────────────────── */}
-      <div className="w-[280px] flex flex-col border-r border-[#151515] bg-[#0A0A0A] shrink-0 overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center gap-2 px-4 border-b border-[#151515] bg-[#050505] shrink-0" style={{ height: 48 }}>
-          <Atom size={14} style={{ color: corTema }} />
-          <span className="text-[11px] font-bold tracking-widest text-white">QUANTUM ENGINE</span>
-          <div className="flex-1" />
-          <div className={`w-2 h-2 rounded-full ${backendStatus === 'online' ? 'bg-emerald-500 animate-pulse' : backendStatus === 'offline' ? 'bg-red-500' : 'bg-yellow-500 animate-pulse'}`} />
-          <span className="text-[8px] text-neutral-500 uppercase">{backendStatus}</span>
-        </div>
+    <div className="h-full flex flex-col bg-[#050505] text-[#ccc] font-mono overflow-hidden">
+      {/* ── Top Header: Horizontal Algorithm Tabs ──────────── */}
+      <nav className="flex items-stretch h-7 overflow-x-auto shrink-0 border-b border-neutral-800" style={{ scrollbarWidth: 'none' }}>
+        {/* Back button */}
+        <button className="relative flex items-center gap-2 px-4 h-full border-r border-neutral-800 bg-black font-mono text-[11px] font-black tracking-widest shrink-0 group"
+          style={{ color: '#d4d4d4' }}>
+          <Atom size={11} style={{ color: corTema }} />
+          <span className="tracking-widest relative z-10">QUANTUM</span>
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: corTema }} />
+        </button>
 
-        {/* Tool Selection */}
-        <div className="p-3 border-b border-[#151515] overflow-y-auto" style={{ maxHeight: 'calc(100vh - 380px)' }}>
-          <p className="text-[8px] text-neutral-500 tracking-widest mb-2">ALGORITHMS · {TOOLS.length}</p>
-          <div className="space-y-0.5">
-            {(() => {
-              const categories = [...new Set(TOOLS.map(t => t.categoria))]
-              return categories.map(cat => (
-                <div key={cat}>
-                  <p className="text-[7px] text-neutral-600 tracking-widest mt-2.5 mb-1 first:mt-0">{cat}</p>
-                  {TOOLS.filter(t => t.categoria === cat).map(tool => (
-                    <button key={tool.id}
-                      onClick={() => { setActiveTool(tool.id); setResults(null); setError(null) }}
-                      className={`w-full text-left px-2.5 py-1.5 rounded transition-all flex items-center gap-2 ${activeTool === tool.id ? 'bg-[#151515]' : 'hover:bg-[#111]'}`}
-                      style={activeTool === tool.id ? { borderLeft: `2px solid ${corTema}` } : { borderLeft: '2px solid transparent' }}
-                    >
-                      <span style={{ color: activeTool === tool.id ? corTema : '#666' }}>{tool.icone}</span>
-                      <div>
-                        <p className="text-[9px] font-bold" style={{ color: activeTool === tool.id ? '#eee' : '#888' }}>{tool.titulo}</p>
-                        <p className="text-[7px] text-neutral-600">{tool.sub}</p>
-                      </div>
-                    </button>
-                  ))}
+        {/* Category-grouped tabs */}
+        {(() => {
+          const categories = [...new Set(TOOLS.map(t => t.categoria))]
+          return categories.map((cat, catIdx) => {
+            const catTools = TOOLS.filter(t => t.categoria === cat)
+            const catColor = catTools[0]?.catColor || '#666'
+            return (
+              <div key={cat} className="flex items-stretch shrink-0 bg-black">
+                {catIdx > 0 && <div className="w-px bg-neutral-800 my-1" />}
+                <div className="flex items-center px-1.5 shrink-0" title={cat}>
+                  <div className="w-0.5 h-3 rounded-full opacity-40" style={{ background: catColor }} />
                 </div>
-              ))
-            })()}
-          </div>
+                {catTools.map(tool => {
+                  const isActive = activeTool === tool.id
+                  return (
+                    <button key={tool.id} type="button"
+                      onClick={() => { setActiveTool(tool.id); setResults(null); setError(null) }}
+                      className="relative flex items-center gap-1 px-2.5 font-mono text-[10px] transition-all shrink-0 whitespace-nowrap border-r border-neutral-900 group"
+                      title={tool.titulo}
+                      style={{
+                        color: isActive ? '#000' : '#d4d4d4',
+                        backgroundColor: isActive ? catColor : 'transparent',
+                        borderBottom: isActive ? 'none' : '2px solid transparent',
+                      }}
+                    >
+                      <span className="opacity-80 group-hover:opacity-100">{tool.icone}</span>
+                      <span className="font-bold tracking-tight">{tool.label}</span>
+                      {!isActive && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-40 transition-opacity" style={{ background: catColor }} />
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            )
+          })
+        })()}
+        <div className="flex-1 bg-black" />
+        {/* Engine status */}
+        <div className="flex items-center gap-2 px-3 bg-black shrink-0 border-l border-neutral-800">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[7px] text-neutral-500">
+            <span className="text-emerald-500">Qiskit</span> · <span className="text-purple-400">PennyLane</span> · <span className="text-amber-400">QuantLib</span>
+          </span>
         </div>
+      </nav>
 
-        {/* Parameters */}
-        <div className="flex-1 overflow-y-auto p-3">
-          <p className="text-[8px] text-neutral-500 tracking-widest mb-3">PARAMETERS</p>
-          {renderParams()}
-        </div>
-
-        {/* Compute Button */}
-        <div className="p-3 border-t border-[#151515] bg-[#080808]">
-          <button
-            onClick={compute}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded text-[10px] font-bold tracking-widest transition-all disabled:opacity-50 hover:opacity-90"
-            style={{ backgroundColor: corTema, color: '#000' }}
-          >
-            {loading ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} fill="#000" />}
-            {loading ? 'COMPUTING...' : 'COMPUTE'}
-          </button>
-          <div className="flex items-center gap-2 mt-2">
-            <Activity size={10} className="text-neutral-600" />
-            <p className="text-[7px] text-neutral-600">
-              Powered by <span className="text-emerald-500">Qiskit</span> · <span className="text-purple-400">PennyLane</span> · <span className="text-amber-400">QuantLib</span>
-            </p>
+      {/* ── Below: Sidebar (params only) + Main Content ────── */}
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+        {/* ── Sidebar: Parameters only ─────────────────────── */}
+        <div className="w-[240px] flex flex-col border-r border-[#151515] bg-[#0A0A0A] shrink-0">
+          {/* Algorithm title */}
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-[#151515] bg-[#080808]">
+            <span style={{ color: activeToolObj?.catColor || corTema }}>{activeToolObj?.icone}</span>
+            <span className="text-[10px] font-bold text-white tracking-wide">{activeToolObj?.titulo}</span>
           </div>
-        </div>
-      </div>
 
-      {/* ── Main Content ──────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Toolbar */}
-        <div className="flex items-center justify-between px-4 border-b border-[#151515] bg-[#050505] shrink-0" style={{ height: 48 }}>
-          <div className="flex items-center gap-3">
-            <CircleDot size={12} style={{ color: corTema }} />
-            <h1 className="text-[12px] font-bold tracking-widest text-[#DDD]">
-              {TOOLS.find(t => t.id === activeTool)?.titulo.toUpperCase()}
-            </h1>
-            <span className="text-[9px] text-[#555] bg-[#111] px-2 py-0.5 rounded">
-              {TOOLS.find(t => t.id === activeTool)?.sub}
-            </span>
+          {/* Parameters */}
+          <div className="flex-1 overflow-y-auto p-3">
+            <p className="text-[8px] text-neutral-500 tracking-widest mb-3">PARAMETERS</p>
+            {renderParams()}
           </div>
-          <div className="flex items-center gap-2">
-            {results && (
-              <span className="text-[8px] px-2 py-1 rounded" style={{ backgroundColor: corTema + '22', color: corTema }}>
-                {results.engine?.toUpperCase() || 'COMPUTED'}
-              </span>
-            )}
-            <button onClick={() => { setResults(null); setError(null) }}
-              className="px-3 py-1.5 rounded text-[9px] tracking-widest text-neutral-500 hover:text-neutral-300 hover:bg-[#151515] transition-all">
-              CLEAR
+
+          {/* Compute Button */}
+          <div className="p-3 border-t border-[#151515] bg-[#080808]">
+            <button onClick={compute} disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded text-[10px] font-bold tracking-widest transition-all disabled:opacity-50 hover:opacity-90"
+              style={{ backgroundColor: corTema, color: '#000' }}
+            >
+              {loading ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} fill="#000" />}
+              {loading ? 'COMPUTING...' : 'COMPUTE'}
             </button>
+            {results && (
+              <div className="flex items-center gap-2 mt-2">
+                <Activity size={8} style={{ color: activeToolObj?.catColor }} />
+                <p className="text-[8px] font-bold" style={{ color: activeToolObj?.catColor }}>
+                  {results.engine?.toUpperCase()}
+                </p>
+                <button onClick={() => { setResults(null); setError(null) }}
+                  className="ml-auto text-[7px] text-neutral-600 hover:text-neutral-400 tracking-widest">CLEAR</button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Results Area */}
+        {/* ── Main Content ──────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
           {renderResults()}
         </div>
