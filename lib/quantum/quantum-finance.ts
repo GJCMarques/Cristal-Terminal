@@ -145,20 +145,21 @@ export function quantumRegimeDetection(returns: number[], nRegimes: number, nQub
   const n = returns.length
   const sorted = [...returns].sort((a, b) => a - b)
   const means = Array.from({ length: nRegimes }, (_, i) => sorted[Math.floor((i + 0.5) * n / nRegimes)])
-  const vols = Array.from({ length: nRegimes }, () => desvioPadrao(returns))
+  const vols = Array.from({ length: nRegimes }, () => Math.max(desvioPadrao(returns), 1e-10))
   // EM iterations
   for (let iter = 0; iter < 30; iter++) {
     const assignments = returns.map(r => {
       let best = 0, bestDist = Infinity
       for (let k = 0; k < nRegimes; k++) {
-        const d = (r - means[k]) ** 2 / (vols[k] ** 2)
+        const safeVol = Math.max(vols[k], 1e-10)
+        const d = (r - means[k]) ** 2 / (safeVol ** 2)
         if (d < bestDist) { bestDist = d; best = k }
       }
       return best
     })
     for (let k = 0; k < nRegimes; k++) {
       const pts = returns.filter((_, i) => assignments[i] === k)
-      if (pts.length > 1) { means[k] = media(pts); vols[k] = desvioPadrao(pts) }
+      if (pts.length > 1) { means[k] = media(pts); vols[k] = Math.max(desvioPadrao(pts), 1e-10) }
     }
   }
   // Final assignment with probabilities
@@ -168,8 +169,9 @@ export function quantumRegimeDetection(returns: number[], nRegimes: number, nQub
     const probs: number[] = []
     let total = 0
     for (let k = 0; k < nRegimes; k++) {
-      const p = Math.exp(-0.5 * ((r - means[k]) / vols[k]) ** 2) / vols[k]
-      probs.push(p); total += p
+      const safeVol = Math.max(vols[k], 1e-10)
+      const p = Math.exp(-0.5 * ((r - means[k]) / safeVol) ** 2) / safeVol
+      probs.push(isFinite(p) ? p : 0); total += isFinite(p) ? p : 0
     }
     probabilities.push(probs.map(p => p / (total || 1)))
     regimes.push(probs.indexOf(Math.max(...probs)))

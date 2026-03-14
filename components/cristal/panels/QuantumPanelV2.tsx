@@ -138,6 +138,223 @@ function InputField({ label, value, onChange, type = 'number', min, max, step, o
   )
 }
 
+// ── Bell State selector with KaTeX formulas ───────────────────
+
+const BELL_STATES = [
+  { value: 'phi_plus',  label: '|Φ⁺⟩', tex: '|\\Phi^+\\rangle = \\frac{|00\\rangle + |11\\rangle}{\\sqrt{2}}' },
+  { value: 'phi_minus', label: '|Φ⁻⟩', tex: '|\\Phi^-\\rangle = \\frac{|00\\rangle - |11\\rangle}{\\sqrt{2}}' },
+  { value: 'psi_plus',  label: '|Ψ⁺⟩', tex: '|\\Psi^+\\rangle = \\frac{|01\\rangle + |10\\rangle}{\\sqrt{2}}' },
+  { value: 'psi_minus', label: '|Ψ⁻⟩', tex: '|\\Psi^-\\rangle = \\frac{|01\\rangle - |10\\rangle}{\\sqrt{2}}' },
+]
+
+function BellStateSelector({ value, onChange, corTema }: { value: string; onChange: (v: string) => void; corTema: string }) {
+  const [open, setOpen] = useState(false)
+  const selected = BELL_STATES.find(s => s.value === value) || BELL_STATES[0]
+
+  return (
+    <div>
+      <label className="text-[9px] text-[#888] block mb-1">Bell State</label>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="w-full bg-[#111] border border-[#222] text-left px-2.5 py-2 rounded font-mono flex items-center justify-between gap-2 hover:border-[#333] transition-colors"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[11px] font-bold shrink-0" style={{ color: corTema }}>{selected.label}</span>
+            <span className="text-[9px] text-[#666] truncate">
+              <MathFormula tex={selected.tex} />
+            </span>
+          </div>
+          <span className="text-[8px] text-[#555] shrink-0">{open ? '▲' : '▼'}</span>
+        </button>
+
+        {open && (
+          <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#0a0a0a] border border-[#222] rounded shadow-2xl overflow-hidden">
+            {BELL_STATES.map(state => {
+              const isActive = state.value === value
+              return (
+                <button
+                  key={state.value}
+                  type="button"
+                  onClick={() => { onChange(state.value); setOpen(false) }}
+                  className="w-full text-left px-2.5 py-2.5 flex items-center gap-2.5 hover:bg-[#151515] transition-colors border-b border-[#111] last:border-b-0"
+                  style={isActive ? { backgroundColor: '#111', borderLeft: `2px solid ${corTema}` } : { borderLeft: '2px solid transparent' }}
+                >
+                  <span className="text-[11px] font-bold shrink-0" style={{ color: isActive ? corTema : '#aaa' }}>
+                    {state.label}
+                  </span>
+                  <div className="text-[10px] overflow-x-auto" style={{ color: isActive ? '#ccc' : '#666' }}>
+                    <MathFormula tex={state.tex} />
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Bell Circuit Diagram with KaTeX gates ─────────────────────
+
+function BellCircuitDiagram({ bellType, corTema }: { bellType: string; corTema: string }) {
+  // Output state formula based on bell type
+  const outputTex: Record<string, string> = {
+    phi_plus:  '|\\Phi^+\\rangle = \\frac{|00\\rangle + |11\\rangle}{\\sqrt{2}}',
+    phi_minus: '|\\Phi^-\\rangle = \\frac{|00\\rangle - |11\\rangle}{\\sqrt{2}}',
+    psi_plus:  '|\\Psi^+\\rangle = \\frac{|01\\rangle + |10\\rangle}{\\sqrt{2}}',
+    psi_minus: '|\\Psi^-\\rangle = \\frac{|01\\rangle - |10\\rangle}{\\sqrt{2}}',
+  }
+
+  // Input states differ per bell type
+  const q0Input: Record<string, string> = {
+    phi_plus: '|0\\rangle', phi_minus: '|1\\rangle',
+    psi_plus: '|0\\rangle', psi_minus: '|1\\rangle',
+  }
+  const q1Input: Record<string, string> = {
+    phi_plus: '|0\\rangle', phi_minus: '|0\\rangle',
+    psi_plus: '|1\\rangle', psi_minus: '|1\\rangle',
+  }
+
+  // Gate widths
+  const gateW = 52, gateH = 36
+  const wireY0 = 50, wireY1 = 120
+  const startX = 100, gateX = 200, cnotX = 320, endX = 440, meterX = 500
+
+  return (
+    <div className="border border-neutral-800/80 rounded bg-[#080808] p-4 overflow-x-auto">
+      {/* Output state formula on top */}
+      <div className="flex justify-center mb-3">
+        <div className="px-4 py-1.5 rounded bg-[#0d0d0d] border border-neutral-800/60">
+          <MathFormula tex={outputTex[bellType] || outputTex.phi_plus} display />
+        </div>
+      </div>
+
+      <svg viewBox="0 0 580 170" className="w-full" style={{ maxHeight: 180, minHeight: 140 }}>
+        {/* Wires */}
+        <line x1={startX - 40} y1={wireY0} x2={meterX + 40} y2={wireY0} stroke="#333" strokeWidth={1.5} />
+        <line x1={startX - 40} y1={wireY1} x2={meterX + 40} y2={wireY1} stroke="#333" strokeWidth={1.5} />
+
+        {/* Qubit labels */}
+        <foreignObject x={2} y={wireY0 - 14} width={80} height={28}>
+          <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <span style={{ color: corTema, fontSize: 12, fontFamily: 'IBM Plex Mono, monospace', fontWeight: 700 }}>q₀</span>
+            <span style={{ color: '#555', fontSize: 10, margin: '0 4px' }}>:</span>
+            <MathFormula tex={q0Input[bellType] || '|0\\rangle'} />
+          </div>
+        </foreignObject>
+        <foreignObject x={2} y={wireY1 - 14} width={80} height={28}>
+          <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <span style={{ color: corTema, fontSize: 12, fontFamily: 'IBM Plex Mono, monospace', fontWeight: 700 }}>q₁</span>
+            <span style={{ color: '#555', fontSize: 10, margin: '0 4px' }}>:</span>
+            <MathFormula tex={q1Input[bellType] || '|0\\rangle'} />
+          </div>
+        </foreignObject>
+
+        {/* ── Hadamard Gate on q0 ──────────── */}
+        <rect x={gateX - gateW / 2} y={wireY0 - gateH / 2} width={gateW} height={gateH}
+          rx={4} fill="#111" stroke={corTema} strokeWidth={1.5} />
+        <foreignObject x={gateX - gateW / 2} y={wireY0 - gateH / 2} width={gateW} height={gateH}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <MathFormula tex="H" />
+          </div>
+        </foreignObject>
+
+        {/* Label under Hadamard */}
+        <foreignObject x={gateX - 50} y={wireY0 + gateH / 2 + 2} width={100} height={20}>
+          <div style={{ textAlign: 'center' }}>
+            <span style={{ color: '#444', fontSize: 7, fontFamily: 'IBM Plex Mono, monospace' }}>HADAMARD</span>
+          </div>
+        </foreignObject>
+
+        {/* ── CNOT Gate ──────────────────── */}
+        {/* Control dot on q0 */}
+        <circle cx={cnotX} cy={wireY0} r={6} fill={corTema} />
+        {/* Vertical line connecting control to target */}
+        <line x1={cnotX} y1={wireY0} x2={cnotX} y2={wireY1} stroke={corTema} strokeWidth={1.5} />
+        {/* Target circle on q1 */}
+        <circle cx={cnotX} cy={wireY1} r={14} fill="none" stroke={corTema} strokeWidth={1.5} />
+        {/* Plus inside target */}
+        <line x1={cnotX - 9} y1={wireY1} x2={cnotX + 9} y2={wireY1} stroke={corTema} strokeWidth={1.5} />
+        <line x1={cnotX} y1={wireY1 - 9} x2={cnotX} y2={wireY1 + 9} stroke={corTema} strokeWidth={1.5} />
+
+        {/* Label under CNOT */}
+        <foreignObject x={cnotX - 30} y={wireY1 + 18} width={60} height={20}>
+          <div style={{ textAlign: 'center' }}>
+            <span style={{ color: '#444', fontSize: 7, fontFamily: 'IBM Plex Mono, monospace' }}>CNOT</span>
+          </div>
+        </foreignObject>
+
+        {/* ── Measurement gates ────────── */}
+        {[wireY0, wireY1].map((wy, i) => (
+          <g key={i}>
+            <rect x={meterX - 16} y={wy - 16} width={32} height={32} rx={4} fill="#111" stroke="#555" strokeWidth={1} />
+            {/* Meter arc */}
+            <path d={`M${meterX - 8} ${wy + 6} A 10 10 0 0 1 ${meterX + 8} ${wy + 6}`} fill="none" stroke="#888" strokeWidth={1} />
+            {/* Meter needle */}
+            <line x1={meterX} y1={wy + 6} x2={meterX + 5} y2={wy - 7} stroke="#888" strokeWidth={1.2} />
+          </g>
+        ))}
+
+        {/* Classical double-line from meters to right */}
+        {[wireY0, wireY1].map((wy, i) => (
+          <g key={`cl-${i}`}>
+            <line x1={meterX + 16} y1={wy - 1} x2={meterX + 38} y2={wy - 1} stroke="#555" strokeWidth={1} />
+            <line x1={meterX + 16} y1={wy + 1} x2={meterX + 38} y2={wy + 1} stroke="#555" strokeWidth={1} />
+          </g>
+        ))}
+
+        {/* Classical bit labels */}
+        <foreignObject x={meterX + 38} y={wireY0 - 10} width={40} height={20}>
+          <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <MathFormula tex="c_0" />
+          </div>
+        </foreignObject>
+        <foreignObject x={meterX + 38} y={wireY1 - 10} width={40} height={20}>
+          <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <MathFormula tex="c_1" />
+          </div>
+        </foreignObject>
+
+        {/* Step annotations at top */}
+        <foreignObject x={gateX - 30} y={4} width={60} height={20}>
+          <div style={{ textAlign: 'center' }}>
+            <span style={{ color: '#333', fontSize: 8, fontFamily: 'IBM Plex Mono, monospace' }}>STEP 1</span>
+          </div>
+        </foreignObject>
+        <foreignObject x={cnotX - 30} y={4} width={60} height={20}>
+          <div style={{ textAlign: 'center' }}>
+            <span style={{ color: '#333', fontSize: 8, fontFamily: 'IBM Plex Mono, monospace' }}>STEP 2</span>
+          </div>
+        </foreignObject>
+        <foreignObject x={meterX - 30} y={4} width={60} height={20}>
+          <div style={{ textAlign: 'center' }}>
+            <span style={{ color: '#333', fontSize: 8, fontFamily: 'IBM Plex Mono, monospace' }}>MEDIR</span>
+          </div>
+        </foreignObject>
+      </svg>
+
+      {/* Gate math formulas at the bottom */}
+      <div className="grid grid-cols-3 gap-3 mt-3">
+        <div className="text-center px-2 py-1.5 rounded bg-[#0a0a0a] border border-neutral-800/40">
+          <p className="text-[7px] text-neutral-600 tracking-widest mb-1">HADAMARD</p>
+          <MathFormula tex="H = \frac{1}{\sqrt{2}} \begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}" />
+        </div>
+        <div className="text-center px-2 py-1.5 rounded bg-[#0a0a0a] border border-neutral-800/40">
+          <p className="text-[7px] text-neutral-600 tracking-widest mb-1">CNOT</p>
+          <MathFormula tex="CX = |0\rangle\langle 0| \otimes I + |1\rangle\langle 1| \otimes X" />
+        </div>
+        <div className="text-center px-2 py-1.5 rounded bg-[#0a0a0a] border border-neutral-800/40">
+          <p className="text-[7px] text-neutral-600 tracking-widest mb-1">UNITARY</p>
+          <MathFormula tex="U_{Bell} = CX \cdot (H \otimes I)" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Fixed chart colors — theme-independent ────────────────────
 const CHART_BLUE = '#3b82f6'
 const CHART_RED = '#ef4444'
@@ -175,10 +392,18 @@ function hashParams(...args: any[]): number {
 
 function withSeededRandom<T>(seed: number, fn: () => T): T {
   const origRandom = Math.random
-  let s = seed || 1
+  // xorshift128 — much better distribution than LCG
+  let s0 = (seed || 1) >>> 0
+  let s1 = (s0 * 1664525 + 1013904223) >>> 0
+  let s2 = (s1 * 1664525 + 1013904223) >>> 0
+  let s3 = (s2 * 1664525 + 1013904223) >>> 0
   Math.random = () => {
-    s = (s * 1664525 + 1013904223) & 0x7FFFFFFF
-    return s / 0x7FFFFFFF
+    const t = s3
+    let s = s0
+    s3 = s2; s2 = s1; s1 = s0
+    s ^= s << 11; s ^= s >>> 8; s ^= t; s ^= t >>> 19
+    s0 = s >>> 0
+    return (s0 >>> 0) / 4294967296
   }
   try { return fn() } finally { Math.random = origRandom }
 }
@@ -533,13 +758,7 @@ export function QuantumPanelV2() {
         return (
           <div className="space-y-3">
             <InputField label="Shots" value={bellShots} onChange={setBellShots} min={100} max={8192} step={100} />
-            <InputField label="Bell State" value={bellType} onChange={setBellType}
-              options={[
-                { value: 'phi_plus', label: '|Phi+> (|00>+|11>)/sqrt(2)' },
-                { value: 'phi_minus', label: '|Phi-> (|00>-|11>)/sqrt(2)' },
-                { value: 'psi_plus', label: '|Psi+> (|01>+|10>)/sqrt(2)' },
-                { value: 'psi_minus', label: '|Psi-> (|01>-|10>)/sqrt(2)' },
-              ]} />
+            <BellStateSelector value={bellType} onChange={setBellType} corTema={corTema} />
           </div>
         )
       case 'qae':
@@ -551,8 +770,30 @@ export function QuantumPanelV2() {
             <InputField label="Risk-Free Rate (r)" value={qaeR} onChange={setQaeR} min={0} max={0.2} step={0.005} />
             <InputField label="Volatility (sigma)" value={qaeSigma} onChange={setQaeSigma} min={0.05} max={1.0} step={0.01} />
             <InputField label="Qubits" value={qaeQubits} onChange={setQaeQubits} min={3} max={10} step={1} />
-            <InputField label="Type" value={qaeType} onChange={setQaeType}
-              options={[{ value: 'call', label: 'Call' }, { value: 'put', label: 'Put' }]} />
+            <div>
+              <label className="text-[9px] text-[#888] block mb-1">Option Type</label>
+              <div className="flex gap-1.5">
+                {[
+                  { value: 'call', label: 'CALL', tex: 'C = e^{-rT}\\mathbb{E}^Q[\\max(S_T - K, 0)]' },
+                  { value: 'put', label: 'PUT', tex: 'P = e^{-rT}\\mathbb{E}^Q[\\max(K - S_T, 0)]' },
+                ].map(opt => (
+                  <button key={opt.value} type="button"
+                    onClick={() => setQaeType(opt.value)}
+                    className="flex-1 px-2 py-2 rounded border text-left transition-colors"
+                    style={{
+                      backgroundColor: qaeType === opt.value ? '#111' : '#0a0a0a',
+                      borderColor: qaeType === opt.value ? corTema : '#222',
+                      borderLeft: qaeType === opt.value ? `2px solid ${corTema}` : '2px solid transparent',
+                    }}
+                  >
+                    <span className="text-[10px] font-bold block mb-0.5" style={{ color: qaeType === opt.value ? corTema : '#888' }}>{opt.label}</span>
+                    <div className="text-[8px]" style={{ color: qaeType === opt.value ? '#aaa' : '#555' }}>
+                      <MathFormula tex={opt.tex} />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )
       case 'qaoa':
@@ -586,12 +827,31 @@ export function QuantumPanelV2() {
         return (
           <div className="space-y-3">
             <InputField label="Qubits (n)" value={vqeQubits} onChange={setVqeQubits} min={2} max={8} step={1} />
-            <InputField label="Hamiltonian" value={vqeHamiltonian} onChange={setVqeHamiltonian}
-              options={[
-                { value: 'ising', label: 'Ising Model' },
-                { value: 'heisenberg', label: 'Heisenberg XXX' },
-                { value: 'portfolio', label: 'Portfolio (Financial)' },
-              ]} />
+            <div>
+              <label className="text-[9px] text-[#888] block mb-1">Hamiltonian</label>
+              <div className="space-y-1">
+                {[
+                  { value: 'ising', label: 'Ising Model', tex: 'H = -J\\sum_{\\langle i,j\\rangle} \\sigma_i^z \\sigma_j^z - h\\sum_i \\sigma_i^x' },
+                  { value: 'heisenberg', label: 'Heisenberg XXX', tex: 'H = -J\\sum_{\\langle i,j\\rangle} \\vec{\\sigma}_i \\cdot \\vec{\\sigma}_j' },
+                  { value: 'portfolio', label: 'Portfolio', tex: 'H = \\sum_{ij} Q_{ij} z_i z_j + \\sum_i c_i z_i' },
+                ].map(opt => (
+                  <button key={opt.value} type="button"
+                    onClick={() => setVqeHamiltonian(opt.value)}
+                    className="w-full px-2 py-1.5 rounded border text-left transition-colors"
+                    style={{
+                      backgroundColor: vqeHamiltonian === opt.value ? '#111' : '#0a0a0a',
+                      borderColor: vqeHamiltonian === opt.value ? corTema : '#222',
+                      borderLeft: vqeHamiltonian === opt.value ? `2px solid ${corTema}` : '2px solid transparent',
+                    }}
+                  >
+                    <span className="text-[9px] font-bold block" style={{ color: vqeHamiltonian === opt.value ? corTema : '#888' }}>{opt.label}</span>
+                    <div className="text-[8px] mt-0.5" style={{ color: vqeHamiltonian === opt.value ? '#aaa' : '#555' }}>
+                      <MathFormula tex={opt.tex} />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
             <InputField label="Ansatz Layers" value={vqeLayers} onChange={setVqeLayers} min={1} max={8} step={1} />
             <InputField label="Optimization Steps" value={vqeSteps} onChange={setVqeSteps} min={20} max={500} step={10} />
           </div>
@@ -647,12 +907,31 @@ export function QuantumPanelV2() {
           <div className="space-y-3">
             <InputField label="Physical Error Rate" value={qecErrorRate} onChange={setQecErrorRate} type="range" min={0.001} max={0.2} step={0.001} />
             <InputField label="Trials" value={qecTrials} onChange={setQecTrials} min={500} max={20000} step={500} />
-            <InputField label="QEC Code" value={qecCodeType} onChange={setQecCodeType}
-              options={[
-                { value: 'shor', label: 'Shor [[9,1,3]]' },
-                { value: 'surface', label: 'Surface Code d=5' },
-                { value: 'bitflip', label: 'Bit Flip [[3,1,1]]' },
-              ]} />
+            <div>
+              <label className="text-[9px] text-[#888] block mb-1">QEC Code</label>
+              <div className="space-y-1">
+                {[
+                  { value: 'shor', label: 'Shor [[9,1,3]]', tex: '|0_L\\rangle = (|000\\rangle + |111\\rangle)^{\\otimes 3}/2\\sqrt{2}' },
+                  { value: 'surface', label: 'Surface Code d=5', tex: 'p_L \\sim (p/p_{th})^{\\lceil d/2 \\rceil}' },
+                  { value: 'bitflip', label: 'Bit Flip [[3,1,1]]', tex: '|0_L\\rangle = |000\\rangle, \\; |1_L\\rangle = |111\\rangle' },
+                ].map(opt => (
+                  <button key={opt.value} type="button"
+                    onClick={() => setQecCodeType(opt.value)}
+                    className="w-full px-2 py-1.5 rounded border text-left transition-colors"
+                    style={{
+                      backgroundColor: qecCodeType === opt.value ? '#111' : '#0a0a0a',
+                      borderColor: qecCodeType === opt.value ? corTema : '#222',
+                      borderLeft: qecCodeType === opt.value ? `2px solid ${corTema}` : '2px solid transparent',
+                    }}
+                  >
+                    <span className="text-[9px] font-bold block" style={{ color: qecCodeType === opt.value ? corTema : '#888' }}>{opt.label}</span>
+                    <div className="text-[8px] mt-0.5" style={{ color: qecCodeType === opt.value ? '#aaa' : '#555' }}>
+                      <MathFormula tex={opt.tex} />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )
       case 'qfinance':
@@ -770,8 +1049,8 @@ export function QuantumPanelV2() {
 
         <div className="grid grid-cols-2 gap-3">
           <FormulaBlock
-            label="Bell State (Phi+)"
-            tex="|\\Phi^+\\rangle = \\frac{1}{\\sqrt{2}}(|00\\rangle + |11\\rangle)"
+            label={`Bell State (${BELL_STATES.find(s => s.value === bellType)?.label || '|Φ⁺⟩'})`}
+            tex={BELL_STATES.find(s => s.value === bellType)?.tex || BELL_STATES[0].tex}
           />
           <FormulaBlock
             label="Von Neumann Entropy"
@@ -868,14 +1147,48 @@ export function QuantumPanelV2() {
                           }
                           return traces
                         })(),
-                        // State vector
-                        {
-                          type: 'scatter3d', mode: 'lines+markers',
-                          x: [0, b.x], y: [0, b.y], z: [0, b.z],
-                          line: { color: CHART_CYAN, width: 4 },
-                          marker: { size: [2, 6], color: CHART_CYAN },
-                          showlegend: false,
-                        },
+                        // State vector — if near origin (mixed state), show sphere cloud
+                        ...(Math.abs(b.x) + Math.abs(b.y) + Math.abs(b.z) < 0.05 ? [
+                          // Mixed state — translucent sphere indicating uncertainty
+                          {
+                            type: 'surface',
+                            x: Array.from({ length: 20 }, (_, i) => Array.from({ length: 20 }, (_, j) => {
+                              const theta = (i / 19) * Math.PI
+                              const phi = (j / 19) * 2 * Math.PI
+                              return 0.4 * Math.sin(theta) * Math.cos(phi)
+                            })),
+                            y: Array.from({ length: 20 }, (_, i) => Array.from({ length: 20 }, (_, j) => {
+                              const theta = (i / 19) * Math.PI
+                              const phi = (j / 19) * 2 * Math.PI
+                              return 0.4 * Math.sin(theta) * Math.sin(phi)
+                            })),
+                            z: Array.from({ length: 20 }, (_, i) => Array.from({ length: 20 }, () => {
+                              const theta = (i / 19) * Math.PI
+                              return 0.4 * Math.cos(theta)
+                            })),
+                            colorscale: [[0, CHART_CYAN + '33'], [1, CHART_CYAN + '33']],
+                            showscale: false,
+                            opacity: 0.3,
+                            hoverinfo: 'none',
+                          },
+                          // Center point
+                          {
+                            type: 'scatter3d', mode: 'markers',
+                            x: [0], y: [0], z: [0],
+                            marker: { size: 6, color: CHART_CYAN, symbol: 'diamond' },
+                            showlegend: false,
+                            name: 'Mixed State (ρ = I/2)',
+                          },
+                        ] : [
+                          // Pure state — normal arrow
+                          {
+                            type: 'scatter3d', mode: 'lines+markers',
+                            x: [0, b.x], y: [0, b.y], z: [0, b.z],
+                            line: { color: CHART_CYAN, width: 4 },
+                            marker: { size: [2, 6], color: CHART_CYAN },
+                            showlegend: false,
+                          },
+                        ]),
                         // Axes
                         { type: 'scatter3d', mode: 'lines', x: [-1.2, 1.2], y: [0, 0], z: [0, 0], line: { color: '#444', width: 1 }, showlegend: false, hoverinfo: 'none' },
                         { type: 'scatter3d', mode: 'lines', x: [0, 0], y: [-1.2, 1.2], z: [0, 0], line: { color: '#444', width: 1 }, showlegend: false, hoverinfo: 'none' },
@@ -893,6 +1206,7 @@ export function QuantumPanelV2() {
                           camera: { eye: { x: 1.5, y: 1.5, z: 1 } },
                         },
                         margin: { l: 0, r: 0, t: 10, b: 0 },
+                        ...(Math.abs(b.x) + Math.abs(b.y) + Math.abs(b.z) < 0.05 ? { annotations: [{ text: 'ρ = I/2 (Mixed State)', showarrow: false, x: 0.5, y: 0.98, xref: 'paper', yref: 'paper', font: { size: 9, color: CHART_CYAN } }] } : {}),
                       } as any}
                       config={{ displayModeBar: false }}
                       style={{ width: '100%', height: 350 }}
@@ -904,15 +1218,11 @@ export function QuantumPanelV2() {
           </div>
         )}
 
-        {/* Circuit Diagram */}
-        {r.circuit_diagram && (
-          <div>
-            <SectionTitle title="QUANTUM CIRCUIT" corTema={corTema} />
-            <pre className="text-[10px] p-3 rounded border border-neutral-800/80 bg-[#080808] text-neutral-400 overflow-x-auto">
-              {r.circuit_diagram}
-            </pre>
-          </div>
-        )}
+        {/* Quantum Circuit — KaTeX rendered */}
+        <div>
+          <SectionTitle title="QUANTUM CIRCUIT" corTema={corTema} />
+          <BellCircuitDiagram bellType={bellType} corTema={corTema} />
+        </div>
       </div>
     )
   }
@@ -1016,22 +1326,36 @@ export function QuantumPanelV2() {
           </div>
         </div>
 
-        {/* Circuit info */}
-        {r.circuit && (
-          <div>
-            <SectionTitle title="QUANTUM CIRCUIT" corTema={corTema} />
-            <div className="grid grid-cols-3 gap-3 mb-3">
-              <MetricBox label="Qubits" valor={String(r.circuit.n_qubits)} sub="Register Size" corTema={corTema} />
-              <MetricBox label="Circuit Depth" valor={String(r.circuit.depth)} sub="Gate Layers" corTema={corTema} />
+        {/* Quantum Circuit — KaTeX */}
+        <div>
+          <SectionTitle title="QUANTUM CIRCUIT" corTema={corTema} />
+          <div className="border border-neutral-800/80 rounded bg-[#080808] p-4">
+            <div className="flex justify-center mb-3">
+              <div className="px-4 py-1.5 rounded bg-[#0d0d0d] border border-neutral-800/60">
+                <MathFormula tex={`\\text{QAE}_{${qaeQubits}} : \\mathcal{A}|0\\rangle^{\\otimes ${qaeQubits + 1}} \\xrightarrow{\\text{QPE}} \\tilde{a}`} display />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="text-center px-2 py-1.5 rounded bg-[#0a0a0a] border border-neutral-800/40">
+                <p className="text-[7px] text-neutral-600 tracking-widest mb-1">STATE PREP</p>
+                <MathFormula tex="\\mathcal{A}|0\\rangle = \\sqrt{1-a}|\\psi_0\\rangle|0\\rangle + \\sqrt{a}|\\psi_1\\rangle|1\\rangle" />
+              </div>
+              <div className="text-center px-2 py-1.5 rounded bg-[#0a0a0a] border border-neutral-800/40">
+                <p className="text-[7px] text-neutral-600 tracking-widest mb-1">GROVER ITERATE</p>
+                <MathFormula tex="\\mathcal{Q} = \\mathcal{A} S_0 \\mathcal{A}^\\dagger S_\\chi" />
+              </div>
+              <div className="text-center px-2 py-1.5 rounded bg-[#0a0a0a] border border-neutral-800/40">
+                <p className="text-[7px] text-neutral-600 tracking-widest mb-1">PHASE EST</p>
+                <MathFormula tex="\\text{QFT}^{-1}\\left(\\sum_k e^{2\\pi i k\\theta}|k\\rangle\\right)" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3 mt-2">
+              <MetricBox label="Qubits" valor={String(r.circuit?.n_qubits ?? qaeQubits + 1)} sub="Register Size" corTema={corTema} />
+              <MetricBox label="Circuit Depth" valor={String(r.circuit?.depth ?? qaeQubits * 3)} sub="Gate Layers" corTema={corTema} />
               <MetricBox label="Engine" valor={r.engine?.toUpperCase() || 'SIM'} sub="Backend" corTema={corTema} />
             </div>
-            {r.circuit.diagram && (
-              <pre className="text-[9px] p-3 rounded border border-neutral-800/80 bg-[#080808] text-neutral-400 overflow-x-auto max-h-[200px]">
-                {r.circuit.diagram}
-              </pre>
-            )}
           </div>
-        )}
+        </div>
       </div>
     )
   }
@@ -1277,15 +1601,35 @@ export function QuantumPanelV2() {
           </div>
         )}
 
-        {/* Circuit */}
-        {r.circuit_diagram && r.circuit_diagram !== 'Simulation mode' && (
-          <div>
-            <SectionTitle title="GROVER CIRCUIT" corTema={corTema} />
-            <pre className="text-[9px] p-3 rounded border border-neutral-800/80 bg-[#080808] text-neutral-400 overflow-x-auto max-h-[200px]">
-              {r.circuit_diagram}
-            </pre>
+        {/* Grover Circuit — KaTeX */}
+        <div>
+          <SectionTitle title="GROVER CIRCUIT" corTema={corTema} />
+          <div className="border border-neutral-800/80 rounded bg-[#080808] p-4 overflow-x-auto">
+            <div className="flex justify-center mb-3">
+              <div className="px-4 py-1.5 rounded bg-[#0d0d0d] border border-neutral-800/60">
+                <MathFormula tex={`G^{${r.n_iterations}} = \\left[(2|\\psi\\rangle\\langle\\psi| - I) \\cdot O_f\\right]^{${r.n_iterations}}`} display />
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-3">
+              <div className="text-center px-2 py-1.5 rounded bg-[#0a0a0a] border border-neutral-800/40">
+                <p className="text-[7px] text-neutral-600 tracking-widest mb-1">INIT</p>
+                <MathFormula tex={`H^{\\otimes ${groverQubits}}|0\\rangle^{${groverQubits}}`} />
+              </div>
+              <div className="text-center px-2 py-1.5 rounded bg-[#0a0a0a] border border-neutral-800/40">
+                <p className="text-[7px] text-neutral-600 tracking-widest mb-1">ORACLE</p>
+                <MathFormula tex="O_f|x\\rangle = (-1)^{f(x)}|x\\rangle" />
+              </div>
+              <div className="text-center px-2 py-1.5 rounded bg-[#0a0a0a] border border-neutral-800/40">
+                <p className="text-[7px] text-neutral-600 tracking-widest mb-1">DIFFUSION</p>
+                <MathFormula tex="D = 2|\\psi\\rangle\\langle\\psi| - I" />
+              </div>
+              <div className="text-center px-2 py-1.5 rounded bg-[#0a0a0a] border border-neutral-800/40">
+                <p className="text-[7px] text-neutral-600 tracking-widest mb-1">MEASURE</p>
+                <MathFormula tex="\\mathcal{M}_{\\{|0\\rangle,|1\\rangle\\}}^{\\otimes n}" />
+              </div>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     )
   }
@@ -1308,7 +1652,7 @@ export function QuantumPanelV2() {
         <div className="grid grid-cols-2 gap-3">
           <FormulaBlock
             label="Variational Principle"
-            tex="E_0 \\leq \\langle\\psi(\\theta)|H|\\psi(\\theta)\\rangle = \\text{min}_\\theta \\; \\text{Tr}(H\\rho_\\theta)"
+            tex="E_0 \\leq \\langle\\psi(\\boldsymbol{\\theta})\\rvert \\hat{H} \\lvert\\psi(\\boldsymbol{\\theta})\\rangle = \\min_{\\boldsymbol{\\theta}} \\text{Tr}(\\hat{H}\\rho_{\\boldsymbol{\\theta}})"
           />
           <FormulaBlock
             label="Heisenberg Hamiltonian"
@@ -1469,8 +1813,9 @@ export function QuantumPanelV2() {
             <Plot data={[{
               z: (() => { const n = Math.ceil(Math.sqrt(amps.length)); return Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => { const idx = i * n + j; return idx < amps.length ? amps[idx].amplitude : 0 })) })(),
               type: 'surface', colorscale: VIRIDIS, showscale: false,
+              contours: { z: { show: true, usecolormap: true, highlightcolor: '#fff', project: { z: true } } },
             }]}
-            layout={{ ...PLOTLY_LAYOUT_BASE, height: 450, scene: { ...PLOTLY_3D_SCENE, camera: { eye: { x: 1.5, y: 1.5, z: 1.0 } } }, margin: { l: 0, r: 0, t: 10, b: 0 } } as any}
+            layout={{ ...PLOTLY_LAYOUT_BASE, height: 450, scene: { ...PLOTLY_3D_SCENE, camera: { eye: { x: 1.5, y: 1.5, z: 1.0 } }, xaxis: { ...PLOTLY_3D_SCENE.xaxis, title: 'State (row)' }, yaxis: { ...PLOTLY_3D_SCENE.yaxis, title: 'State (col)' }, zaxis: { ...PLOTLY_3D_SCENE.zaxis, title: 'Amplitude', range: [0, Math.max(...amps.map((a: any) => a.amplitude)) * 1.2 || 0.5] } }, margin: { l: 0, r: 0, t: 10, b: 0 } } as any}
             config={{ displayModeBar: false }} style={{ width: '100%', height: 450 }} />
           </div>
         )}
@@ -1546,7 +1891,7 @@ export function QuantumPanelV2() {
           <MetricBox label="Circuit Depth" valor={String(r.circuitDepth)} sub="Qiskit Feature Map" corTema={corTema} />
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <FormulaBlock label="Quantum Kernel" tex="K_Q(x,y) = |\\langle\\phi(x)|\\phi(y)\\rangle|^2 = |\\langle 0|U^\\dagger(x)U(y)|0\\rangle|^2" />
+          <FormulaBlock label="Quantum Kernel" tex="K_Q(\\mathbf{x}, \\mathbf{y}) = \\left|\\langle\\phi(\\mathbf{x})\\middle|\\phi(\\mathbf{y})\\rangle\\right|^2" />
           <FormulaBlock label="Feature Map" tex="U(x) = \\prod_{i} e^{-ix_i Z_i/2} \\prod_{i<j} e^{-i(\\pi-x_i)(\\pi-x_j)Z_iZ_j}" />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -1765,9 +2110,12 @@ export function QuantumPanelV2() {
                 x: r.optimalSolution.map((_: any, i: number) => `x_${i}`),
                 y: r.optimalSolution,
                 type: 'bar',
-                marker: { color: r.optimalSolution.map((v: number) => v === 1 ? CHART_GREEN : '#333') },
+                marker: { color: r.optimalSolution.map((v: number) => v > 0.5 ? CHART_GREEN : '#555'), line: { color: r.optimalSolution.map((v: number) => v > 0.5 ? CHART_GREEN : '#333'), width: 1 } },
+                text: r.optimalSolution.map((v: number) => v > 0.5 ? '1' : '0'),
+                textposition: 'outside',
+                textfont: { size: 9, color: '#ccc' },
               }]}
-              layout={{ ...PLOTLY_LAYOUT_BASE, height: 280, bargap: 0.3 } as any}
+              layout={{ ...PLOTLY_LAYOUT_BASE, height: 280, bargap: 0.3, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, range: [-0.1, 1.3] } } as any}
               config={{ displayModeBar: false }} style={{ width: '100%', height: 280 }} />
             )}
           </div>
@@ -1950,20 +2298,29 @@ export function QuantumPanelV2() {
             )}
           </div>
         </div>
-        {r.transitions && (
+        {r.transitions && r.transitions.length > 0 && (
           <div>
             <SectionTitle title="REGIME TRANSITION MATRIX" corTema={corTema} />
-            {isClient && (
-              <Plot data={[{
-                z: r.transitions,
-                type: 'heatmap', colorscale: VIRIDIS,
-                showscale: true, colorbar: { tickfont: { size: 7 }, len: 0.5 },
-                text: r.transitions.map((row: number[]) => row.map((v: number) => v.toFixed(2))),
-                texttemplate: '%{text}', textfont: { size: 8 },
-              }]}
-              layout={{ ...PLOTLY_LAYOUT_BASE, height: 350, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'To Regime', font: { size: 8 } } }, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'From Regime', font: { size: 8 } } } } as any}
-              config={{ displayModeBar: false }} style={{ width: '100%', height: 350 }} />
-            )}
+            {isClient && (() => {
+              const nRegimes = r.transitions.length
+              const labels = Array.from({ length: nRegimes }, (_, i) => `R${i}`)
+              // Replace NaN/undefined with 0
+              const cleanTransitions = r.transitions.map((row: number[]) => row.map((v: number) => isNaN(v) || v === undefined ? 0 : v))
+              return (
+                <Plot data={[{
+                  z: cleanTransitions,
+                  x: labels,
+                  y: labels,
+                  type: 'heatmap', colorscale: VIRIDIS,
+                  showscale: true, colorbar: { tickfont: { size: 7 }, len: 0.5 },
+                  text: cleanTransitions.map((row: number[]) => row.map((v: number) => v.toFixed(2))),
+                  texttemplate: '%{text}', textfont: { size: 10, color: '#fff' },
+                  hoverongaps: false,
+                }]}
+                layout={{ ...PLOTLY_LAYOUT_BASE, height: 350, xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'To Regime', font: { size: 8 } }, tickvals: Array.from({ length: nRegimes }, (_, i) => i), ticktext: labels }, yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'From Regime', font: { size: 8 } }, tickvals: Array.from({ length: nRegimes }, (_, i) => i), ticktext: labels, autorange: 'reversed' } } as any}
+                config={{ displayModeBar: false }} style={{ width: '100%', height: 350 }} />
+              )
+            })()}
           </div>
         )}
       </div>
