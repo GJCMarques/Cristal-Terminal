@@ -275,6 +275,19 @@ export function QuantumPanelV2() {
   // Backend always online — using local TS quantum engine
   useEffect(() => { setBackendStatus('online') }, [])
 
+  // Listen for tab changes from QuantumHeader
+  useEffect(() => {
+    const onTabChange = (e: any) => {
+      if (e.detail) {
+        setActiveTool(e.detail as ToolId)
+        setResults(null)
+        setError(null)
+      }
+    }
+    window.addEventListener('quantum-tab-change', onTabChange)
+    return () => window.removeEventListener('quantum-tab-change', onTabChange)
+  }, [])
+
   // ── Compute handler — runs TS quantum algorithms directly ──
   const compute = useCallback(() => {
     setLoading(true)
@@ -2032,64 +2045,7 @@ export function QuantumPanelV2() {
 
   return (
     <div className="h-full flex flex-col bg-[#050505] text-[#ccc] font-mono overflow-hidden">
-      {/* ── Top Header: Horizontal Algorithm Tabs ──────────── */}
-      <nav className="flex items-stretch h-7 overflow-x-auto shrink-0 border-b border-neutral-800" style={{ scrollbarWidth: 'none' }}>
-        {/* Back button */}
-        <button className="relative flex items-center gap-2 px-4 h-full border-r border-neutral-800 bg-black font-mono text-[11px] font-black tracking-widest shrink-0 group"
-          style={{ color: '#d4d4d4' }}>
-          <Atom size={11} style={{ color: corTema }} />
-          <span className="tracking-widest relative z-10">QUANTUM</span>
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: corTema }} />
-        </button>
-
-        {/* Category-grouped tabs */}
-        {(() => {
-          const categories = [...new Set(TOOLS.map(t => t.categoria))]
-          return categories.map((cat, catIdx) => {
-            const catTools = TOOLS.filter(t => t.categoria === cat)
-            const catColor = catTools[0]?.catColor || '#666'
-            return (
-              <div key={cat} className="flex items-stretch shrink-0 bg-black">
-                {catIdx > 0 && <div className="w-px bg-neutral-800 my-1" />}
-                <div className="flex items-center px-1.5 shrink-0" title={cat}>
-                  <div className="w-0.5 h-3 rounded-full opacity-40" style={{ background: catColor }} />
-                </div>
-                {catTools.map(tool => {
-                  const isActive = activeTool === tool.id
-                  return (
-                    <button key={tool.id} type="button"
-                      onClick={() => { setActiveTool(tool.id); setResults(null); setError(null) }}
-                      className="relative flex items-center gap-1 px-2.5 font-mono text-[10px] transition-all shrink-0 whitespace-nowrap border-r border-neutral-900 group"
-                      title={tool.titulo}
-                      style={{
-                        color: isActive ? '#000' : '#d4d4d4',
-                        backgroundColor: isActive ? catColor : 'transparent',
-                        borderBottom: isActive ? 'none' : '2px solid transparent',
-                      }}
-                    >
-                      <span className="opacity-80 group-hover:opacity-100">{tool.icone}</span>
-                      <span className="font-bold tracking-tight">{tool.label}</span>
-                      {!isActive && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-40 transition-opacity" style={{ background: catColor }} />
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            )
-          })
-        })()}
-        <div className="flex-1 bg-black" />
-        {/* Engine status */}
-        <div className="flex items-center gap-2 px-3 bg-black shrink-0 border-l border-neutral-800">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-[7px] text-neutral-500">
-            <span className="text-emerald-500">Qiskit</span> · <span className="text-purple-400">PennyLane</span> · <span className="text-amber-400">QuantLib</span>
-          </span>
-        </div>
-      </nav>
-
-      {/* ── Below: Sidebar (params only) + Main Content ────── */}
+      {/* ── Sidebar (params) + Main Content ────── */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* ── Sidebar: Parameters only ─────────────────────── */}
         <div className="w-[240px] flex flex-col border-r border-[#151515] bg-[#0A0A0A] shrink-0">

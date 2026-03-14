@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import {
-    Globe, TrendingUp, Shield, Zap, Keyboard, LayoutGrid, Bell, Check, Atom, BarChart2, Layers, Network
+    Globe, TrendingUp, Shield, Zap, Keyboard, LayoutGrid, Bell, Check, Atom, BarChart2, Layers, Network,
+    Waves, Calculator, Brain, Sparkles, Flame, Search, Footprints, ShieldCheck, Banknote, GitBranch
 } from 'lucide-react'
 import { useTerminalStore } from '@/store/terminal.store'
 import { corParaTema, CORES_TEMA } from '@/lib/utils'
 import { UserButton } from '../../UserButton'
 import { LocaleSelector } from '../../LocaleSelector'
 
-type DemoId = 'bell' | 'qae-opcao' | 'qaoa' | 'grover' | 'quantum-var' | 'vqe-liquidez'
+// ToolIds must match QuantumPanelV2's ToolId type
+type ToolId = 'bell' | 'qae' | 'qaoa' | 'grover' | 'vqe' | 'qft' | 'qpe' | 'qsvm' | 'qnn' | 'qwalk' | 'qanneal' | 'qec' | 'qfinance' | 'qcorr' | 'qpca'
 
 interface TabDef {
     vista?: string
-    demo?: DemoId
+    demo?: ToolId
     label: string
     tecla: string
     icone?: React.ReactNode
@@ -31,14 +33,17 @@ const GRUPOS_TABS: GrupoTabs[] = [
         cor: '#3B82F6',
         tabs: [
             { demo: 'bell', label: 'EPR', tecla: '', icone: <Atom size={10} /> },
+            { demo: 'qft', label: 'QFT', tecla: '', icone: <Waves size={10} /> },
+            { demo: 'qpe', label: 'QPE', tecla: '', icone: <Calculator size={10} /> },
         ],
     },
     {
         grupo: 'MACHINE LEARNING',
         cor: '#EAB308',
         tabs: [
-            { demo: 'q-gan' as any, label: 'Q-GAN', tecla: '', icone: <Network size={10} /> },
-            { demo: 'tensor' as any, label: 'TENSOR', tecla: '', icone: <LayoutGrid size={10} /> },
+            { demo: 'qsvm', label: 'QSVM', tecla: '', icone: <Brain size={10} /> },
+            { demo: 'qnn', label: 'QNN', tecla: '', icone: <Network size={10} /> },
+            { demo: 'qpca', label: 'QPCA', tecla: '', icone: <Sparkles size={10} /> },
         ],
     },
     {
@@ -49,27 +54,55 @@ const GRUPOS_TABS: GrupoTabs[] = [
         ],
     },
     {
+        grupo: 'OPTIMIZATION',
+        cor: '#F97316',
+        tabs: [
+            { demo: 'qanneal', label: 'ANNEAL', tecla: '', icone: <Flame size={10} /> },
+        ],
+    },
+    {
         grupo: 'RISCO',
         cor: '#F97316',
         tabs: [
-            { demo: 'quantum-var', label: 'Q-VAR', tecla: '', icone: <BarChart2 size={10} /> },
-            { demo: 'grover', label: 'GROVER', tecla: '', icone: <Shield size={10} /> },
+            { demo: 'grover', label: 'GROVER', tecla: '', icone: <Search size={10} /> },
         ],
     },
     {
         grupo: 'DERIVATIVOS',
         cor: '#8B5CF6',
         tabs: [
-            { demo: 'qae-opcao', label: 'QAE', tecla: '', icone: <Zap size={10} /> },
+            { demo: 'qae', label: 'QAE', tecla: '', icone: <Zap size={10} /> },
+            { demo: 'qfinance', label: 'Q-PRICE', tecla: '', icone: <Banknote size={10} /> },
         ],
     },
     {
         grupo: 'LIQUIDEZ',
         cor: '#06B6D4',
         tabs: [
-            { demo: 'vqe-liquidez', label: 'VQE', tecla: '', icone: <Layers size={10} /> },
+            { demo: 'vqe', label: 'VQE', tecla: '', icone: <Layers size={10} /> },
         ],
-    }
+    },
+    {
+        grupo: 'ALGORITMOS',
+        cor: '#06B6D4',
+        tabs: [
+            { demo: 'qwalk', label: 'WALK', tecla: '', icone: <Footprints size={10} /> },
+        ],
+    },
+    {
+        grupo: 'HARDWARE',
+        cor: '#64748B',
+        tabs: [
+            { demo: 'qec', label: 'QEC', tecla: '', icone: <ShieldCheck size={10} /> },
+        ],
+    },
+    {
+        grupo: 'FINANÇAS',
+        cor: '#EC4899',
+        tabs: [
+            { demo: 'qcorr', label: 'Q-CORR', tecla: '', icone: <GitBranch size={10} /> },
+        ],
+    },
 ]
 
 export function QuantumHeader() {
@@ -85,8 +118,8 @@ export function QuantumHeader() {
     const [data, setData] = useState('')
     const [mostrarTemas, setMostrarTemas] = useState(false)
 
-    // Local state to feedback selected tab, just visual
-    const [activeDemo, setActiveDemo] = useState<DemoId | null>('bell')
+    // Local state to feedback selected tab — syncs with QuantumPanelV2
+    const [activeDemo, setActiveDemo] = useState<ToolId | null>('bell')
 
     // null = a carregar do DB, true = ligado, false = desligado
     const [engineLigado, setEngineLigado] = useState<boolean | null>(null)
