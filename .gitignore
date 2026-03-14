@@ -32,3 +32,6 @@ venv/
 
 # database (local SQLite — não versionar dados)
 /data/cristal.db
+
+# Programa de referenciamento de dados geográficos (QGIS)
+/worldmonitor-main
